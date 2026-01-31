@@ -408,7 +408,7 @@ export default function Schedule() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 w-full overflow-hidden">
       <div className="sm:flex sm:items-center sm:justify-between">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Schedule</h1>
@@ -522,7 +522,7 @@ export default function Schedule() {
                                 </span>
                                 {shift.swapped_with_user_id && (
                                   <div className="text-xs text-gray-500 mt-1 truncate" title={`Swapped with ${swappedUserNames[shift.swapped_with_user_id] || 'Unknown'}`}>
-                                    â {swappedUserNames[shift.swapped_with_user_id]?.split(' ')[0] || '?'}
+                                    Ã¢ÂÂ {swappedUserNames[shift.swapped_with_user_id]?.split(' ')[0] || '?'}
                                   </div>
                                 )}
                               </div>
@@ -739,7 +739,7 @@ export default function Schedule() {
         <div className="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg shadow-xl max-w-md w-full mx-4 p-6">
             <h3 className="text-lg font-medium text-gray-900 mb-4">
-              {editingShift.shiftId ? 'Edit Shift' : 'Add Shift'}
+              {editingShift.existingLeave ? 'Edit Leave/Shift' : editingShift.shiftId ? 'Edit Shift' : 'Add Shift/Leave'}
             </h3>
             <p className="text-sm text-gray-500 mb-4">
               Date: {format(new Date(editingShift.date), 'EEEE, MMMM d, yyyy')}
@@ -764,6 +764,50 @@ export default function Schedule() {
                   </button>
                 ))}
               </div>
+            </div>
+
+            {/* Leave Type Assignment */}
+            <div className="space-y-3 mt-4 pt-4 border-t border-gray-200">
+              <label className="block text-sm font-medium text-gray-700">Or Assign Leave</label>
+              <div className="grid grid-cols-2 gap-3">
+                {loadingLeaveTypes ? (
+                  <div className="col-span-2 text-center text-sm text-gray-500">Loading leave types...</div>
+                ) : leaveTypes.filter(lt => lt.is_active !== false).length === 0 ? (
+                  <div className="col-span-2 text-center text-sm text-gray-500">No leave types available</div>
+                ) : (
+                  leaveTypes.filter(lt => lt.is_active !== false).map(leaveType => (
+                    <button
+                      key={leaveType.id}
+                      onClick={() => {
+                        setSelectedLeaveType(leaveType.name as LeaveType)
+                        setSelectedShiftType(null as any)
+                      }}
+                      className={`p-3 rounded-lg border-2 transition-colors ${
+                        selectedLeaveType === leaveType.name
+                          ? 'border-primary-500 bg-primary-50'
+                          : 'border-gray-200 hover:border-gray-300'
+                      }`}
+                    >
+                      <span className={`inline-flex items-center px-2 py-1 rounded text-xs font-medium ${
+                        leaveColors[leaveType.name as LeaveType] || 'bg-gray-100 text-gray-800'
+                      }`}>
+                        {leaveLabels[leaveType.name as LeaveType] || leaveType.label}
+                      </span>
+                    </button>
+                  ))
+                )}
+              </div>
+              {selectedLeaveType && (
+                <button
+                  onClick={() => {
+                    setSelectedLeaveType(null)
+                    setSelectedShiftType('AM')
+                  }}
+                  className="text-sm text-gray-500 hover:text-gray-700 underline"
+                >
+                  Clear leave selection
+                </button>
+              )}
             </div>
 
             <div className="mt-6 flex justify-between">
