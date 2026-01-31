@@ -9,6 +9,9 @@ import LeaveRequests from './pages/LeaveRequests'
 import SwapRequests from './pages/SwapRequests'
 import CreateLeaveRequest from './pages/CreateLeaveRequest'
 import CreateSwapRequest from './pages/CreateSwapRequest'
+import LeaveRequestDetail from './pages/LeaveRequestDetail'
+import SwapRequestDetail from './pages/SwapRequestDetail'
+import Settings from './pages/Settings'
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth()
@@ -71,14 +74,14 @@ function App() {
               <LeaveRequests />
             </ProtectedRoute>
           } />
-          <Route path="/leave-requests/create" element={
+          <Route path="/leave-requests/new" element={
             <ProtectedRoute>
               <CreateLeaveRequest />
             </ProtectedRoute>
           } />
           <Route path="/leave-requests/:id" element={
             <ProtectedRoute>
-              <div>Leave Request Details (Coming Soon)</div>
+              <LeaveRequestDetail />
             </ProtectedRoute>
           } />
           <Route path="/swap-requests" element={
@@ -86,14 +89,19 @@ function App() {
               <SwapRequests />
             </ProtectedRoute>
           } />
-          <Route path="/swap-requests/create" element={
+          <Route path="/swap-requests/new" element={
             <ProtectedRoute>
               <CreateSwapRequest />
             </ProtectedRoute>
           } />
           <Route path="/swap-requests/:id" element={
             <ProtectedRoute>
-              <div>Swap Request Details (Coming Soon)</div>
+              <SwapRequestDetail />
+            </ProtectedRoute>
+          } />
+          <Route path="/settings" element={
+            <ProtectedRoute>
+              <Settings />
             </ProtectedRoute>
           } />
           <Route path="/" element={<Navigate to="/dashboard" replace />} />
