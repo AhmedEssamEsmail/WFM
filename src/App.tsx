@@ -109,6 +109,11 @@ function App() {
               <CreateLeaveRequest />
             </ProtectedRoute>
           } />
+          <Route path="/leave-requests/create" element={
+            <ProtectedRoute>
+              <CreateLeaveRequest />
+            </ProtectedRoute>
+          } />
           <Route path="/leave-requests/:id" element={
             <ProtectedRoute>
               <LeaveRequestDetail />
@@ -120,6 +125,11 @@ function App() {
             </ProtectedRoute>
           } />
           <Route path="/swap-requests/new" element={
+            <ProtectedRoute>
+              <CreateSwapRequest />
+            </ProtectedRoute>
+          } />
+          <Route path="/swap-requests/create" element={
             <ProtectedRoute>
               <CreateSwapRequest />
             </ProtectedRoute>
