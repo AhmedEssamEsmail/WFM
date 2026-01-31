@@ -44,6 +44,7 @@ export interface LeaveRequest {
   leave_type: LeaveType
   start_date: string
   end_date: string
+  notes: string | null
   status: LeaveRequestStatus
   tl_approved_at: string | null
   wfm_approved_at: string | null
