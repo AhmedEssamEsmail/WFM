@@ -92,7 +92,7 @@ export default function Schedule() {
   const [leaveTypes, setLeaveTypes] = useState<LeaveTypeConfig[]>([])
   const [loadingLeaveTypes, setLoadingLeaveTypes] = useState(false)
   const [editingLeaveType, setEditingLeaveType] = useState<LeaveTypeConfig | null>(null)
-  const [newLeaveType, setNewLeaveType] = useState({ label: '', is_active: true })
+  const [newLeaveType, setNewLeaveType] = useState({ label: '', color: 'gray', is_active: true })
   const [showAddLeaveType, setShowAddLeaveType] = useState(false)
 
   const canEdit = user?.role === 'tl' || user?.role === 'wfm'
@@ -276,7 +276,7 @@ export default function Schedule() {
             leave_type: labelToLeaveTypeEnum[selectedLeaveType] || selectedLeaveType,
             start_date: editingShift.date,
             end_date: editingShift.date,
-            reason: 'Assigned by TL/WFM from schedule',
+            notes: 'Assigned by TL/WFM from schedule',
             status: 'approved'
           })
 
@@ -388,13 +388,14 @@ export default function Schedule() {
         .from('leave_types')
         .insert({
           label: newLeaveType.label,
+          color: newLeaveType.color,
           is_active: newLeaveType.is_active
         })
 
       if (error) throw error
 
       await fetchLeaveTypes()
-      setNewLeaveType({ label: '', is_active: true })
+      setNewLeaveType({ label: '', color: 'gray', is_active: true })
       setShowAddLeaveType(false)
     } catch (error) {
       console.error('Error adding leave type:', error)
@@ -543,7 +544,7 @@ export default function Schedule() {
                                 </span>
                                 {shift.swapped_with_user_id && (
                                   <div className="text-xs text-gray-500 mt-1 truncate" title={`Swapped with ${swappedUserNames[shift.swapped_with_user_id] || 'Unknown'}`}>
-                                    ÃÂÃÂ¢ÃÂÃÂÃÂÃÂ {swappedUserNames[shift.swapped_with_user_id]?.split(' ')[0] || '?'}
+                                    ÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂ {swappedUserNames[shift.swapped_with_user_id]?.split(' ')[0] || '?'}
                                   </div>
                                 )}
                               </div>
@@ -713,6 +714,20 @@ export default function Schedule() {
                   className="flex-1 rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 text-sm"
                   placeholder="Label (e.g., Maternity Leave)"
                 />
+                <select
+                  value={newLeaveType.color}
+                  onChange={e => setNewLeaveType({ ...newLeaveType, color: e.target.value })}
+                  className="rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 text-sm"
+                >
+                  <option value="gray">Gray</option>
+                  <option value="red">Red</option>
+                  <option value="green">Green</option>
+                  <option value="blue">Blue</option>
+                  <option value="yellow">Yellow</option>
+                  <option value="purple">Purple</option>
+                  <option value="orange">Orange</option>
+                  <option value="indigo">Indigo</option>
+                </select>
                 <label className="flex items-center">
                   <input
                     type="checkbox"
@@ -731,7 +746,7 @@ export default function Schedule() {
                 <button
                   onClick={() => {
                     setShowAddLeaveType(false)
-                    setNewLeaveType({ label: '', is_active: true })
+                    setNewLeaveType({ label: '', color: 'gray', is_active: true })
                   }}
                   className="text-gray-600 hover:text-gray-900 text-sm font-medium"
                 >
