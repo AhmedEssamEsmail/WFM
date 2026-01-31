@@ -51,21 +51,14 @@ export interface LeaveRequest {
   created_at: string
 }
 
-export interface LeaveBalance {
-  id: string
-  user_id: string
-  leave_type: LeaveType
-  balance: number
-  updated_at: string
-}
-
 export interface Comment {
   id: string
-  request_type: RequestType
   request_id: string
+  request_type: RequestType
   user_id: string
   content: string
   created_at: string
+  user?: User
 }
 
 export interface Setting {
