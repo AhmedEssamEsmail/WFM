@@ -68,3 +68,11 @@ export interface Setting {
   value: string
   updated_at: string
 }
+
+export interface LeaveTypeConfig {
+  id: string
+  name: string
+  label: string
+  is_active: boolean
+  created_at: string
+}
