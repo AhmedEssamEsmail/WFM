@@ -557,7 +557,7 @@ export default function Schedule() {
                                 </span>
                                 {shift.swapped_with_user_id && (
                                   <div className="text-xs text-gray-500 mt-1 truncate" title={`Swapped with ${swappedUserNames[shift.swapped_with_user_id] || 'Unknown'}`}>
-                                    ÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂ {swappedUserNames[shift.swapped_with_user_id]?.split(' ')[0] || '?'}
+                                    ÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂ {swappedUserNames[shift.swapped_with_user_id]?.split(' ')[0] || '?'}
                                   </div>
                                 )}
                               </div>
@@ -788,7 +788,7 @@ export default function Schedule() {
                 {(Object.keys(shiftColors) as ShiftType[]).map(type => (
                   <button
                     key={type}
-                    onClick={() => setSelectedShiftType(type)}
+                    onClick={() => { setSelectedShiftType(type); setSelectedLeaveType(null); }}
                     className={`p-3 rounded-lg border-2 transition-colors ${
                       selectedShiftType === type
                         ? 'border-primary-500 bg-primary-50'
