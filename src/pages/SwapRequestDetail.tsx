@@ -707,7 +707,7 @@ export default function SwapRequestDetail() {
         </div>
 
         {/* Add Comment Form */}
-        <form onSubmit={(e) => { e.preventDefault(); handleAddComment(); }} className="flex gap-2">
+        <form onSubmit={(e) => { e.preventDefault(); handleAddComment(e); }} className="flex gap-2">
           <input
             type="text"
             value={newComment}
