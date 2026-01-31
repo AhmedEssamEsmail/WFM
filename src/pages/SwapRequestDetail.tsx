@@ -244,6 +244,36 @@ export default function SwapRequestDetail() {
     }
   }
 
+  async function handleRevoke() {
+    if (!request || !user || user.role !== 'wfm') return
+    setSubmitting(true)
+
+    try {
+      // Determine what status to reset to
+      // If it was rejected before acceptance, reset to pending_acceptance
+      // Otherwise reset to pending_tl
+      const wasRejectedBeforeAcceptance = request.status === 'rejected' && !request.tl_approved_at && !request.wfm_approved_at
+      const newStatus = wasRejectedBeforeAcceptance ? 'pending_acceptance' : 'pending_tl'
+      
+      const { error: updateError } = await supabase
+        .from('swap_requests')
+        .update({ 
+          status: newStatus,
+          tl_approved_at: null,
+          wfm_approved_at: null
+        })
+        .eq('id', request.id)
+
+      if (updateError) throw updateError
+      await fetchRequestDetails()
+    } catch (err) {
+      console.error('Error revoking request:', err)
+      setError('Failed to revoke request')
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
   async function handleAddComment(e: React.FormEvent) {
     e.preventDefault()
     if (!newComment.trim() || !user || !request) return
@@ -292,12 +322,47 @@ export default function SwapRequestDetail() {
   }
 
   function getTimelineSteps() {
+    const status = request?.status
+    const accepted = status !== 'pending_acceptance'
+    const tlApproved = !!request?.tl_approved_at
+    const wfmApproved = !!request?.wfm_approved_at
+    
+    // Determine rejection stage
+    const rejectedAtAcceptance = status === 'rejected' && !accepted
+    const tlRejected = status === 'rejected' && accepted && !tlApproved
+    const wfmRejected = status === 'rejected' && accepted && tlApproved && !wfmApproved
+    
     const steps = [
-      { label: 'Created', completed: true, date: request?.created_at },
-      { label: 'Accepted', completed: request?.status !== 'pending_acceptance' && request?.status !== 'rejected', date: request?.status !== 'pending_acceptance' ? request?.created_at : null },
-      { label: 'TL Approval', completed: !!request?.tl_approved_at || (request?.status === 'rejected' && request?.tl_approved_at !== null), date: request?.tl_approved_at },
-      { label: 'WFM Approval', completed: !!request?.wfm_approved_at || request?.status === 'rejected', date: request?.wfm_approved_at },
-      { label: request?.status === 'rejected' ? 'Rejected' : 'Approved', completed: request?.status === 'approved' || request?.status === 'rejected', date: request?.wfm_approved_at }
+      { 
+        label: 'Created', 
+        completed: true, 
+        status: 'completed' as const,
+        date: request?.created_at 
+      },
+      { 
+        label: rejectedAtAcceptance ? 'Declined' : accepted ? 'Accepted' : 'Pending Acceptance', 
+        completed: accepted || rejectedAtAcceptance,
+        status: rejectedAtAcceptance ? 'rejected' as const : accepted ? 'completed' as const : 'pending' as const,
+        date: accepted ? request?.created_at : null 
+      },
+      { 
+        label: rejectedAtAcceptance ? 'Skipped' : tlRejected ? 'Rejected by TL' : tlApproved ? 'Approved by TL' : 'TL Approval', 
+        completed: tlApproved || tlRejected,
+        status: rejectedAtAcceptance ? 'skipped' as const : tlRejected ? 'rejected' as const : tlApproved ? 'completed' as const : status === 'pending_tl' ? 'pending' as const : 'waiting' as const,
+        date: request?.tl_approved_at 
+      },
+      { 
+        label: (rejectedAtAcceptance || tlRejected) ? 'Skipped' : wfmRejected ? 'Rejected by WFM' : wfmApproved ? 'Approved by WFM' : 'WFM Approval', 
+        completed: wfmApproved || wfmRejected,
+        status: (rejectedAtAcceptance || tlRejected) ? 'skipped' as const : wfmRejected ? 'rejected' as const : wfmApproved ? 'completed' as const : status === 'pending_wfm' ? 'pending' as const : 'waiting' as const,
+        date: request?.wfm_approved_at 
+      },
+      { 
+        label: status === 'rejected' ? 'Rejected' : status === 'approved' ? 'Approved' : 'Final Status', 
+        completed: status === 'approved' || status === 'rejected',
+        status: status === 'rejected' ? 'rejected' as const : status === 'approved' ? 'completed' as const : 'waiting' as const,
+        date: status === 'approved' ? request?.wfm_approved_at : status === 'rejected' ? (wfmRejected ? request?.wfm_approved_at : tlRejected ? request?.tl_approved_at : null) : null
+      }
     ]
     return steps
   }
@@ -333,7 +398,7 @@ export default function SwapRequestDetail() {
             onClick={() => navigate('/swap-requests')}
             className="text-sm text-gray-500 hover:text-gray-700 mb-2"
           >
-            ← Back to Swap Requests
+            â Back to Swap Requests
           </button>
           <h1 className="text-2xl font-bold text-gray-900">Swap Request Details</h1>
         </div>
@@ -392,20 +457,22 @@ export default function SwapRequestDetail() {
           {getTimelineSteps().map((step, index) => (
             <div key={index} className="flex flex-col items-center flex-1">
               <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
-                step.completed
-                  ? request.status === 'rejected' && index === 4
-                    ? 'bg-red-500 text-white'
-                    : 'bg-green-500 text-white'
-                  : 'bg-gray-200 text-gray-500'
+                step.status === 'completed' ? 'bg-green-500 text-white' :
+                step.status === 'rejected' ? 'bg-red-500 text-white' :
+                step.status === 'pending' ? 'bg-yellow-400 text-white' :
+                step.status === 'skipped' ? 'bg-gray-300 text-gray-500' :
+                'bg-gray-200 text-gray-500'
               }`}>
-                {step.completed ? (
-                  request.status === 'rejected' && index === 4 ? '✕' : '✓'
-                ) : (
-                  index + 1
-                )}
+                {step.status === 'completed' ? 'â' :
+                 step.status === 'rejected' ? 'â' :
+                 step.status === 'skipped' ? 'â' :
+                 step.status === 'pending' ? '...' :
+                 index + 1}
               </div>
-              <span className="mt-2 text-xs text-gray-600 text-center">{step.label}</span>
-              {step.date && (
+              <span className={`mt-2 text-xs text-center ${
+                step.status === 'skipped' ? 'text-gray-400' : 'text-gray-600'
+              }`}>{step.label}</span>
+              {step.date && step.status !== 'skipped' && (
                 <span className="text-xs text-gray-400">{format(new Date(step.date), 'MMM d')}</span>
               )}
             </div>
