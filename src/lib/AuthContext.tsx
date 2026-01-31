@@ -1,4 +1,4 @@
-import { createContext, useEffect, useState, ReactNode } from 'react'
+import { createContext, useEffect, useState, useCallback, ReactNode } from 'react'
 import { User as SupabaseUser, Session } from '@supabase/supabase-js'
 import { supabase } from './supabase'
 import type { User, UserRole } from '../types'
@@ -8,8 +8,9 @@ interface AuthContextType {
   supabaseUser: SupabaseUser | null
   session: Session | null
   loading: boolean
+  isAuthenticated: boolean
   signUp: (email: string, password: string, name: string) => Promise<{ error: Error | null }>
-  signIn: (email: string, password: string) => Promise<{ error: Error | null }>
+  signIn: (email: string, password: string) => Promise<{ error: Error | null; session: Session | null }>
   signOut: () => Promise<void>
 }
 
@@ -20,6 +21,27 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [supabaseUser, setSupabaseUser] = useState<SupabaseUser | null>(null)
   const [session, setSession] = useState<Session | null>(null)
   const [loading, setLoading] = useState(true)
+
+  // Computed property for authenticated state
+  const isAuthenticated = !!session && !!user
+
+  const fetchUserProfile = useCallback(async (userId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('users')
+        .select('*')
+        .eq('id', userId)
+        .single()
+
+      if (error) throw error
+      setUser(data as User)
+    } catch (error) {
+      console.error('Error fetching user profile:', error)
+      setUser(null)
+    } finally {
+      setLoading(false)
+    }
+  }, [])
 
   useEffect(() => {
     // Get initial session
@@ -46,54 +68,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     })
 
     return () => subscription.unsubscribe()
-  }, [])
-
-  async function fetchUserProfile(userId: string) {
-    try {
-      const { data, error } = await supabase
-        .from('users')
-        .select('*')
-        .eq('id', userId)
-        .single()
-
-      if (error) throw error
-      setUser(data)
-    } catch (error) {
-      console.error('Error fetching user profile:', error)
-      setUser(null)
-    } finally {
-      setLoading(false)
-    }
-  }
+  }, [fetchUserProfile])
 
   async function signUp(email: string, password: string, name: string) {
-    // Validate domain
-    if (!email.endsWith('@dabdoob.com')) {
-      return { error: new Error('Only @dabdoob.com email addresses are allowed') }
-    }
-
     try {
-      const { data, error } = await supabase.auth.signUp({
+      // Sign up with user metadata - trigger will create profile automatically
+      const { error } = await supabase.auth.signUp({
         email,
         password,
+        options: {
+          data: { name }
+        }
       })
 
       if (error) throw error
-
-      if (data.user) {
-        // Create user profile with default 'agent' role
-        const { error: profileError } = await supabase
-          .from('users')
-          .insert({
-            id: data.user.id,
-            email,
-            name,
-            role: 'agent' as UserRole,
-          })
-
-        if (profileError) throw profileError
-      }
-
       return { error: null }
     } catch (error) {
       return { error: error as Error }
@@ -102,31 +90,45 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   async function signIn(email: string, password: string) {
     try {
-      const { error } = await supabase.auth.signInWithPassword({
+      setLoading(true)
+      const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
       })
 
       if (error) throw error
-      return { error: null }
+
+      // Wait for session to be established and user profile to be fetched
+      if (data.session?.user) {
+        setSession(data.session)
+        setSupabaseUser(data.session.user)
+        await fetchUserProfile(data.session.user.id)
+      }
+
+      return { error: null, session: data.session }
     } catch (error) {
-      return { error: error as Error }
+      setLoading(false)
+      return { error: error as Error, session: null }
     }
   }
 
   async function signOut() {
     await supabase.auth.signOut()
+    setUser(null)
+    setSupabaseUser(null)
+    setSession(null)
   }
 
   return (
-    <AuthContext.Provider value={{
-      user,
-      supabaseUser,
-      session,
-      loading,
-      signUp,
-      signIn,
-      signOut,
+    <AuthContext.Provider value={{ 
+      user, 
+      supabaseUser, 
+      session, 
+      loading, 
+      isAuthenticated,
+      signUp, 
+      signIn, 
+      signOut 
     }}>
       {children}
     </AuthContext.Provider>
