@@ -820,7 +820,7 @@ export default function Schedule() {
                         setSelectedShiftType(null as any)
                       }}
                       className={`p-3 rounded-lg border-2 transition-colors ${
-                        (labelToLeaveTypeEnum[selectedLeaveType] || selectedLeaveType) === (labelToLeaveTypeEnum[leaveType.label] || leaveType.label)
+                        (selectedLeaveType ? (labelToLeaveTypeEnum[selectedLeaveType] || selectedLeaveType) : null) === (labelToLeaveTypeEnum[leaveType.label] || leaveType.label)
                           ? 'border-primary-500 bg-primary-50'
                           : 'border-gray-200 hover:border-gray-300'
                       }`}
