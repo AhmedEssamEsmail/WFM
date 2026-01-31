@@ -355,7 +355,6 @@ export default function Schedule() {
       const { error } = await supabase
         .from('leave_types')
         .update({ 
-          name: editingLeaveType.name, 
           label: editingLeaveType.label,
           is_active: editingLeaveType.is_active 
         })
@@ -381,7 +380,6 @@ export default function Schedule() {
       const { error } = await supabase
         .from('leave_types')
         .insert({
-          name: newLeaveType.name.toLowerCase().replace(/\s+/g, '_'),
           label: newLeaveType.label,
           is_active: newLeaveType.is_active
         })
