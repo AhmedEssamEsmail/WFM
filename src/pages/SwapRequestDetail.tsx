@@ -507,6 +507,21 @@ export default function SwapRequestDetail() {
       <div className="bg-white rounded-lg shadow-sm p-6">
         <h2 className="text-lg font-semibold text-gray-900 mb-4">Approval Timeline</h2>
         <div className="space-y-4">
+          {/* Created Step */}
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-full flex items-center justify-center bg-green-100 text-green-600">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              </svg>
+            </div>
+            <div>
+              <p className="font-medium text-gray-900">Created</p>
+              <p className="text-sm text-gray-500">
+                Created on {format(new Date(request.created_at), 'MMM d, yyyy h:mm a')}
+              </p>
+            </div>
+          </div>
+
           {/* Target Acceptance */}
           <div className="flex items-center gap-3">
             <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
@@ -515,9 +530,13 @@ export default function SwapRequestDetail() {
               'bg-yellow-100 text-yellow-600'
             }`}>
               {request.status !== 'pending_acceptance' && request.status !== 'rejected' ? (
-                <span className="text-sm font-bold">\u2713</span>
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                </svg>
               ) : request.status === 'rejected' ? (
-                <span className="text-sm font-bold">\u2717</span>
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
               ) : (
                 <span className="text-sm font-bold">...</span>
               )}
@@ -538,18 +557,22 @@ export default function SwapRequestDetail() {
           <div className="flex items-center gap-3">
             <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
               request.tl_approved_at ? 'bg-green-100 text-green-600' :
-              request.status === 'rejected' ? 'bg-red-100 text-red-600' :
+              request.status === 'rejected' && !request.tl_approved_at && request.status !== 'pending_acceptance' ? 'bg-red-100 text-red-600' :
               request.status === 'pending_tl' ? 'bg-yellow-100 text-yellow-600' :
               'bg-gray-100 text-gray-400'
             }`}>
               {request.tl_approved_at ? (
-                <span className="text-sm font-bold">\u2713</span>
-              ) : request.status === 'rejected' ? (
-                <span className="text-sm font-bold">\u2717</span>
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                </svg>
+              ) : request.status === 'rejected' && !request.tl_approved_at && request.status !== 'pending_acceptance' ? (
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
               ) : request.status === 'pending_tl' ? (
                 <span className="text-sm font-bold">...</span>
               ) : (
-                <span className="text-sm font-bold">\u2212</span>
+                <span className="text-sm font-bold">-</span>
               )}
             </div>
             <div>
@@ -560,12 +583,10 @@ export default function SwapRequestDetail() {
                 </p>
               ) : request.status === 'pending_tl' ? (
                 <p className="text-sm text-yellow-600">Awaiting approval</p>
-              ) : request.status === 'rejected' ? (
+              ) : request.status === 'rejected' && !request.tl_approved_at && request.status !== 'pending_acceptance' ? (
                 <p className="text-sm text-red-600">Rejected</p>
-              ) : request.status === 'pending_acceptance' ? (
-                <p className="text-sm text-gray-500">Pending target acceptance</p>
               ) : (
-                <p className="text-sm text-gray-500">Skipped</p>
+                <p className="text-sm text-gray-500">Pending</p>
               )}
             </div>
           </div>
@@ -579,13 +600,17 @@ export default function SwapRequestDetail() {
               'bg-gray-100 text-gray-400'
             }`}>
               {request.wfm_approved_at ? (
-                <span className="text-sm font-bold">\u2713</span>
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                </svg>
               ) : request.status === 'rejected' && request.tl_approved_at ? (
-                <span className="text-sm font-bold">\u2717</span>
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
               ) : request.status === 'pending_wfm' ? (
                 <span className="text-sm font-bold">...</span>
               ) : (
-                <span className="text-sm font-bold">\u2212</span>
+                <span className="text-sm font-bold">-</span>
               )}
             </div>
             <div>
@@ -599,126 +624,11 @@ export default function SwapRequestDetail() {
               ) : request.status === 'rejected' && request.tl_approved_at ? (
                 <p className="text-sm text-red-600">Rejected</p>
               ) : (
-                <p className="text-sm text-gray-500">Pending earlier approval</p>
+                <p className="text-sm text-gray-500">Pending</p>
               )}
             </div>
           </div>
         </div>
       </div>
 
-      {/* Action Buttons */}
-      {(canAcceptOrDecline() || canApprove() || canReject() || canRevoke()) && (
-        <div className="bg-white rounded-lg shadow-sm p-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">Actions</h2>
-          <div className="flex gap-3">
-            {canAcceptOrDecline() && (
-              <>
-                <button
-                  onClick={handleAccept}
-                  disabled={submitting}
-                  className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50"
-                >
-                  {submitting ? 'Processing...' : 'Accept Swap'}
-                </button>
-                <button
-                  onClick={handleDecline}
-                  disabled={submitting}
-                  className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50"
-                >
-                  {submitting ? 'Processing...' : 'Decline'}
-                </button>
-              </>
-            )}
-            {canApprove() && (
-              <button
-                onClick={handleApprove}
-                disabled={submitting}
-                className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50"
-              >
-                {submitting ? 'Processing...' : 'Approve'}
-              </button>
-            )}
-            {canReject() && (
-              <button
-                onClick={handleReject}
-                disabled={submitting}
-                className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50"
-              >
-                {submitting ? 'Processing...' : 'Reject'}
-              </button>
-            )}
-            {canRevoke() && (
-              <button
-                onClick={handleRevoke}
-                disabled={submitting}
-                className="px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 disabled:opacity-50"
-              >
-                {submitting ? 'Processing...' : 'Revoke Decision'}
-              </button>
-            )}
-          </div>
-        </div>
-      )}
-
-      {/* Comments */}
-      <div className="bg-white rounded-lg shadow-sm p-6">
-        <h2 className="text-lg font-semibold text-gray-900 mb-4">Comments</h2>
-        
-        <div className="space-y-4 mb-6">
-          {comments.length === 0 ? (
-            <p className="text-gray-500 text-sm">No comments yet</p>
-          ) : (
-            comments.map(comment => (
-              <div
-                key={comment.id}
-                className={`p-4 rounded-lg ${
-                  comment.is_system 
-                    ? 'bg-gray-100 border border-gray-200' 
-                    : 'bg-gray-50'
-                }`}
-              >
-                <div className="flex items-center gap-2 mb-2">
-                  {comment.is_system ? (
-                    <span className="px-2 py-0.5 rounded text-xs font-medium bg-gray-200 text-gray-700">
-                      System
-                    </span>
-                  ) : (
-                    <>
-                      <span className="font-medium text-gray-900">{comment.user?.name}</span>
-                      <span className={`px-2 py-0.5 rounded text-xs font-medium ${roleColors[comment.user?.role || 'agent']}`}>
-                        {comment.user?.role === 'tl' ? 'Team Lead' : comment.user?.role === 'wfm' ? 'WFM' : 'Agent'}
-                      </span>
-                    </>
-                  )}
-                  <span className="text-sm text-gray-500">
-                    {format(new Date(comment.created_at), 'MMM d, yyyy h:mm a')}
-                  </span>
-                </div>
-                <p className={`text-sm ${comment.is_system ? 'text-gray-600 italic' : 'text-gray-700'}`}>
-                  {comment.content}
-                </p>
-              </div>
-            ))
-          )}
-        </div>
-
-        <form onSubmit={handleAddComment} className="flex gap-3">
-          <input
-            type="text"
-            value={newComment}
-            onChange={e => setNewComment(e.target.value)}
-            placeholder="Add a comment..."
-            className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-          />
-          <button
-            type="submit"
-            disabled={submitting || !newComment.trim()}
-            className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:opacity-50"
-          >
-            Add
-          </button>
-        </form>
-      </div>
-    </div>
-  )
-}
+      
