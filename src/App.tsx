@@ -5,6 +5,10 @@ import Layout from './components/Layout'
 import Login from './pages/Login'
 import Signup from './pages/Signup'
 import Dashboard from './pages/Dashboard'
+import LeaveRequests from './pages/LeaveRequests'
+import SwapRequests from './pages/SwapRequests'
+import CreateLeaveRequest from './pages/CreateLeaveRequest'
+import CreateSwapRequest from './pages/CreateSwapRequest'
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth()
@@ -60,6 +64,36 @@ function App() {
           <Route path="/dashboard" element={
             <ProtectedRoute>
               <Dashboard />
+            </ProtectedRoute>
+          } />
+          <Route path="/leave-requests" element={
+            <ProtectedRoute>
+              <LeaveRequests />
+            </ProtectedRoute>
+          } />
+          <Route path="/leave-requests/create" element={
+            <ProtectedRoute>
+              <CreateLeaveRequest />
+            </ProtectedRoute>
+          } />
+          <Route path="/leave-requests/:id" element={
+            <ProtectedRoute>
+              <div>Leave Request Details (Coming Soon)</div>
+            </ProtectedRoute>
+          } />
+          <Route path="/swap-requests" element={
+            <ProtectedRoute>
+              <SwapRequests />
+            </ProtectedRoute>
+          } />
+          <Route path="/swap-requests/create" element={
+            <ProtectedRoute>
+              <CreateSwapRequest />
+            </ProtectedRoute>
+          } />
+          <Route path="/swap-requests/:id" element={
+            <ProtectedRoute>
+              <div>Swap Request Details (Coming Soon)</div>
             </ProtectedRoute>
           } />
           <Route path="/" element={<Navigate to="/dashboard" replace />} />
