@@ -129,11 +129,6 @@ function App() {
               <SwapRequestDetail />
             </ProtectedRoute>
           } />
-          <Route path="/approvals" element={
-            <ProtectedRoute>
-              <Dashboard />
-            </ProtectedRoute>
-          } />
           <Route path="/settings" element={
             <WFMOnlyRoute>
               <Settings />
