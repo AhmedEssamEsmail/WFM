@@ -447,5 +447,6 @@ export default function LeaveRequestDetail() {
           </div>
         </div>
       </div>
-
-      
+    </div>
+  )
+}
