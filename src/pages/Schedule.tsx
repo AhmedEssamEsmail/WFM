@@ -570,17 +570,17 @@ export default function Schedule() {
 
           {/* Schedule grid */}
           <div className="bg-white rounded-lg shadow overflow-hidden">
-            <div className="overflow-x-auto">
+            <div className="overflow-x-auto max-h-[600px] overflow-y-auto">
               <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
+                <thead className="bg-gray-50 sticky top-0 z-20">
                   <tr>
-                    <th className="sticky left-0 z-10 bg-gray-50 px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[150px]">
+                    <th className="sticky left-0 z-30 bg-gray-50 px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[150px] shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]">
                       Name
                     </th>
                     {daysInMonth.map(day => (
                       <th
                         key={day.toISOString()}
-                        className="px-2 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[60px]"
+                        className="px-2 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[60px] bg-gray-50"
                       >
                         <div>{format(day, 'EEE')}</div>
                         <div className="text-gray-900">{format(day, 'd')}</div>
@@ -591,7 +591,7 @@ export default function Schedule() {
                 <tbody className="bg-white divide-y divide-gray-200">
                   {filteredUsers.map(u => (
                     <tr key={u.id}>
-                      <td className="sticky left-0 z-10 bg-white px-4 py-3 whitespace-nowrap text-sm font-medium text-gray-900 border-r">
+                      <td className="sticky left-0 z-10 bg-white px-4 py-3 whitespace-nowrap text-sm font-medium text-gray-900 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]">
                         {u.name}
                       </td>
                       {daysInMonth.map(day => {
