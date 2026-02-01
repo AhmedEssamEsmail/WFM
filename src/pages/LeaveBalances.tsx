@@ -136,16 +136,21 @@ export default function LeaveBalances() {
 
       if (updateError) throw updateError
 
-      // Record in history
-      await supabase.from('leave_balance_history').insert({
-        user_id: editingCell.userId,
-        leave_type: editingCell.leaveType,
-        change_amount: newBalance - currentBalance,
-        reason: 'manual_adjustment',
-        balance_before: currentBalance,
-        balance_after: newBalance,
-        created_by: user.id
-      })
+      // Record in history (optional - won't fail if table doesn't exist)
+      try {
+        await supabase.from('leave_balance_history').insert({
+          user_id: editingCell.userId,
+          leave_type: editingCell.leaveType,
+          change_amount: newBalance - currentBalance,
+          reason: 'manual_adjustment',
+          balance_before: currentBalance,
+          balance_after: newBalance,
+          created_by: user.id
+        })
+      } catch (historyError) {
+        // Ignore history errors - not critical
+        console.warn('Could not record balance history:', historyError)
+      }
 
       // Update local state
       setUsersWithBalances(prev => prev.map(u => {
@@ -343,16 +348,21 @@ export default function LeaveBalances() {
             
             if (upsertError) throw upsertError
             
-            // Record in history
-            await supabase.from('leave_balance_history').insert({
-              user_id: row.userId,
-              leave_type: leaveType,
-              change_amount: newBalance - currentBalance,
-              reason: 'csv_import',
-              balance_before: currentBalance,
-              balance_after: newBalance,
-              created_by: user.id
-            })
+            // Record in history (optional)
+            try {
+              await supabase.from('leave_balance_history').insert({
+                user_id: row.userId,
+                leave_type: leaveType,
+                change_amount: newBalance - currentBalance,
+                reason: 'csv_import',
+                balance_before: currentBalance,
+                balance_after: newBalance,
+                created_by: user.id
+              })
+            } catch (historyError) {
+              // Ignore history errors
+              console.warn('Could not record balance history:', historyError)
+            }
             
             successCount++
           } catch (err) {
