@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
 import { ShiftType, LeaveType } from '../types'
-import { format, parse, eachDayOfInterval } from 'date-fns'
+import { format, eachDayOfInterval } from 'date-fns'
 
 interface ParsedRow {
   email: string
