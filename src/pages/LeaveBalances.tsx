@@ -37,7 +37,6 @@ export default function LeaveBalances() {
 
   // Import/Export state
   const fileInputRef = useRef<HTMLInputElement>(null)
-  const [importFile, setImportFile] = useState<File | null>(null)
   const [parsedImport, setParsedImport] = useState<ParsedBalanceRow[] | null>(null)
   const [importing, setImporting] = useState(false)
   const [importResult, setImportResult] = useState<{ success: number; failed: number } | null>(null)
@@ -270,7 +269,6 @@ export default function LeaveBalances() {
     const selectedFile = e.target.files?.[0]
     if (!selectedFile) return
 
-    setImportFile(selectedFile)
     setParsedImport(null)
     setImportResult(null)
     setError('')
@@ -375,7 +373,6 @@ export default function LeaveBalances() {
   }
 
   function resetImport() {
-    setImportFile(null)
     setParsedImport(null)
     setImportResult(null)
     setError('')
