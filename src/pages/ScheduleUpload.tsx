@@ -2,7 +2,8 @@ import { useState, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
-import { ShiftType } from '../types'
+import { ShiftType, LeaveType } from '../types'
+import { format, parse, eachDayOfInterval } from 'date-fns'
 
 interface ParsedRow {
   email: string
@@ -20,6 +21,14 @@ interface ParseResult {
 
 const validShiftTypes: ShiftType[] = ['AM', 'PM', 'BET', 'OFF']
 
+const leaveTypeShortLabels: Record<LeaveType, string> = {
+  sick: 'SICK',
+  annual: 'ANNUAL',
+  casual: 'CASUAL',
+  public_holiday: 'HOLIDAY',
+  bereavement: 'BEREAV'
+}
+
 export default function ScheduleUpload() {
   const { user } = useAuth()
   const navigate = useNavigate()
@@ -30,6 +39,12 @@ export default function ScheduleUpload() {
   const [uploading, setUploading] = useState(false)
   const [uploadResult, setUploadResult] = useState<{ success: number; failed: number } | null>(null)
   const [error, setError] = useState('')
+
+  // Export state
+  const [showExportModal, setShowExportModal] = useState(false)
+  const [exportStartDate, setExportStartDate] = useState('')
+  const [exportEndDate, setExportEndDate] = useState('')
+  const [exporting, setExporting] = useState(false)
 
   // Redirect non-WFM users
   if (user?.role !== 'wfm') {
@@ -215,6 +230,125 @@ export default function ScheduleUpload() {
     }
   }
 
+  async function handleExport() {
+    if (!exportStartDate || !exportEndDate) {
+      setError('Please select both start and end dates')
+      return
+    }
+
+    const startDate = new Date(exportStartDate)
+    const endDate = new Date(exportEndDate)
+
+    if (startDate > endDate) {
+      setError('Start date must be before end date')
+      return
+    }
+
+    setExporting(true)
+    setError('')
+
+    try {
+      // Get all users
+      const { data: users, error: usersError } = await supabase
+        .from('users')
+        .select('id, email, name')
+        .order('name')
+
+      if (usersError) throw usersError
+
+      // Get all shifts in date range
+      const { data: shifts, error: shiftsError } = await supabase
+        .from('shifts')
+        .select('*')
+        .gte('date', exportStartDate)
+        .lte('date', exportEndDate)
+
+      if (shiftsError) throw shiftsError
+
+      // Get all approved leaves in date range
+      const { data: leaves, error: leavesError } = await supabase
+        .from('leave_requests')
+        .select('*')
+        .eq('status', 'approved')
+        .lte('start_date', exportEndDate)
+        .gte('end_date', exportStartDate)
+
+      if (leavesError) throw leavesError
+
+      // Generate date range
+      const dateRange = eachDayOfInterval({ start: startDate, end: endDate })
+      
+      // Create CSV headers: email, date1, date2, date3...
+      const headers = ['email', ...dateRange.map(d => format(d, 'yyyy-MM-dd'))]
+      
+      // Build data rows
+      const rows: string[][] = []
+      
+      for (const user of users || []) {
+        const row: string[] = [user.email]
+        
+        for (const date of dateRange) {
+          const dateStr = format(date, 'yyyy-MM-dd')
+          
+          // Check for leave first (leaves take priority)
+          const leave = (leaves || []).find(l => {
+            const leaveStart = new Date(l.start_date)
+            const leaveEnd = new Date(l.end_date)
+            return l.user_id === user.id && date >= leaveStart && date <= leaveEnd
+          })
+          
+          if (leave) {
+            // Add leave type as uppercase label
+            row.push(leaveTypeShortLabels[leave.leave_type as LeaveType] || leave.leave_type.toUpperCase())
+          } else {
+            // Check for shift
+            const shift = (shifts || []).find(s => s.user_id === user.id && s.date === dateStr)
+            
+            if (shift) {
+              // Check if it's a swapped shift
+              if (shift.swapped_with_user_id) {
+                row.push(`${shift.shift_type}-SWAP`)
+              } else {
+                row.push(shift.shift_type)
+              }
+            } else {
+              row.push('') // Empty cell
+            }
+          }
+        }
+        
+        rows.push(row)
+      }
+      
+      // Convert to CSV
+      const csvContent = [
+        headers.join(','),
+        ...rows.map(row => row.join(','))
+      ].join('\n')
+      
+      // Download file
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
+      const link = document.createElement('a')
+      const url = URL.createObjectURL(blob)
+      
+      link.setAttribute('href', url)
+      link.setAttribute('download', `schedule_${exportStartDate}_to_${exportEndDate}.csv`)
+      link.style.visibility = 'hidden'
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+      
+      setShowExportModal(false)
+      setExportStartDate('')
+      setExportEndDate('')
+    } catch (err) {
+      console.error('Export error:', err)
+      setError('Failed to export schedule')
+    } finally {
+      setExporting(false)
+    }
+  }
+
   function resetForm() {
     setFile(null)
     setParseResult(null)
@@ -228,9 +362,20 @@ export default function ScheduleUpload() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div>
-        <h1 className="text-2xl font-bold text-gray-900">Upload Schedule</h1>
-        <p className="text-gray-600 mt-1">Bulk upload shifts via CSV file</p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">Upload Schedule</h1>
+          <p className="text-gray-600 mt-1">Bulk upload shifts via CSV file</p>
+        </div>
+        <button
+          onClick={() => setShowExportModal(true)}
+          className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 flex items-center gap-2"
+        >
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+          </svg>
+          Export Schedule
+        </button>
       </div>
 
       {/* Instructions */}
@@ -391,6 +536,79 @@ email,1,2,3,4,5{String.fromCharCode(10)}agent@example.com,AM,PM,AM,OFF,BET{Strin
               </div>
             </div>
           )}
+        </div>
+      )}
+
+      {/* Export Modal */}
+      {showExportModal && (
+        <div className="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
+            <h3 className="text-lg font-medium text-gray-900 mb-4">Export Schedule</h3>
+            <p className="text-sm text-gray-600 mb-4">
+              Select the date range for the schedule export. The CSV will include shifts, leaves, and swapped shifts.
+            </p>
+            
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Start Date</label>
+                <input
+                  type="date"
+                  value={exportStartDate}
+                  onChange={(e) => setExportStartDate(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">End Date</label>
+                <input
+                  type="date"
+                  value={exportEndDate}
+                  onChange={(e) => setExportEndDate(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
+                />
+              </div>
+            </div>
+
+            {error && (
+              <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
+                {error}
+              </div>
+            )}
+
+            <div className="mt-6 flex justify-end gap-3">
+              <button
+                onClick={() => {
+                  setShowExportModal(false)
+                  setExportStartDate('')
+                  setExportEndDate('')
+                  setError('')
+                }}
+                className="px-4 py-2 text-sm text-gray-700 hover:text-gray-900"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleExport}
+                disabled={exporting || !exportStartDate || !exportEndDate}
+                className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+              >
+                {exporting ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                    Exporting...
+                  </>
+                ) : (
+                  <>
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                    </svg>
+                    Export CSV
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>
