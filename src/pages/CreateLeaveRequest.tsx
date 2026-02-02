@@ -1,8 +1,8 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
 import { supabase } from '../lib/supabase'
-import type { LeaveType } from '../types'
+import type { LeaveType, User } from '../types'
 
 const LEAVE_TYPES: { value: LeaveType; label: string }[] = [
   { value: 'sick', label: 'Sick' },
@@ -21,6 +21,42 @@ export default function CreateLeaveRequest() {
   const [notes, setNotes] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  
+  // New state for "submit on behalf of" feature
+  const [agents, setAgents] = useState<User[]>([])
+  const [selectedUserId, setSelectedUserId] = useState('')
+  const [loadingAgents, setLoadingAgents] = useState(false)
+
+  // Check if current user can submit on behalf of others (WFM or TL roles)
+  const canSubmitOnBehalf = user?.role === 'wfm' || user?.role === 'tl'
+
+  // Fetch agents if user has WFM or TL role
+  useEffect(() => {
+    if (canSubmitOnBehalf) {
+      fetchAgents()
+    }
+    // Set default selected user to current user
+    if (user) {
+      setSelectedUserId(user.id)
+    }
+  }, [user, canSubmitOnBehalf])
+
+  const fetchAgents = async () => {
+    setLoadingAgents(true)
+    try {
+      const { data, error } = await supabase
+        .from('users')
+        .select('*')
+        .order('name')
+
+      if (error) throw error
+      setAgents(data || [])
+    } catch (err) {
+      console.error('Error fetching agents:', err)
+    } finally {
+      setLoadingAgents(false)
+    }
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -36,12 +72,15 @@ export default function CreateLeaveRequest() {
       return
     }
 
+    // Use selected user ID (for WFM/TL submitting on behalf) or current user ID
+    const targetUserId = canSubmitOnBehalf ? selectedUserId : user!.id
+
     setLoading(true)
     try {
       const { error: insertError } = await supabase
         .from('leave_requests')
         .insert({
-          user_id: user!.id,
+          user_id: targetUserId,
           leave_type: leaveType,
           start_date: startDate,
           end_date: endDate,
@@ -62,31 +101,54 @@ export default function CreateLeaveRequest() {
 
   return (
     <div className="max-w-2xl mx-auto">
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold text-gray-900">New Leave Request</h1>
-        <p className="mt-1 text-sm text-gray-500">
-          Submit a new leave request for approval
-        </p>
-      </div>
+      <div className="bg-white shadow rounded-lg">
+        <div className="px-6 py-4 border-b border-gray-200">
+          <h1 className="text-xl font-semibold text-gray-900">New Leave Request</h1>
+        </div>
 
-      <div className="bg-white shadow rounded-lg p-6">
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form onSubmit={handleSubmit} className="p-6 space-y-6">
           {error && (
-            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md text-sm">
+            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
               {error}
             </div>
           )}
 
+          {/* User selector for WFM/TL roles */}
+          {canSubmitOnBehalf && (
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Submit Request For
+              </label>
+              <select
+                value={selectedUserId}
+                onChange={(e) => setSelectedUserId(e.target.value)}
+                disabled={loadingAgents}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+              >
+                {loadingAgents ? (
+                  <option>Loading users...</option>
+                ) : (
+                  agents.map((agent) => (
+                    <option key={agent.id} value={agent.id}>
+                      {agent.name} {agent.id === user?.id ? '(You)' : `(${agent.role})`}
+                    </option>
+                  ))
+                )}
+              </select>
+              <p className="mt-1 text-sm text-gray-500">
+                As a {user?.role?.toUpperCase()}, you can submit leave requests on behalf of any user.
+              </p>
+            </div>
+          )}
+
           <div>
-            <label htmlFor="leaveType" className="block text-sm font-medium text-gray-700">
+            <label className="block text-sm font-medium text-gray-700 mb-2">
               Leave Type
             </label>
             <select
-              id="leaveType"
               value={leaveType}
               onChange={(e) => setLeaveType(e.target.value as LeaveType)}
-              className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
-              required
+              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
             >
               {LEAVE_TYPES.map((type) => (
                 <option key={type.value} value={type.value}>
@@ -96,63 +158,57 @@ export default function CreateLeaveRequest() {
             </select>
           </div>
 
-          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+          <div className="grid grid-cols-2 gap-4">
             <div>
-              <label htmlFor="startDate" className="block text-sm font-medium text-gray-700">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
                 Start Date
               </label>
               <input
                 type="date"
-                id="startDate"
                 value={startDate}
                 onChange={(e) => setStartDate(e.target.value)}
-                className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
-                required
+                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
               />
             </div>
-
             <div>
-              <label htmlFor="endDate" className="block text-sm font-medium text-gray-700">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
                 End Date
               </label>
               <input
                 type="date"
-                id="endDate"
                 value={endDate}
                 onChange={(e) => setEndDate(e.target.value)}
                 min={startDate}
-                className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
-                required
+                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
               />
             </div>
           </div>
 
           <div>
-            <label htmlFor="notes" className="block text-sm font-medium text-gray-700">
+            <label className="block text-sm font-medium text-gray-700 mb-2">
               Notes (Optional)
             </label>
             <textarea
-              id="notes"
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               rows={3}
-              className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
-              placeholder="Add any additional notes or reason for your leave..."
+              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+              placeholder="Add any additional notes..."
             />
           </div>
 
-          <div className="flex items-center justify-end space-x-4">
+          <div className="flex justify-end space-x-3">
             <button
               type="button"
-              onClick={() => navigate(-1)}
-              className="px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
+              onClick={() => navigate('/dashboard')}
+              className="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={loading}
-              className="px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50"
             >
               {loading ? 'Submitting...' : 'Submit Request'}
             </button>
