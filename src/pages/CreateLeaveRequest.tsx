@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
 import { supabase } from '../lib/supabase'
-import type { LeaveType, User } from '../types'
+import type { LeaveType, User, LeaveBalance } from '../types'
 
 const LEAVE_TYPES: { value: LeaveType; label: string }[] = [
   { value: 'sick', label: 'Sick' },
@@ -26,6 +26,10 @@ export default function CreateLeaveRequest() {
   const [agents, setAgents] = useState<User[]>([])
   const [selectedUserId, setSelectedUserId] = useState('')
   const [loadingAgents, setLoadingAgents] = useState(false)
+  
+  // State for leave balance
+  const [leaveBalance, setLeaveBalance] = useState<number | null>(null)
+  const [loadingBalance, setLoadingBalance] = useState(false)
 
   // Check if current user can submit on behalf of others (WFM or TL roles)
   const canSubmitOnBehalf = user?.role === 'wfm' || user?.role === 'tl'
@@ -40,6 +44,14 @@ export default function CreateLeaveRequest() {
       setSelectedUserId(user.id)
     }
   }, [user, canSubmitOnBehalf])
+
+  // Fetch leave balance when selected user or leave type changes
+  useEffect(() => {
+    const targetUserId = canSubmitOnBehalf && selectedUserId ? selectedUserId : user?.id
+    if (targetUserId && leaveType) {
+      fetchLeaveBalance(targetUserId, leaveType)
+    }
+  }, [selectedUserId, leaveType, user, canSubmitOnBehalf])
 
   const fetchAgents = async () => {
     setLoadingAgents(true)
@@ -57,6 +69,42 @@ export default function CreateLeaveRequest() {
       setLoadingAgents(false)
     }
   }
+
+  const fetchLeaveBalance = async (userId: string, type: LeaveType) => {
+    setLoadingBalance(true)
+    try {
+      const { data, error } = await supabase
+        .from('leave_balances')
+        .select('balance')
+        .eq('user_id', userId)
+        .eq('leave_type', type)
+        .single()
+
+      if (error && error.code !== 'PGRST116') {
+        throw error
+      }
+      
+      setLeaveBalance(data?.balance ?? 0)
+    } catch (err) {
+      console.error('Error fetching leave balance:', err)
+      setLeaveBalance(0)
+    } finally {
+      setLoadingBalance(false)
+    }
+  }
+
+  // Calculate number of days between dates
+  const calculateDays = (start: string, end: string): number => {
+    if (!start || !end) return 0
+    const startDate = new Date(start)
+    const endDate = new Date(end)
+    const diffTime = endDate.getTime() - startDate.getTime()
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1 // +1 to include both start and end days
+    return diffDays > 0 ? diffDays : 0
+  }
+
+  const requestedDays = calculateDays(startDate, endDate)
+  const exceedsBalance = leaveBalance !== null && requestedDays > leaveBalance
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -77,6 +125,10 @@ export default function CreateLeaveRequest() {
 
     setLoading(true)
     try {
+      // Determine status based on balance check
+      // If requested days exceed available balance, auto-deny the request
+      const status = exceedsBalance ? 'denied' : 'pending_tl'
+
       const { error: insertError } = await supabase
         .from('leave_requests')
         .insert({
@@ -85,12 +137,12 @@ export default function CreateLeaveRequest() {
           start_date: startDate,
           end_date: endDate,
           notes: notes || null,
-          status: 'pending_tl'
+          status: status
         })
 
       if (insertError) throw insertError
 
-      navigate('/dashboard')
+      navigate('/leave-requests')
     } catch (err) {
       console.error('Error creating leave request:', err)
       setError('Failed to create leave request. Please try again.')
@@ -100,121 +152,134 @@ export default function CreateLeaveRequest() {
   }
 
   return (
-    <div className="max-w-2xl mx-auto">
-      <div className="bg-white shadow rounded-lg">
-        <div className="px-6 py-4 border-b border-gray-200">
-          <h1 className="text-xl font-semibold text-gray-900">New Leave Request</h1>
-        </div>
+    <div className="max-w-2xl mx-auto p-6">
+      <h1 className="text-2xl font-bold text-gray-900 mb-6">New Leave Request</h1>
+      
+      <form onSubmit={handleSubmit} className="bg-white shadow-md rounded-lg p-6 space-y-6">
+        {error && (
+          <div className="bg-red-50 text-red-700 p-4 rounded-lg">
+            {error}
+          </div>
+        )}
 
-        <form onSubmit={handleSubmit} className="p-6 space-y-6">
-          {error && (
-            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
-              {error}
-            </div>
-          )}
-
-          {/* User selector for WFM/TL roles */}
-          {canSubmitOnBehalf && (
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Submit Request For
-              </label>
-              <select
-                value={selectedUserId}
-                onChange={(e) => setSelectedUserId(e.target.value)}
-                disabled={loadingAgents}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
-              >
-                {loadingAgents ? (
-                  <option>Loading users...</option>
-                ) : (
-                  agents.map((agent) => (
-                    <option key={agent.id} value={agent.id}>
-                      {agent.name} {agent.id === user?.id ? '(You)' : `(${agent.role})`}
-                    </option>
-                  ))
-                )}
-              </select>
-              <p className="mt-1 text-sm text-gray-500">
-                As a {user?.role?.toUpperCase()}, you can submit leave requests on behalf of any user.
-              </p>
-            </div>
-          )}
-
+        {/* Submit on behalf of dropdown (only for WFM/TL) */}
+        {canSubmitOnBehalf && (
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Leave Type
+              Submit on behalf of
             </label>
             <select
-              value={leaveType}
-              onChange={(e) => setLeaveType(e.target.value as LeaveType)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+              value={selectedUserId}
+              onChange={(e) => setSelectedUserId(e.target.value)}
+              disabled={loadingAgents}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
             >
-              {LEAVE_TYPES.map((type) => (
-                <option key={type.value} value={type.value}>
-                  {type.label}
-                </option>
-              ))}
+              {loadingAgents ? (
+                <option>Loading...</option>
+              ) : (
+                agents.map((agent) => (
+                  <option key={agent.id} value={agent.id}>
+                    {agent.name} {agent.id === user?.id ? '(Me)' : ''}
+                  </option>
+                ))
+              )}
             </select>
           </div>
+        )}
 
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Start Date
-              </label>
-              <input
-                type="date"
-                value={startDate}
-                onChange={(e) => setStartDate(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                End Date
-              </label>
-              <input
-                type="date"
-                value={endDate}
-                onChange={(e) => setEndDate(e.target.value)}
-                min={startDate}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
-              />
-            </div>
-          </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Leave Type
+          </label>
+          <select
+            value={leaveType}
+            onChange={(e) => setLeaveType(e.target.value as LeaveType)}
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+          >
+            {LEAVE_TYPES.map((type) => (
+              <option key={type.value} value={type.value}>
+                {type.label}
+              </option>
+            ))}
+          </select>
+          {!loadingBalance && leaveBalance !== null && (
+            <p className="mt-1 text-sm text-gray-500">
+              Available balance: {leaveBalance} days
+            </p>
+          )}
+        </div>
 
+        <div className="grid grid-cols-2 gap-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Notes (Optional)
+              Start Date
             </label>
-            <textarea
-              value={notes}
-              onChange={(e) => setNotes(e.target.value)}
-              rows={3}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
-              placeholder="Add any additional notes..."
+            <input
+              type="date"
+              value={startDate}
+              onChange={(e) => setStartDate(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              required
             />
           </div>
-
-          <div className="flex justify-end space-x-3">
-            <button
-              type="button"
-              onClick={() => navigate('/dashboard')}
-              className="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              disabled={loading}
-              className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50"
-            >
-              {loading ? 'Submitting...' : 'Submit Request'}
-            </button>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              End Date
+            </label>
+            <input
+              type="date"
+              value={endDate}
+              onChange={(e) => setEndDate(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              required
+            />
           </div>
-        </form>
-      </div>
+        </div>
+
+        {requestedDays > 0 && (
+          <div className={`p-3 rounded-md ${exceedsBalance ? 'bg-orange-50 border border-orange-200' : 'bg-gray-50'}`}>
+            <p className="text-sm text-gray-700">
+              Requested days: <span className="font-medium">{requestedDays}</span>
+            </p>
+            {exceedsBalance && (
+              <p className="text-sm text-orange-600 mt-1">
+                Warning: This exceeds your available balance ({leaveBalance} days). 
+                The request will be automatically denied.
+              </p>
+            )}
+          </div>
+        )}
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Notes (Optional)
+          </label>
+          <textarea
+            value={notes}
+            onChange={(e) => setNotes(e.target.value)}
+            rows={3}
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            placeholder="Add any additional notes..."
+          />
+        </div>
+
+        <div className="flex gap-4">
+          <button
+            type="button"
+            onClick={() => navigate('/leave-requests')}
+            className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors"
+          >
+            Cancel
+          </button>
+          <button
+            type="submit"
+            disabled={loading}
+            className="flex-1 px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {loading ? 'Submitting...' : exceedsBalance ? 'Submit (Will be Denied)' : 'Submit Request'}
+          </button>
+        </div>
+      </form>
     </div>
   )
 }
