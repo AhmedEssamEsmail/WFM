@@ -37,10 +37,14 @@ export interface SwapRequest {
   wfm_approved_at: string | null
   created_at: string
   // Original shift info stored at request creation for display after swap
+  // These store ALL 4 shift types involved in the swap
   requester_original_date?: string
   requester_original_shift_type?: ShiftType
   target_original_date?: string
   target_original_shift_type?: ShiftType
+  // Additional fields for the other two shifts
+  requester_original_shift_type_on_target_date?: ShiftType
+  target_original_shift_type_on_requester_date?: ShiftType
 }
 
 export interface LeaveRequest {
