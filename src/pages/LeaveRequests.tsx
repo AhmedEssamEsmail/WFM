@@ -223,7 +223,7 @@ export default function LeaveRequests() {
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
                 {requests.map((request) => (
-                  <tr key={request.id} className="hover:bg-gray-50">
+                  <tr key={request.id} onClick={() => navigate(`/leave-requests/${request.id}`)} className="hover:bg-gray-50 cursor-pointer transition-colors">
                     {isManager && (
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="text-sm font-medium text-gray-900">{request.user?.name}</div>
@@ -250,14 +250,6 @@ export default function LeaveRequests() {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                       {formatDate(request.created_at)}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm">
-                      <button
-                        onClick={() => navigate(`/leave/${request.id}`)}
-                        className="text-indigo-600 hover:text-indigo-900"
-                      >
-                        View
-                      </button>
                     </td>
                   </tr>
                 ))}
