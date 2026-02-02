@@ -1,184 +1,198 @@
-import { useState, useEffect, FormEvent } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
-import { useAuth } from '../hooks/useAuth'
+import { createContext, useEffect, useState, useCallback, ReactNode } from 'react'
+import { User as SupabaseUser, Session } from '@supabase/supabase-js'
+import { supabase } from './supabase'
+import type { User } from '../types'
 
-export default function Login() {
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const [error, setError] = useState<string | null>(null)
-  const [loading, setLoading] = useState(false)
-  const { signIn, isAuthenticated, loading: authLoading } = useAuth()
-  const navigate = useNavigate()
+interface AuthContextType {
+  user: User | null
+  supabaseUser: SupabaseUser | null
+  session: Session | null
+  loading: boolean
+  isAuthenticated: boolean
+  signUp: (email: string, password: string, name: string) => Promise<{ error: Error | null }>
+  signIn: (email: string, password: string) => Promise<{ error: Error | null; session: Session | null }>
+  signOut: () => Promise<void>
+}
 
-  // Debug: Monitor error state changes
-  useEffect(() => {
-    console.log('Error state changed to:', error)
-  }, [error])
+export const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
-  // Redirect when authenticated - handles both initial auth check and post-login
-  useEffect(() => {
-    if (!authLoading && isAuthenticated) {
-      navigate('/', { replace: true })
-    }
-  }, [isAuthenticated, authLoading, navigate])
-
-  async function handleSubmit(e: FormEvent) {
-    e.preventDefault()
-    setError(null)
-    setLoading(true)
-
-    // Basic client-side validation
-    if (!email || !password) {
-      setError('Please enter both email and password')
-      setLoading(false)
-      return
-    }
-
-    // Check email format
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-    if (!emailRegex.test(email)) {
-      setError('Please enter a valid email address')
-      setLoading(false)
-      return
-    }
-
-    console.log('Attempting sign in with:', email) // Debug log
-
-    const result = await signIn(email, password)
-    
-    console.log('Sign in result - error:', result.error, 'session:', result.session) // Debug log
-    
-    if (result.error) {
-      console.error('Login error:', result.error) // Debug log
-      const errorMessage = result.error.message || 'An unknown error occurred'
-      console.log('Setting error state to:', errorMessage) // Debug log
-      setError(errorMessage)
-      setLoading(false)
-      // Force a small delay to ensure state update
-      setTimeout(() => {
-        console.log('Current error state:', errorMessage)
-      }, 100)
-    }
-    // Don't set loading to false on success - let the useEffect handle redirect
-    // This prevents showing the form briefly before redirect
+// Helper function to convert Supabase errors to user-friendly messages
+function getUserFriendlyError(error: any): Error {
+  // Handle case where error might be a string or have different structure
+  const errorMessage = typeof error === 'string' ? error : (error?.message || error?.error_description || error?.msg || 'Unknown error')
+  const message = errorMessage.toLowerCase()
+  
+  console.error('Auth error details:', error) // Log full error for debugging
+  
+  // Check for specific Supabase error messages
+  if (message.includes('invalid login credentials') || message.includes('invalid email or password')) {
+    return new Error('Invalid email or password. Please check your credentials and try again.')
+  }
+  
+  if (message.includes('email not confirmed')) {
+    return new Error('Please verify your email address before signing in. Check your inbox for the confirmation link.')
+  }
+  
+  if (message.includes('user not found')) {
+    return new Error('No account found with this email address. Please sign up first.')
+  }
+  
+  if (message.includes('invalid email')) {
+    return new Error('Please enter a valid email address.')
+  }
+  
+  if (message.includes('password is too short') || message.includes('password should be at least')) {
+    return new Error('Password must be at least 6 characters long.')
+  }
+  
+  if (message.includes('user already registered')) {
+    return new Error('An account with this email already exists. Please sign in instead.')
+  }
+  
+  if (message.includes('only @dabdoob.com') || message.includes('dabdoob.com email addresses are allowed')) {
+    return new Error('Only @dabdoob.com email addresses are allowed.')
+  }
+  
+  if (message.includes('network') || message.includes('fetch')) {
+    return new Error('Network error. Please check your internet connection and try again.')
+  }
+  
+  if (message.includes('rate limit')) {
+    return new Error('Too many attempts. Please wait a moment and try again.')
   }
 
-  // Show loading state while checking initial auth
-  if (authLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
-      </div>
-    )
+  if (message.includes('invalid grant')) {
+    return new Error('Invalid email or password. Please check your credentials and try again.')
+  }
+  
+  // If no specific error matched, return a generic message but log the original for debugging
+  console.error('Unhandled auth error:', error)
+  return new Error('Unable to sign in. Please check your email and password and try again.')
+}
+
+export function AuthProvider({ children }: { children: ReactNode }) {
+  const [user, setUser] = useState<User | null>(null)
+  const [supabaseUser, setSupabaseUser] = useState<SupabaseUser | null>(null)
+  const [session, setSession] = useState<Session | null>(null)
+  const [loading, setLoading] = useState(true)
+
+  // Computed property for authenticated state
+  const isAuthenticated = !!session && !!user
+
+  const fetchUserProfile = useCallback(async (userId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('users')
+        .select('*')
+        .eq('id', userId)
+        .single()
+
+      if (error) throw error
+      setUser(data as User)
+    } catch (error) {
+      console.error('Error fetching user profile:', error)
+      setUser(null)
+    } finally {
+      setLoading(false)
+    }
+  }, [])
+
+  useEffect(() => {
+    // Get initial session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session)
+      setSupabaseUser(session?.user ?? null)
+      if (session?.user) {
+        fetchUserProfile(session.user.id)
+      } else {
+        setLoading(false)
+      }
+    })
+
+    // Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session)
+      setSupabaseUser(session?.user ?? null)
+      if (session?.user) {
+        fetchUserProfile(session.user.id)
+      } else {
+        setUser(null)
+        setLoading(false)
+      }
+    })
+
+    return () => subscription.unsubscribe()
+  }, [fetchUserProfile])
+
+  async function signUp(email: string, password: string, name: string) {
+    try {
+      // Sign up with user metadata - trigger will create profile automatically
+      const { error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: { name }
+        }
+      })
+
+      if (error) throw getUserFriendlyError(error)
+      return { error: null }
+    } catch (error) {
+      return { error: error as Error }
+    }
+  }
+
+  async function signIn(email: string, password: string) {
+    try {
+      setLoading(true)
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      })
+
+      if (error) {
+        console.error('Supabase signIn error:', error)
+        throw getUserFriendlyError(error)
+      }
+
+      // Wait for session to be established and user profile to be fetched
+      if (data.session?.user) {
+        setSession(data.session)
+        setSupabaseUser(data.session.user)
+        await fetchUserProfile(data.session.user.id)
+      }
+
+      return { error: null, session: data.session }
+    } catch (error: any) {
+      setLoading(false)
+      console.error('Sign in catch block:', error)
+      // If it's already a user-friendly error, return it. Otherwise, process it
+      const finalError = error instanceof Error && error.message.includes('Invalid email') 
+        ? error 
+        : getUserFriendlyError(error)
+      return { error: finalError, session: null }
+    }
+  }
+
+  async function signOut() {
+    await supabase.auth.signOut()
+    setUser(null)
+    setSupabaseUser(null)
+    setSession(null)
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full space-y-8">
-        <div>
-          <h1 className="text-center text-3xl font-bold text-primary-600">SwapTool</h1>
-          <h2 className="mt-6 text-center text-2xl font-semibold text-gray-900">
-            Sign in to your account
-          </h2>
-          <p className="mt-2 text-center text-sm text-gray-600">
-            Or{' '}
-            <Link to="/signup" className="font-medium text-primary-600 hover:text-primary-500">
-              create a new account
-            </Link>
-          </p>
-        </div>
-        <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
-          <div className="space-y-4">
-            <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700">
-                Email address
-              </label>
-              <input
-                id="email"
-                name="email"
-                type="email"
-                autoComplete="email"
-                required
-                value={email}
-                onChange={(e) => {
-                  setEmail(e.target.value)
-                  setError(null) // Clear error when user types
-                }}
-                className="mt-1 appearance-none relative block w-full px-3 py-2 border border-gray-300 rounded-md placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
-                placeholder="you@dabdoob.com"
-              />
-            </div>
-            <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700">
-                Password
-              </label>
-              <input
-                id="password"
-                name="password"
-                type="password"
-                autoComplete="current-password"
-                required
-                value={password}
-                onChange={(e) => {
-                  setPassword(e.target.value)
-                  setError(null) // Clear error when user types
-                }}
-                className="mt-1 appearance-none relative block w-full px-3 py-2 border border-gray-300 rounded-md placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
-                placeholder="********"
-              />
-            </div>
-          </div>
-
-          <div>
-            <button
-              type="submit"
-              disabled={loading}
-              className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {loading ? (
-                <span className="flex items-center">
-                  <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                  </svg>
-                  Signing in...
-                </span>
-              ) : (
-                'Sign in'
-              )}
-            </button>
-          </div>
-
-          {/* Error message displayed prominently after button */}
-          {error && (
-            <div className="rounded-md bg-red-50 border-2 border-red-200 p-4">
-              <div className="flex">
-                <div className="flex-shrink-0">
-                  <svg className="h-6 w-6 text-red-600" viewBox="0 0 20 20" fill="currentColor">
-                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
-                  </svg>
-                </div>
-                <div className="ml-3">
-                  <h3 className="text-sm font-bold text-red-900">Unable to sign in</h3>
-                  <p className="mt-1 text-sm text-red-800">{error}</p>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Debug button - REMOVE THIS AFTER TESTING */}
-          <button
-            type="button"
-            onClick={() => {
-              console.log('Test button clicked')
-              setError('Test error message - if you see this, error display is working!')
-            }}
-            className="text-xs text-gray-500 underline"
-          >
-            Test Error Display (Debug)
-          </button>
-        </form>
-      </div>
-    </div>
+    <AuthContext.Provider value={{ 
+      user, 
+      supabaseUser, 
+      session, 
+      loading, 
+      isAuthenticated,
+      signUp, 
+      signIn, 
+      signOut 
+    }}>
+      {children}
+    </AuthContext.Provider>
   )
 }
