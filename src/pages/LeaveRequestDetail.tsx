@@ -313,7 +313,7 @@ export default function LeaveRequestDetail() {
         onClick={() => navigate('/leave')}
         className="mb-4 text-indigo-600 hover:text-indigo-800 flex items-center"
       >
-        "<" Back
+        Back to All Requests
       </button>
 
       {error && (
