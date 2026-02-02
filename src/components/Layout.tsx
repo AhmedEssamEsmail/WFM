@@ -88,7 +88,7 @@ export default function Layout({ children }: LayoutProps) {
         <div className="flex items-center justify-between h-16 px-4 border-b border-gray-100">
           {!sidebarCollapsed && (
             <Link to="/dashboard" className="text-xl font-bold bg-gradient-to-r from-primary-600 to-primary-500 bg-clip-text text-transparent">
-              SwapTool
+              WFM System
             </Link>
           )}
           <button
@@ -111,7 +111,7 @@ export default function Layout({ children }: LayoutProps) {
       
       <aside className={`fixed inset-y-0 left-0 z-50 w-72 bg-white transform transition-transform duration-300 ease-in-out md:hidden ${mobileMenuOpen ? 'translate-x-0' : '-translate-x-full'}`}>
         <div className="flex items-center justify-between h-16 px-6 border-b">
-          <span className="text-xl font-bold text-primary-600">SwapTool</span>
+          <span className="text-xl font-bold text-primary-600">WFM System</span>
           <button onClick={() => setMobileMenuOpen(false)} className="p-2 -mr-2 text-gray-400"><CloseIcon /></button>
         </div>
         <nav className="p-4 space-y-2">
