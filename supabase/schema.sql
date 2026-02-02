@@ -119,6 +119,33 @@ CREATE INDEX idx_comments_request ON comments(request_type, request_id);
 ALTER TABLE users ENABLE ROW LEVEL SECURITY;
 ALTER TABLE shifts ENABLE ROW LEVEL SECURITY;
 ALTER TABLE swap_requests ENABLE ROW LEVEL SECURITY;
+
+-- Swap requests policies
+CREATE POLICY "Users can view swap requests they're involved in" ON swap_requests
+FOR SELECT USING (
+  auth.uid() = requester_id 
+  OR auth.uid() = target_user_id
+  OR EXISTS (SELECT 1 FROM users WHERE id = auth.uid() AND role IN ('wfm', 'tl'))
+);
+
+CREATE POLICY "Users can create swap requests" ON swap_requests
+FOR INSERT WITH CHECK (
+  auth.uid() = requester_id
+  OR EXISTS (SELECT 1 FROM users WHERE id = auth.uid() AND role IN ('wfm', 'tl'))
+);
+
+CREATE POLICY "Users can update swap requests they're involved in" ON swap_requests
+FOR UPDATE USING (
+  auth.uid() = requester_id 
+  OR auth.uid() = target_user_id
+  OR EXISTS (SELECT 1 FROM users WHERE id = auth.uid() AND role IN ('wfm', 'tl'))
+);
+
+CREATE POLICY "Users can delete their own swap requests" ON swap_requests
+FOR DELETE USING (
+  auth.uid() = requester_id
+  OR EXISTS (SELECT 1 FROM users WHERE id = auth.uid() AND role IN ('wfm', 'tl'))
+);
 ALTER TABLE leave_requests ENABLE ROW LEVEL SECURITY;
 ALTER TABLE leave_balances ENABLE ROW LEVEL SECURITY;
 ALTER TABLE comments ENABLE ROW LEVEL SECURITY;
