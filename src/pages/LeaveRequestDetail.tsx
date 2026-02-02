@@ -17,14 +17,16 @@ const statusLabels: Record<LeaveRequestStatus, string> = {
   pending_tl: 'Pending TL Approval',
   pending_wfm: 'Pending WFM Approval',
   approved: 'Approved',
-  rejected: 'Rejected'
+  rejected: 'Rejected',
+  denied: 'Denied (Insufficient Balance)'
 }
 
 const statusColors: Record<LeaveRequestStatus, string> = {
   pending_tl: 'bg-yellow-100 text-yellow-800',
   pending_wfm: 'bg-blue-100 text-blue-800',
   approved: 'bg-green-100 text-green-800',
-  rejected: 'bg-red-100 text-red-800'
+  rejected: 'bg-red-100 text-red-800',
+  denied: 'bg-orange-100 text-orange-800'
 }
 
 interface CommentWithSystem extends Comment {
@@ -42,12 +44,34 @@ export default function LeaveRequestDetail() {
   const [loading, setLoading] = useState(true)
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState('')
+  const [allowExceptions, setAllowExceptions] = useState(false)
+  const [requestingException, setRequestingException] = useState(false)
 
   useEffect(() => {
     if (id) {
       fetchRequestDetails()
+      fetchExceptionSetting()
     }
   }, [id])
+
+  async function fetchExceptionSetting() {
+    try {
+      const { data, error } = await supabase
+        .from('settings')
+        .select('value')
+        .eq('key', 'allow_leave_exceptions')
+        .single()
+
+      if (error && error.code !== 'PGRST116') {
+        console.error('Error fetching exception setting:', error)
+        return
+      }
+
+      setAllowExceptions(data?.value === 'true')
+    } catch (err) {
+      console.error('Error fetching exception setting:', err)
+    }
+  }
 
   async function fetchRequestDetails() {
     try {
@@ -61,7 +85,7 @@ export default function LeaveRequestDetail() {
       if (requestError) throw requestError
       setRequest(requestData)
 
-      // Fetch requester info
+      // Fetch requester details
       const { data: userData, error: userError } = await supabase
         .from('users')
         .select('*')
@@ -71,88 +95,68 @@ export default function LeaveRequestDetail() {
       if (userError) throw userError
       setRequester(userData)
 
-      // Fetch comments with user info
-      const { data: commentsData, error: commentsError } = await supabase
-        .from('comments')
-        .select(`
-          *,
-          user:users(*)
-        `)
-        .eq('request_id', id)
-        .eq('request_type', 'leave')
-        .order('created_at', { ascending: true })
-
-      if (commentsError) throw commentsError
-      setComments(commentsData || [])
-    } catch (error) {
-      console.error('Error fetching request details:', error)
+      // Fetch comments
+      await fetchComments()
+    } catch (err) {
+      console.error('Error fetching request details:', err)
       setError('Failed to load request details')
     } finally {
       setLoading(false)
     }
   }
 
-  async function createSystemComment(content: string) {
-    if (!id || !user) return
-
+  async function fetchComments() {
     try {
-      await supabase.from('comments').insert({
-        request_id: id,
-        request_type: 'leave',
-        user_id: user.id,
-        content,
-        is_system: true
-      })
-    } catch (error) {
-      console.error('Error creating system comment:', error)
+      const { data, error } = await supabase
+        .from('comments')
+        .select('*')
+        .eq('request_id', id)
+        .eq('request_type', 'leave')
+        .order('created_at', { ascending: true })
+
+      if (error) throw error
+      setComments(data || [])
+    } catch (err) {
+      console.error('Error fetching comments:', err)
     }
   }
 
   async function handleApprove() {
     if (!request || !user) return
-
     setSubmitting(true)
     setError('')
 
     try {
-      const oldStatus = request.status
-      let newStatus: LeaveRequestStatus
-      let updateData: Partial<LeaveRequest> = {}
+      let newStatus: LeaveRequestStatus = request.status
+      const updates: Partial<LeaveRequest> = {}
 
       if (user.role === 'tl' && request.status === 'pending_tl') {
         newStatus = 'pending_wfm'
-        updateData = {
-          status: newStatus,
-          tl_approved_at: new Date().toISOString()
-        }
+        updates.tl_approved_at = new Date().toISOString()
       } else if (user.role === 'wfm' && (request.status === 'pending_wfm' || request.status === 'pending_tl')) {
         newStatus = 'approved'
-        updateData = {
-          status: newStatus,
-          wfm_approved_at: new Date().toISOString()
-        }
+        updates.wfm_approved_at = new Date().toISOString()
         if (request.status === 'pending_tl') {
-          updateData.tl_approved_at = new Date().toISOString()
+          updates.tl_approved_at = new Date().toISOString()
         }
-      } else {
-        throw new Error('Cannot approve this request')
       }
+
+      updates.status = newStatus
 
       const { error: updateError } = await supabase
         .from('leave_requests')
-        .update(updateData)
+        .update(updates)
         .eq('id', id)
 
       if (updateError) throw updateError
 
-      // Create system comment
-      await createSystemComment(
-        `System: ${user.name} approved. Status changed from ${statusLabels[oldStatus]} to ${statusLabels[newStatus]}`
-      )
+      // Add system comment
+      await addSystemComment(`Request approved by ${user.name} (${user.role.toUpperCase()})`)
 
+      // Refresh the request
       await fetchRequestDetails()
-    } catch (error) {
-      console.error('Error approving request:', error)
+    } catch (err) {
+      console.error('Error approving request:', err)
       setError('Failed to approve request')
     } finally {
       setSubmitting(false)
@@ -161,12 +165,10 @@ export default function LeaveRequestDetail() {
 
   async function handleReject() {
     if (!request || !user) return
-
     setSubmitting(true)
     setError('')
 
     try {
-      const oldStatus = request.status
       const { error: updateError } = await supabase
         .from('leave_requests')
         .update({ status: 'rejected' })
@@ -174,403 +176,284 @@ export default function LeaveRequestDetail() {
 
       if (updateError) throw updateError
 
-      // Create system comment
-      await createSystemComment(
-        `System: ${user.name} rejected. Status changed from ${statusLabels[oldStatus]} to Rejected`
-      )
+      // Add system comment
+      await addSystemComment(`Request rejected by ${user.name} (${user.role.toUpperCase()})`)
 
+      // Refresh the request
       await fetchRequestDetails()
-    } catch (error) {
-      console.error('Error rejecting request:', error)
+    } catch (err) {
+      console.error('Error rejecting request:', err)
       setError('Failed to reject request')
     } finally {
       setSubmitting(false)
     }
   }
 
-  async function handleRevoke() {
+  async function handleAskForException() {
     if (!request || !user) return
-
-    setSubmitting(true)
+    setRequestingException(true)
     setError('')
 
     try {
-      const oldStatus = request.status
-      
-      // Calculate the number of leave days to restore
-      const startDate = new Date(request.start_date)
-      const endDate = new Date(request.end_date)
-      const leaveDays = Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)) + 1
-
-      // Get the user's current balance for this leave type
-      const { data: balanceData, error: balanceError } = await supabase
-        .from('leave_balances')
-        .select('balance')
-        .eq('user_id', request.user_id)
-        .eq('leave_type', request.leave_type)
-        .single()
-
-      if (balanceError) throw balanceError
-
-      const currentBalance = Number(balanceData?.balance || 0)
-      const newBalance = currentBalance + leaveDays
-
-      // Restore the balance
-      const { error: updateBalanceError } = await supabase
-        .from('leave_balances')
-        .update({ 
-          balance: newBalance,
-          updated_at: new Date().toISOString()
-        })
-        .eq('user_id', request.user_id)
-        .eq('leave_type', request.leave_type)
-
-      if (updateBalanceError) throw updateBalanceError
-
-      // Log the balance restoration in history
-      const { error: historyError } = await supabase
-        .from('leave_balance_history')
-        .insert({
-          user_id: request.user_id,
-          leave_type: request.leave_type,
-          previous_balance: currentBalance,
-          new_balance: newBalance,
-          change_reason: `Approval revoked for leave request (restored ${leaveDays} day(s))`,
-          changed_by: user.id
-        })
-
-      if (historyError) {
-        console.error('Failed to log balance history:', historyError)
-        // Don't throw - balance was restored, history logging is secondary
-      }
-
-      // Reset the leave request status
       const { error: updateError } = await supabase
         .from('leave_requests')
-        .update({
-          status: 'pending_tl',
-          tl_approved_at: null,
-          wfm_approved_at: null
-        })
+        .update({ status: 'pending_tl' })
         .eq('id', id)
 
       if (updateError) throw updateError
 
-      // Create system comment
-      await createSystemComment(
-        `System: ${user.name} revoked decision. Status reset from ${statusLabels[oldStatus]} to Pending TL Approval. Restored ${leaveDays} ${request.leave_type} leave day(s) to balance.`
-      )
+      // Add system comment
+      await addSystemComment('Exception requested - sent for TL approval')
 
+      // Refresh the request
       await fetchRequestDetails()
-    } catch (error) {
-      console.error('Error revoking decision:', error)
-      setError('Failed to revoke decision')
+    } catch (err) {
+      console.error('Error requesting exception:', err)
+      setError('Failed to request exception')
     } finally {
-      setSubmitting(false)
+      setRequestingException(false)
     }
   }
 
-  async function handleAddComment(e: React.FormEvent) {
-    e.preventDefault()
-    if (!newComment.trim() || !user || !id) return
+  async function addSystemComment(content: string) {
+    if (!user) return
 
-    setSubmitting(true)
     try {
-      const { error: commentError } = await supabase.from('comments').insert({
-        request_id: id,
-        request_type: 'leave',
-        user_id: user.id,
-        content: newComment.trim(),
-        is_system: false
-      })
+      const { error } = await supabase
+        .from('comments')
+        .insert({
+          request_id: id,
+          request_type: 'leave',
+          user_id: user.id,
+          content,
+          is_system: true
+        })
 
-      if (commentError) throw commentError
+      if (error) throw error
+    } catch (err) {
+      console.error('Error adding system comment:', err)
+    }
+  }
+
+  async function handleAddComment() {
+    if (!newComment.trim() || !user) return
+    setSubmitting(true)
+
+    try {
+      const { error } = await supabase
+        .from('comments')
+        .insert({
+          request_id: id,
+          request_type: 'leave',
+          user_id: user.id,
+          content: newComment.trim()
+        })
+
+      if (error) throw error
 
       setNewComment('')
-      await fetchRequestDetails()
-    } catch (error) {
-      console.error('Error adding comment:', error)
+      await fetchComments()
+    } catch (err) {
+      console.error('Error adding comment:', err)
       setError('Failed to add comment')
     } finally {
       setSubmitting(false)
     }
   }
 
-  function canApprove(): boolean {
-    if (!user || !request) return false
+  const calculateDays = (start: string, end: string) => {
+    const startDate = new Date(start)
+    const endDate = new Date(end)
+    const diffTime = Math.abs(endDate.getTime() - startDate.getTime())
+    return Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1
+  }
+
+  const canApprove = () => {
+    if (!request || !user) return false
+    if (request.status === 'approved' || request.status === 'rejected' || request.status === 'denied') return false
     if (user.role === 'tl' && request.status === 'pending_tl') return true
     if (user.role === 'wfm' && (request.status === 'pending_wfm' || request.status === 'pending_tl')) return true
     return false
   }
 
-  function canReject(): boolean {
-    if (!user || !request) return false
-    if (user.role === 'tl' && request.status === 'pending_tl') return true
-    if (user.role === 'wfm' && (request.status === 'pending_wfm' || request.status === 'pending_tl')) return true
+  const canReject = () => {
+    if (!request || !user) return false
+    if (request.status === 'approved' || request.status === 'rejected' || request.status === 'denied') return false
+    if (user.role === 'tl' || user.role === 'wfm') return true
     return false
   }
 
-  function canRevoke(): boolean {
-    if (!user || !request) return false
-    if (user.role !== 'wfm') return false
-    if (request.status === 'approved' || request.status === 'rejected' || request.status === 'pending_wfm') return true
-    return false
+  const canAskForException = () => {
+    if (!request || !user || !allowExceptions) return false
+    return request.status === 'denied'
   }
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
+      <div className="flex justify-center items-center h-64">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
       </div>
     )
   }
 
   if (!request || !requester) {
     return (
-      <div className="text-center py-12">
-        <p className="text-gray-500">Request not found</p>
+      <div className="p-6 max-w-4xl mx-auto">
+        <div className="bg-red-50 text-red-700 p-4 rounded-lg">
+          {error || 'Request not found'}
+        </div>
       </div>
     )
   }
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <button
-            onClick={() => navigate(-1)}
-            className="text-gray-500 hover:text-gray-700 mb-2 flex items-center gap-1"
-          >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-            </svg>
-            Back
-          </button>
-          <h1 className="text-2xl font-bold text-gray-900">Leave Request Details</h1>
-        </div>
-        <span className={`px-3 py-1 rounded-full text-sm font-medium ${statusColors[request.status]}`}>
-          {statusLabels[request.status]}
-        </span>
-      </div>
+    <div className="p-6 max-w-4xl mx-auto">
+      <button
+        onClick={() => navigate('/leave')}
+        className="mb-4 text-indigo-600 hover:text-indigo-800 flex items-center"
+      >
+        ← Back to Leave Requests
+      </button>
 
       {error && (
-        <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-red-700">
+        <div className="bg-red-50 text-red-700 p-4 rounded-lg mb-4">
           {error}
         </div>
       )}
 
-      {/* Request Info */}
-      <div className="bg-white rounded-lg shadow-sm p-6">
-        <h2 className="text-lg font-semibold text-gray-900 mb-4">Request Information</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      {/* Request Details */}
+      <div className="bg-white rounded-lg shadow p-6 mb-6">
+        <div className="flex justify-between items-start mb-4">
+          <h1 className="text-2xl font-bold text-gray-900">Leave Request Details</h1>
+          <span className={`px-3 py-1 rounded-full text-sm font-medium ${statusColors[request.status]}`}>
+            {statusLabels[request.status]}
+          </span>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
-            <label className="text-sm text-gray-500">Requester</label>
-            <p className="font-medium text-gray-900">{requester.name}</p>
+            <h3 className="text-sm font-medium text-gray-500">Requester</h3>
+            <p className="text-lg text-gray-900">{requester.name}</p>
             <p className="text-sm text-gray-500">{requester.email}</p>
           </div>
+
           <div>
-            <label className="text-sm text-gray-500">Leave Type</label>
-            <p className="font-medium text-gray-900">{leaveTypeLabels[request.leave_type]}</p>
+            <h3 className="text-sm font-medium text-gray-500">Leave Type</h3>
+            <p className="text-lg text-gray-900">{leaveTypeLabels[request.leave_type]}</p>
           </div>
+
           <div>
-            <label className="text-sm text-gray-500">Start Date</label>
-            <p className="font-medium text-gray-900">{format(new Date(request.start_date), 'MMM d, yyyy')}</p>
+            <h3 className="text-sm font-medium text-gray-500">Dates</h3>
+            <p className="text-lg text-gray-900">
+              {format(new Date(request.start_date), 'MMM d, yyyy')} - {format(new Date(request.end_date), 'MMM d, yyyy')}
+            </p>
+            <p className="text-sm text-gray-500">
+              {calculateDays(request.start_date, request.end_date)} day(s)
+            </p>
           </div>
+
           <div>
-            <label className="text-sm text-gray-500">End Date</label>
-            <p className="font-medium text-gray-900">{format(new Date(request.end_date), 'MMM d, yyyy')}</p>
+            <h3 className="text-sm font-medium text-gray-500">Submitted</h3>
+            <p className="text-lg text-gray-900">
+              {format(new Date(request.created_at), 'MMM d, yyyy h:mm a')}
+            </p>
           </div>
-          <div>
-            <label className="text-sm text-gray-500">Created</label>
-            <p className="font-medium text-gray-900">{format(new Date(request.created_at), 'MMM d, yyyy h:mm a')}</p>
-          </div>
+
           {request.notes && (
             <div className="md:col-span-2">
-              <label className="text-sm text-gray-500">Notes</label>
-              <p className="font-medium text-gray-900">{request.notes}</p>
+              <h3 className="text-sm font-medium text-gray-500">Notes</h3>
+              <p className="text-gray-900">{request.notes}</p>
             </div>
           )}
         </div>
-      </div>
 
-      {/* Approval Timeline */}
-      <div className="bg-white rounded-lg shadow-sm p-6">
-        <h2 className="text-lg font-semibold text-gray-900 mb-4">Approval Timeline</h2>
-        <div className="space-y-4">
-          {/* Created Step */}
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-full flex items-center justify-center bg-green-100 text-green-600">
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-              </svg>
-            </div>
-            <div>
-              <p className="font-medium text-gray-900">Created</p>
-              <p className="text-sm text-gray-500">
-                Created on {format(new Date(request.created_at), 'MMM d, yyyy h:mm a')}
-              </p>
-            </div>
-          </div>
-
-          {/* TL Approval Step */}
-          <div className="flex items-center gap-3">
-            <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
-              request.tl_approved_at ? 'bg-green-100 text-green-600' :
-              request.status === 'rejected' ? 'bg-red-100 text-red-600' :
-              request.status === 'pending_tl' ? 'bg-yellow-100 text-yellow-600' :
-              'bg-gray-100 text-gray-400'
-            }`}>
-              {request.tl_approved_at ? (
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                </svg>
-              ) : request.status === 'rejected' && !request.tl_approved_at ? (
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              ) : request.status === 'pending_tl' ? (
-                <span className="text-sm font-bold">...</span>
-              ) : (
-                <span className="text-sm font-bold">-</span>
-              )}
-            </div>
-            <div>
-              <p className="font-medium text-gray-900">Team Lead Approval</p>
-              {request.tl_approved_at ? (
-                <p className="text-sm text-gray-500">
-                  Approved on {format(new Date(request.tl_approved_at), 'MMM d, yyyy h:mm a')}
-                </p>
-              ) : request.status === 'pending_tl' ? (
-                <p className="text-sm text-yellow-600">Awaiting approval</p>
-              ) : request.status === 'rejected' && !request.tl_approved_at ? (
-                <p className="text-sm text-red-600">Rejected</p>
-              ) : (
-                <p className="text-sm text-gray-500">Skipped</p>
-              )}
-            </div>
-          </div>
-
-          {/* WFM Approval Step */}
-          <div className="flex items-center gap-3">
-            <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
-              request.wfm_approved_at ? 'bg-green-100 text-green-600' :
-              request.status === 'rejected' && request.tl_approved_at ? 'bg-red-100 text-red-600' :
-              request.status === 'pending_wfm' ? 'bg-yellow-100 text-yellow-600' :
-              'bg-gray-100 text-gray-400'
-            }`}>
-              {request.wfm_approved_at ? (
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                </svg>
-              ) : request.status === 'rejected' && request.tl_approved_at ? (
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              ) : request.status === 'pending_wfm' ? (
-                <span className="text-sm font-bold">...</span>
-              ) : (
-                <span className="text-sm font-bold">-</span>
-              )}
-            </div>
-            <div>
-              <p className="font-medium text-gray-900">WFM Approval</p>
-              {request.wfm_approved_at ? (
-                <p className="text-sm text-gray-500">
-                  Approved on {format(new Date(request.wfm_approved_at), 'MMM d, yyyy h:mm a')}
-                </p>
-              ) : request.status === 'pending_wfm' ? (
-                <p className="text-sm text-yellow-600">Awaiting approval</p>
-              ) : request.status === 'rejected' && request.tl_approved_at ? (
-                <p className="text-sm text-red-600">Rejected</p>
-              ) : (
-                <p className="text-sm text-gray-500">Pending</p>
-              )}
-            </div>
-          </div>
+        {/* Action Buttons */}
+        <div className="mt-6 flex gap-3">
+          {canApprove() && (
+            <button
+              onClick={handleApprove}
+              disabled={submitting}
+              className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition-colors disabled:opacity-50"
+            >
+              {submitting ? 'Processing...' : 'Approve'}
+            </button>
+          )}
+          {canReject() && (
+            <button
+              onClick={handleReject}
+              disabled={submitting}
+              className="bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 transition-colors disabled:opacity-50"
+            >
+              {submitting ? 'Processing...' : 'Reject'}
+            </button>
+          )}
+          {canAskForException() && (
+            <button
+              onClick={handleAskForException}
+              disabled={requestingException}
+              className="bg-orange-600 text-white px-4 py-2 rounded-md hover:bg-orange-700 transition-colors disabled:opacity-50"
+            >
+              {requestingException ? 'Requesting...' : 'Ask for Exception'}
+            </button>
+          )}
         </div>
-      </div>
 
-      {/* Action Buttons */}
-      {(canApprove() || canReject() || canRevoke()) && (
-        <div className="bg-white rounded-lg shadow-sm p-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">Actions</h2>
-          <div className="flex flex-wrap gap-3">
-            {canApprove() && (
-              <button
-                onClick={handleApprove}
-                disabled={submitting}
-                className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {submitting ? 'Processing...' : 'Approve'}
-              </button>
-            )}
-            {canReject() && (
-              <button
-                onClick={handleReject}
-                disabled={submitting}
-                className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {submitting ? 'Processing...' : 'Reject'}
-              </button>
-            )}
-            {canRevoke() && (
-              <button
-                onClick={handleRevoke}
-                disabled={submitting}
-                className="px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {submitting ? 'Processing...' : 'Revoke'}
-              </button>
-            )}
+        {/* Denied status explanation */}
+        {request.status === 'denied' && (
+          <div className="mt-4 p-4 bg-orange-50 border border-orange-200 rounded-lg">
+            <p className="text-orange-800 text-sm">
+              This request was automatically denied because the requested leave days exceeded your available balance.
+              {allowExceptions && ' You can request an exception by clicking the "Ask for Exception" button above.'}
+            </p>
           </div>
-        </div>
-      )}
+        )}
+      </div>
 
       {/* Comments Section */}
-      <div className="bg-white rounded-lg shadow-sm p-6">
+      <div className="bg-white rounded-lg shadow p-6">
         <h2 className="text-lg font-semibold text-gray-900 mb-4">Comments</h2>
-        
-        {/* Comment List */}
+
         <div className="space-y-4 mb-6">
           {comments.length === 0 ? (
-            <p className="text-gray-500 text-sm">No comments yet</p>
+            <p className="text-gray-500">No comments yet</p>
           ) : (
             comments.map((comment) => (
-              <div key={comment.id} className={`p-3 rounded-lg ${comment.is_system ? 'bg-gray-100' : 'bg-blue-50'}`}>
+              <div
+                key={comment.id}
+                className={`p-3 rounded-lg ${comment.is_system ? 'bg-gray-100 border-l-4 border-indigo-500' : 'bg-gray-50'}`}
+              >
                 <div className="flex justify-between items-start mb-1">
-                  <span className="text-sm font-medium text-blue-800">
-                    {comment.user?.name || 'Unknown User'}
+                  <span className="font-medium text-gray-900">
+                    {comment.is_system ? 'System' : 'User'}
                   </span>
-                  <span className="text-xs text-gray-500">
+                  <span className="text-sm text-gray-500">
                     {format(new Date(comment.created_at), 'MMM d, yyyy h:mm a')}
                   </span>
                 </div>
-                <p className="text-sm text-gray-800">
-                  {comment.content}
-                </p>
+                <p className="text-gray-700">{comment.content}</p>
               </div>
             ))
           )}
         </div>
 
-        {/* Add Comment Form */}
-        <form onSubmit={(e) => { e.preventDefault(); handleAddComment(e); }} className="flex gap-2">
+        {/* Add Comment */}
+        <div className="flex gap-2">
           <input
             type="text"
             value={newComment}
             onChange={(e) => setNewComment(e.target.value)}
             placeholder="Add a comment..."
-            className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+            className="flex-1 border rounded-md px-3 py-2"
+            onKeyPress={(e) => e.key === 'Enter' && handleAddComment()}
           />
           <button
-            type="submit"
+            onClick={handleAddComment}
             disabled={submitting || !newComment.trim()}
-            className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 transition-colors disabled:opacity-50"
           >
-            {submitting ? 'Sending...' : 'Send'}
+            Add
           </button>
-        </form>
+        </div>
       </div>
     </div>
   )
