@@ -7,15 +7,12 @@ export default function Login() {
   const [password, setPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
+  
+  // Destructure loading from auth as 'authLoading' to avoid naming conflict
   const { signIn, isAuthenticated, loading: authLoading } = useAuth()
   const navigate = useNavigate()
 
-  // Debug: Monitor error state changes
-  useEffect(() => {
-    console.log('Error state changed to:', error)
-  }, [error])
-
-  // Redirect when authenticated - handles both initial auth check and post-login
+  // Redirect if already logged in
   useEffect(() => {
     if (!authLoading && isAuthenticated) {
       navigate('/', { replace: true })
@@ -24,46 +21,29 @@ export default function Login() {
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault()
+    
+    // 1. Clear error ONLY when submitting
     setError(null)
     setLoading(true)
 
-    // Basic client-side validation
+    // Validation
     if (!email || !password) {
       setError('Please enter both email and password')
       setLoading(false)
       return
     }
 
-    // Check email format
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-    if (!emailRegex.test(email)) {
-      setError('Please enter a valid email address')
-      setLoading(false)
-      return
-    }
-
-    console.log('Attempting sign in with:', email) // Debug log
-
+    // Attempt Sign In
     const result = await signIn(email, password)
     
-    console.log('Sign in result - error:', result.error, 'session:', result.session) // Debug log
-    
     if (result.error) {
-      console.error('Login error:', result.error) // Debug log
-      const errorMessage = result.error.message || 'An unknown error occurred'
-      console.log('Setting error state to:', errorMessage) // Debug log
-      setError(errorMessage)
+      // 2. Set the error message returned from our updated AuthContext
+      setError(result.error.message)
       setLoading(false)
-      // Force a small delay to ensure state update
-      setTimeout(() => {
-        console.log('Current error state:', errorMessage)
-      }, 100)
     }
-    // Don't set loading to false on success - let the useEffect handle redirect
-    // This prevents showing the form briefly before redirect
+    // If success, the useEffect above will handle the redirect
   }
 
-  // Show loading state while checking initial auth
   if (authLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
@@ -87,6 +67,7 @@ export default function Login() {
             </Link>
           </p>
         </div>
+        
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
           <div className="space-y-4">
             <div>
@@ -100,13 +81,8 @@ export default function Login() {
                 autoComplete="email"
                 required
                 value={email}
-                onChange={(e) => {
-                  setEmail(e.target.value)
-                  // Only clear error if not currently loading (not during submission)
-                  if (!loading) {
-                    setError(null)
-                  }
-                }}
+                // FIX: Removed setError(null) here to prevent disappearing errors
+                onChange={(e) => setEmail(e.target.value)}
                 className="mt-1 appearance-none relative block w-full px-3 py-2 border border-gray-300 rounded-md placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
                 placeholder="you@dabdoob.com"
               />
@@ -122,13 +98,8 @@ export default function Login() {
                 autoComplete="current-password"
                 required
                 value={password}
-                onChange={(e) => {
-                  setPassword(e.target.value)
-                  // Only clear error if not currently loading (not during submission)
-                  if (!loading) {
-                    setError(null)
-                  }
-                }}
+                // FIX: Removed setError(null) here too
+                onChange={(e) => setPassword(e.target.value)}
                 className="mt-1 appearance-none relative block w-full px-3 py-2 border border-gray-300 rounded-md placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
                 placeholder="********"
               />
@@ -155,18 +126,17 @@ export default function Login() {
             </button>
           </div>
 
-          {/* Error message displayed prominently after button */}
+          {/* Error Message Section */}
           {error && (
-            <div className="rounded-md bg-red-50 border-2 border-red-200 p-4">
+            <div className="rounded-md bg-red-50 border-l-4 border-red-500 p-4 animate-fade-in">
               <div className="flex">
                 <div className="flex-shrink-0">
-                  <svg className="h-6 w-6 text-red-600" viewBox="0 0 20 20" fill="currentColor">
+                  <svg className="h-5 w-5 text-red-500" viewBox="0 0 20 20" fill="currentColor">
                     <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
                   </svg>
                 </div>
                 <div className="ml-3">
-                  <h3 className="text-sm font-bold text-red-900">Unable to sign in</h3>
-                  <p className="mt-1 text-sm text-red-800">{error}</p>
+                  <p className="text-sm text-red-700 font-medium">{error}</p>
                 </div>
               </div>
             </div>
