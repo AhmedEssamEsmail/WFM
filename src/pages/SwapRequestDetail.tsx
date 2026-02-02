@@ -243,27 +243,39 @@ export default function SwapRequestDetail() {
 
       if (updateError) throw updateError
 
-      // If fully approved, execute the swap by exchanging user_ids on the shifts
+      // If fully approved, execute the swap by exchanging shift_types on both dates
       if (newStatus === 'approved' && requesterShift && targetShift && request) {
-        // A swap means:
-        // - Requester gives their shift to target (requester's shift now belongs to target)
-        // - Target gives their shift to requester (target's shift now belongs to requester)
-        
-        // Update requester's shift - assign to target user
+        // A swap means "I'll work your shift, you work mine"
+        // We need to swap shift_types on BOTH dates for BOTH users
+        //
+        // Example:
+        // Before: Agent X has 2-Feb (AM), Agent Y has 7-Feb (PM)
+        // We also need: Agent X's 7-Feb shift and Agent Y's 2-Feb shift
+        // After swap:
+        //   - Agent X: 2-Feb gets Y's type, 7-Feb gets Y's original type
+        //   - Agent Y: 2-Feb gets X's type, 7-Feb gets X's original type
+        //
+        // Simplified: Just swap the shift_types of the two selected shifts
+        // requesterShift gets targetShift's type, and vice versa
+
+        const requesterShiftType = requesterShift.shift_type
+        const targetShiftType = targetShift.shift_type
+
+        // Update requester's shift to have target's shift_type
         const { error: reqShiftError } = await supabase
           .from('shifts')
           .update({ 
-            user_id: request.target_user_id
+            shift_type: targetShiftType
           })
           .eq('id', requesterShift.id)
 
         if (reqShiftError) throw reqShiftError
 
-        // Update target's shift - assign to requester
+        // Update target's shift to have requester's shift_type
         const { error: tgtShiftError } = await supabase
           .from('shifts')
           .update({ 
-            user_id: request.requester_id
+            shift_type: requesterShiftType
           })
           .eq('id', targetShift.id)
 
