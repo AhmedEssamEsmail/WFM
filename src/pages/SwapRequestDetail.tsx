@@ -262,7 +262,7 @@ export default function SwapRequestDetail() {
         const targetUserId = request.target_user_id
 
         // Get Agent Y's shift on requester's date (2-Feb)
-        const { data: targetOnRequesterDate, error: torError } = await supabase
+        const { data: targetOnRequesterDate } = await supabase
           .from('shifts')
           .select('*')
           .eq('user_id', targetUserId)
@@ -270,7 +270,7 @@ export default function SwapRequestDetail() {
           .single()
 
         // Get Agent X's shift on target's date (7-Feb)
-        const { data: requesterOnTargetDate, error: rotError } = await supabase
+        const { data: requesterOnTargetDate } = await supabase
           .from('shifts')
           .select('*')
           .eq('user_id', requesterId)
