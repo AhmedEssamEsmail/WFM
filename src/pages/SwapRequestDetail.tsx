@@ -372,26 +372,78 @@ export default function SwapRequestDetail() {
     try {
       const oldStatus = request.status
 
-      // If was approved, need to reverse the shift swap
-      if (oldStatus === 'approved' && requesterShift && targetShift) {
-        // Swap back to original shift types
-        await supabase
-          .from('shifts')
-          .update({ 
-            shift_type: targetShift.shift_type, // This was swapped, so swap back
-            swapped_with_user_id: null,
-            original_user_id: null
-          })
-          .eq('id', requesterShift.id)
+      // If was approved, need to reverse the shift swap using stored original values
+      if (oldStatus === 'approved' && request.requester_original_date && request.target_original_date) {
+        const requesterDate = request.requester_original_date
+        const targetDate = request.target_original_date
+        const requesterId = request.requester_id
+        const targetUserId = request.target_user_id
 
-        await supabase
+        // Find all 4 shift records
+        const { data: reqOnReqDate } = await supabase
           .from('shifts')
-          .update({ 
-            shift_type: requesterShift.shift_type, // This was swapped, so swap back
-            swapped_with_user_id: null,
-            original_user_id: null
-          })
-          .eq('id', targetShift.id)
+          .select('*')
+          .eq('user_id', requesterId)
+          .eq('date', requesterDate)
+          .single()
+
+        const { data: reqOnTgtDate } = await supabase
+          .from('shifts')
+          .select('*')
+          .eq('user_id', requesterId)
+          .eq('date', targetDate)
+          .single()
+
+        const { data: tgtOnReqDate } = await supabase
+          .from('shifts')
+          .select('*')
+          .eq('user_id', targetUserId)
+          .eq('date', requesterDate)
+          .single()
+
+        const { data: tgtOnTgtDate } = await supabase
+          .from('shifts')
+          .select('*')
+          .eq('user_id', targetUserId)
+          .eq('date', targetDate)
+          .single()
+
+        // Restore all 4 shifts to their original shift_types
+        // 1. Requester on requester_date -> requester_original_shift_type
+        if (reqOnReqDate && request.requester_original_shift_type) {
+          const { error } = await supabase
+            .from('shifts')
+            .update({ shift_type: request.requester_original_shift_type })
+            .eq('id', reqOnReqDate.id)
+          if (error) throw error
+        }
+
+        // 2. Requester on target_date -> requester_original_shift_type_on_target_date
+        if (reqOnTgtDate && request.requester_original_shift_type_on_target_date) {
+          const { error } = await supabase
+            .from('shifts')
+            .update({ shift_type: request.requester_original_shift_type_on_target_date })
+            .eq('id', reqOnTgtDate.id)
+          if (error) throw error
+        }
+
+        // 3. Target on requester_date -> target_original_shift_type_on_requester_date
+        if (tgtOnReqDate && request.target_original_shift_type_on_requester_date) {
+          const { error } = await supabase
+            .from('shifts')
+            .update({ shift_type: request.target_original_shift_type_on_requester_date })
+            .eq('id', tgtOnReqDate.id)
+          if (error) throw error
+        }
+
+        // 4. Target on target_date -> target_original_shift_type
+        if (tgtOnTgtDate && request.target_original_shift_type) {
+          const { error } = await supabase
+            .from('shifts')
+            .update({ shift_type: request.target_original_shift_type })
+            .eq('id', tgtOnTgtDate.id)
+          if (error) throw error
+        }
       }
 
       const { error: updateError } = await supabase
@@ -407,7 +459,7 @@ export default function SwapRequestDetail() {
 
       // Create system comment
       await createSystemComment(
-        `System: ${user.name} revoked decision. Status reset from ${statusLabels[oldStatus]} to Pending TL Approval`
+        `System: ${user.name} revoked decision. Status reset from ${statusLabels[oldStatus]} to Pending TL Approval. All 4 shifts restored to original values.`
       )
 
       await fetchRequestDetails()
