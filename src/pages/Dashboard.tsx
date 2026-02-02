@@ -26,7 +26,8 @@ const STATUS_COLORS: Record<SwapRequestStatus | LeaveRequestStatus, string> = {
   pending_tl: 'bg-blue-100 text-blue-800',
   pending_wfm: 'bg-purple-100 text-purple-800',
   approved: 'bg-green-100 text-green-800',
-  rejected: 'bg-red-100 text-red-800'
+  rejected: 'bg-red-100 text-red-800',
+  denied: 'bg-orange-100 text-orange-800'
 }
 
 const STATUS_LABELS: Record<SwapRequestStatus | LeaveRequestStatus, string> = {
@@ -34,7 +35,8 @@ const STATUS_LABELS: Record<SwapRequestStatus | LeaveRequestStatus, string> = {
   pending_tl: 'Pending TL',
   pending_wfm: 'Pending WFM',
   approved: 'Approved',
-  rejected: 'Rejected'
+  rejected: 'Rejected',
+  denied: 'Denied (Insufficient Balance)'
 }
 
 export default function Dashboard() {
