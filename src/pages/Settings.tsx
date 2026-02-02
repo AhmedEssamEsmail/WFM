@@ -7,6 +7,7 @@ export default function Settings() {
   const navigate = useNavigate()
   const { user } = useAuth()
   const [autoApprove, setAutoApprove] = useState(false)
+  const [allowLeaveExceptions, setAllowLeaveExceptions] = useState(true)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [message, setMessage] = useState('')
@@ -22,18 +23,24 @@ export default function Settings() {
 
   async function fetchSettings() {
     try {
+      // Fetch all settings at once
       const { data, error } = await supabase
         .from('settings')
-        .select('value')
-        .eq('key', 'wfm_auto_approve')
-        .single()
+        .select('key, value')
+        .in('key', ['wfm_auto_approve', 'allow_leave_exceptions'])
 
       if (error && error.code !== 'PGRST116') {
-        // PGRST116 is "not found" - that's okay, use default
         throw error
       }
 
-      setAutoApprove(data?.value === 'true')
+      // Set values from fetched data
+      if (data) {
+        const autoApproveData = data.find(d => d.key === 'wfm_auto_approve')
+        const exceptionsData = data.find(d => d.key === 'allow_leave_exceptions')
+        
+        setAutoApprove(autoApproveData?.value === 'true')
+        setAllowLeaveExceptions(exceptionsData?.value !== 'false') // Default to true
+      }
     } catch (err) {
       console.error('Error fetching settings:', err)
     } finally {
@@ -41,14 +48,13 @@ export default function Settings() {
     }
   }
 
-  async function handleToggle() {
+  async function handleAutoApproveToggle() {
     setSaving(true)
     setMessage('')
 
     try {
       const newValue = !autoApprove
 
-      // Try to upsert the setting
       const { error } = await supabase
         .from('settings')
         .upsert({
@@ -72,39 +78,69 @@ export default function Settings() {
     }
   }
 
-  if (user?.role !== 'wfm') {
-    return null
+  async function handleExceptionsToggle() {
+    setSaving(true)
+    setMessage('')
+
+    try {
+      const newValue = !allowLeaveExceptions
+
+      const { error } = await supabase
+        .from('settings')
+        .upsert({
+          key: 'allow_leave_exceptions',
+          value: newValue.toString(),
+          updated_at: new Date().toISOString()
+        }, {
+          onConflict: 'key'
+        })
+
+      if (error) throw error
+
+      setAllowLeaveExceptions(newValue)
+      setMessage('Settings saved successfully!')
+      setTimeout(() => setMessage(''), 3000)
+    } catch (err) {
+      console.error('Error saving settings:', err)
+      setMessage('Failed to save settings')
+    } finally {
+      setSaving(false)
+    }
   }
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-gray-600">Loading...</div>
       </div>
     )
   }
 
   return (
-    <div className="max-w-2xl mx-auto">
+    <div className="max-w-2xl mx-auto p-6">
       <h1 className="text-2xl font-bold text-gray-900 mb-6">WFM Settings</h1>
 
-      <div className="bg-white shadow rounded-lg p-6">
+      {message && (
+        <div className={`mb-4 p-3 rounded ${message.includes('success') ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+          {message}
+        </div>
+      )}
+
+      <div className="bg-white rounded-lg shadow p-6 space-y-6">
+        {/* Auto-Approve Toggle */}
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="text-lg font-medium text-gray-900">Auto-approve after TL approval</h2>
-            <p className="text-sm text-gray-500 mt-1">
-              When enabled, leave and swap requests will be automatically approved for WFM 
-              once the Team Lead approves them. This bypasses manual WFM review.
+            <h3 className="text-lg font-medium text-gray-900">Auto-Approve Requests</h3>
+            <p className="text-sm text-gray-500">
+              Automatically approve swap and leave requests when TL approves them
             </p>
           </div>
           <button
-            onClick={handleToggle}
+            onClick={handleAutoApproveToggle}
             disabled={saving}
-            className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 ${
-              autoApprove ? 'bg-primary-600' : 'bg-gray-200'
+            className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 ${
+              autoApprove ? 'bg-indigo-600' : 'bg-gray-200'
             } ${saving ? 'opacity-50 cursor-not-allowed' : ''}`}
-            role="switch"
-            aria-checked={autoApprove}
           >
             <span
               className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
@@ -114,28 +150,31 @@ export default function Settings() {
           </button>
         </div>
 
-        {message && (
-          <div className={`mt-4 p-3 rounded-lg text-sm ${
-            message.includes('success') 
-              ? 'bg-green-50 text-green-700' 
-              : 'bg-red-50 text-red-700'
-          }`}>
-            {message}
+        {/* Allow Leave Exceptions Toggle */}
+        <div className="flex items-center justify-between border-t pt-6">
+          <div>
+            <h3 className="text-lg font-medium text-gray-900">Allow Leave Exceptions</h3>
+            <p className="text-sm text-gray-500">
+              Allow users to request exceptions for denied leave requests (insufficient balance)
+            </p>
           </div>
-        )}
+          <button
+            onClick={handleExceptionsToggle}
+            disabled={saving}
+            className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 ${
+              allowLeaveExceptions ? 'bg-indigo-600' : 'bg-gray-200'
+            } ${saving ? 'opacity-50 cursor-not-allowed' : ''}`}
+          >
+            <span
+              className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
+                allowLeaveExceptions ? 'translate-x-5' : 'translate-x-0'
+              }`}
+            />
+          </button>
+        </div>
 
-        <div className="mt-6 pt-6 border-t border-gray-200">
-          <h3 className="text-sm font-medium text-gray-900 mb-2">How it works:</h3>
-          <ul className="text-sm text-gray-600 space-y-2">
-            <li className="flex items-start">
-              <span className="text-green-500 mr-2">•</span>
-              <span><strong>Enabled:</strong> When TL approves a request, it's automatically approved by WFM as well.</span>
-            </li>
-            <li className="flex items-start">
-              <span className="text-yellow-500 mr-2">•</span>
-              <span><strong>Disabled:</strong> Requests require manual WFM approval after TL approval.</span>
-            </li>
-          </ul>
+        <div className="text-xs text-gray-400 mt-4 border-t pt-4">
+          <p>Note: Changes take effect immediately for all new requests.</p>
         </div>
       </div>
     </div>
