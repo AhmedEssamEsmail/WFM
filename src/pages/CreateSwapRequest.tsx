@@ -173,7 +173,12 @@ export default function CreateSwapRequest() {
           requester_shift_id: myShiftId,
           target_user_id: targetUserId,
           target_shift_id: targetShiftId,
-          status: 'pending_acceptance'
+          status: 'pending_acceptance',
+          // Store original shift info for display after swap is executed
+          requester_original_date: myShifts.find(s => s.id === myShiftId)?.date,
+          requester_original_shift_type: myShifts.find(s => s.id === myShiftId)?.shift_type,
+          target_original_date: targetShifts.find(s => s.id === targetShiftId)?.date,
+          target_original_shift_type: targetShifts.find(s => s.id === targetShiftId)?.shift_type
         })
 
       if (insertError) throw insertError
