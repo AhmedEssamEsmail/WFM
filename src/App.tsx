@@ -15,9 +15,10 @@ import Settings from './pages/Settings'
 import Schedule from './pages/Schedule'
 import ScheduleUpload from './pages/ScheduleUpload'
 import LeaveBalances from './pages/LeaveBalances'
+import Unauthorized from './pages/Unauthorized'
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
-  const { user, loading } = useAuth()
+  const { user, loading, signOut } = useAuth()
   
   if (loading) {
     return (
@@ -29,6 +30,13 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
   
   if (!user) {
     return <Navigate to="/login" replace />
+  }
+  
+  // Check if user email is from allowed domain
+  if (user.email && !user.email.endsWith('@dabdoob.com')) {
+    // Sign out user with invalid domain
+    signOut()
+    return <Navigate to="/unauthorized" replace />
   }
   
   return <Layout>{children}</Layout>
@@ -46,6 +54,10 @@ function PublicRoute({ children }: { children: React.ReactNode }) {
   }
   
   if (user) {
+    // Check if authenticated user has valid domain before redirecting
+    if (user.email && !user.email.endsWith('@dabdoob.com')) {
+      return <Navigate to="/unauthorized" replace />
+    }
     return <Navigate to="/dashboard" replace />
   }
   
@@ -53,7 +65,7 @@ function PublicRoute({ children }: { children: React.ReactNode }) {
 }
 
 function WFMOnlyRoute({ children }: { children: React.ReactNode }) {
-  const { user, loading } = useAuth()
+  const { user, loading, signOut } = useAuth()
   
   if (loading) {
     return (
@@ -65,6 +77,12 @@ function WFMOnlyRoute({ children }: { children: React.ReactNode }) {
   
   if (!user) {
     return <Navigate to="/login" replace />
+  }
+  
+  // Check if user email is from allowed domain
+  if (user.email && !user.email.endsWith('@dabdoob.com')) {
+    signOut()
+    return <Navigate to="/unauthorized" replace />
   }
   
   if (user.role !== 'wfm') {
@@ -82,6 +100,7 @@ function App() {
           {/* Public routes */}
           <Route path="/login" element={<PublicRoute><Login /></PublicRoute>} />
           <Route path="/signup" element={<PublicRoute><Signup /></PublicRoute>} />
+          <Route path="/unauthorized" element={<Unauthorized />} />
           
           {/* Protected routes */}
           <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
