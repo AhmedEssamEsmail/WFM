@@ -60,14 +60,15 @@ export default function LeaveRequestDetail() {
         .from('settings')
         .select('value')
         .eq('key', 'allow_leave_exceptions')
-        .single()
+        .maybeSingle()
 
-      if (error && error.code !== 'PGRST116') {
+      if (error) {
         console.error('Error fetching exception setting:', error)
         return
       }
 
-      setAllowExceptions(data?.value === 'true')
+      // Default to true if setting doesn't exist
+      setAllowExceptions(data?.value !== 'false')
     } catch (err) {
       console.error('Error fetching exception setting:', err)
     }
@@ -312,7 +313,7 @@ export default function LeaveRequestDetail() {
         onClick={() => navigate('/leave')}
         className="mb-4 text-indigo-600 hover:text-indigo-800 flex items-center"
       >
-        ← Back to Leave Requests
+        â Back to Leave Requests
       </button>
 
       {error && (
@@ -409,7 +410,137 @@ export default function LeaveRequestDetail() {
         )}
       </div>
 
-      {/* Comments Section */}
+      {/* Approval Timeline */}
+      <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
+        <h2 className="text-lg font-semibold text-gray-900 mb-4">Approval Timeline</h2>
+        <div className="space-y-4">
+          {/* Created Step */}
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-full flex items-center justify-center bg-green-100 text-green-600">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              </svg>
+            </div>
+            <div>
+              <p className="font-medium text-gray-900">Created</p>
+              <p className="text-sm text-gray-500">
+                Created on {format(new Date(request.created_at), 'MMM d, yyyy h:mm a')}
+              </p>
+            </div>
+          </div>
+
+          {/* Auto-Denied Step (only if status is denied) */}
+          {request.status === 'denied' && (
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-full flex items-center justify-center bg-orange-100 text-orange-600">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                </svg>
+              </div>
+              <div>
+                <p className="font-medium text-orange-800">Auto-Denied</p>
+                <p className="text-sm text-gray-500">
+                  Insufficient leave balance
+                </p>
+              </div>
+            </div>
+          )}
+
+          {/* TL Approval Step */}
+          {request.status !== 'denied' && (
+            <div className="flex items-center gap-3">
+              <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
+                request.status === 'rejected' ? 'bg-red-100 text-red-600' :
+                request.tl_approved_at ? 'bg-green-100 text-green-600' :
+                request.status === 'pending_tl' ? 'bg-yellow-100 text-yellow-600' :
+                'bg-gray-100 text-gray-400'
+              }`}>
+                {request.status === 'rejected' && !request.tl_approved_at ? (
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                ) : request.tl_approved_at ? (
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                ) : request.status === 'pending_tl' ? (
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                ) : (
+                  <span className="text-sm">2</span>
+                )}
+              </div>
+              <div>
+                <p className={`font-medium ${
+                  request.status === 'rejected' && !request.tl_approved_at ? 'text-red-800' :
+                  request.tl_approved_at ? 'text-gray-900' :
+                  request.status === 'pending_tl' ? 'text-yellow-800' :
+                  'text-gray-400'
+                }`}>
+                  {request.status === 'rejected' && !request.tl_approved_at ? 'Rejected by TL' :
+                   request.tl_approved_at ? 'TL Approved' :
+                   request.status === 'pending_tl' ? 'Awaiting TL Approval' :
+                   'TL Approval'}
+                </p>
+                {request.tl_approved_at && (
+                  <p className="text-sm text-gray-500">
+                    Approved on {format(new Date(request.tl_approved_at), 'MMM d, yyyy h:mm a')}
+                  </p>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* WFM Approval Step */}
+          {request.status !== 'denied' && (
+            <div className="flex items-center gap-3">
+              <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
+                request.status === 'rejected' && request.tl_approved_at ? 'bg-red-100 text-red-600' :
+                request.status === 'approved' ? 'bg-green-100 text-green-600' :
+                request.status === 'pending_wfm' ? 'bg-blue-100 text-blue-600' :
+                'bg-gray-100 text-gray-400'
+              }`}>
+                {request.status === 'rejected' && request.tl_approved_at ? (
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                ) : request.status === 'approved' ? (
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                ) : request.status === 'pending_wfm' ? (
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                ) : (
+                  <span className="text-sm">3</span>
+                )}
+              </div>
+              <div>
+                <p className={`font-medium ${
+                  request.status === 'rejected' && request.tl_approved_at ? 'text-red-800' :
+                  request.status === 'approved' ? 'text-gray-900' :
+                  request.status === 'pending_wfm' ? 'text-blue-800' :
+                  'text-gray-400'
+                }`}>
+                  {request.status === 'rejected' && request.tl_approved_at ? 'Rejected by WFM' :
+                   request.status === 'approved' ? 'WFM Approved' :
+                   request.status === 'pending_wfm' ? 'Awaiting WFM Approval' :
+                   'WFM Approval'}
+                </p>
+                {request.wfm_approved_at && (
+                  <p className="text-sm text-gray-500">
+                    Approved on {format(new Date(request.wfm_approved_at), 'MMM d, yyyy h:mm a')}
+                  </p>
+                )}
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Comments Section */
       <div className="bg-white rounded-lg shadow p-6">
         <h2 className="text-lg font-semibold text-gray-900 mb-4">Comments</h2>
 
