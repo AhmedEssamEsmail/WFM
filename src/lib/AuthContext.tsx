@@ -17,8 +17,12 @@ interface AuthContextType {
 export const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
 // Helper function to convert Supabase errors to user-friendly messages
-function getUserFriendlyError(error: AuthError | Error): Error {
-  const message = error.message.toLowerCase()
+function getUserFriendlyError(error: any): Error {
+  // Handle case where error might be a string or have different structure
+  const errorMessage = typeof error === 'string' ? error : (error?.message || error?.error_description || error?.msg || 'Unknown error')
+  const message = errorMessage.toLowerCase()
+  
+  console.error('Auth error details:', error) // Log full error for debugging
   
   // Check for specific Supabase error messages
   if (message.includes('invalid login credentials') || message.includes('invalid email or password')) {
@@ -45,7 +49,7 @@ function getUserFriendlyError(error: AuthError | Error): Error {
     return new Error('An account with this email already exists. Please sign in instead.')
   }
   
-  if (message.includes('only @dabdoob.com')) {
+  if (message.includes('only @dabdoob.com') || message.includes('dabdoob.com email addresses are allowed')) {
     return new Error('Only @dabdoob.com email addresses are allowed.')
   }
   
@@ -56,10 +60,14 @@ function getUserFriendlyError(error: AuthError | Error): Error {
   if (message.includes('rate limit')) {
     return new Error('Too many attempts. Please wait a moment and try again.')
   }
+
+  if (message.includes('invalid grant')) {
+    return new Error('Invalid email or password. Please check your credentials and try again.')
+  }
   
-  // If no specific error matched, return a generic message but keep the original for debugging
-  console.error('Auth error:', error)
-  return new Error('An error occurred during authentication. Please try again.')
+  // If no specific error matched, return a generic message but log the original for debugging
+  console.error('Unhandled auth error:', error)
+  return new Error('Unable to sign in. Please check your email and password and try again.')
 }
 
 export function AuthProvider({ children }: { children: ReactNode }) {
@@ -142,7 +150,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         password,
       })
 
-      if (error) throw getUserFriendlyError(error)
+      if (error) {
+        console.error('Supabase signIn error:', error)
+        throw getUserFriendlyError(error)
+      }
 
       // Wait for session to be established and user profile to be fetched
       if (data.session?.user) {
@@ -152,9 +163,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
 
       return { error: null, session: data.session }
-    } catch (error) {
+    } catch (error: any) {
       setLoading(false)
-      return { error: error as Error, session: null }
+      console.error('Sign in catch block:', error)
+      // If it's already a user-friendly error, return it. Otherwise, process it
+      const finalError = error instanceof Error && error.message.includes('Invalid email') 
+        ? error 
+        : getUserFriendlyError(error)
+      return { error: finalError, session: null }
     }
   }
 
