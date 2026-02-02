@@ -10,6 +10,11 @@ export default function Login() {
   const { signIn, isAuthenticated, loading: authLoading } = useAuth()
   const navigate = useNavigate()
 
+  // Debug: Monitor error state changes
+  useEffect(() => {
+    console.log('Error state changed to:', error)
+  }, [error])
+
   // Redirect when authenticated - handles both initial auth check and post-login
   useEffect(() => {
     if (!authLoading && isAuthenticated) {
@@ -39,14 +44,20 @@ export default function Login() {
 
     console.log('Attempting sign in with:', email) // Debug log
 
-    const { error, session: _session } = await signIn(email, password)
+    const result = await signIn(email, password)
     
-    console.log('Sign in result - error:', error, 'session:', _session) // Debug log
+    console.log('Sign in result - error:', result.error, 'session:', result.session) // Debug log
     
-    if (error) {
-      console.error('Login error:', error) // Debug log
-      setError(error.message || 'An unknown error occurred')
+    if (result.error) {
+      console.error('Login error:', result.error) // Debug log
+      const errorMessage = result.error.message || 'An unknown error occurred'
+      console.log('Setting error state to:', errorMessage) // Debug log
+      setError(errorMessage)
       setLoading(false)
+      // Force a small delay to ensure state update
+      setTimeout(() => {
+        console.log('Current error state:', errorMessage)
+      }, 100)
     }
     // Don't set loading to false on success - let the useEffect handle redirect
     // This prevents showing the form briefly before redirect
@@ -154,6 +165,18 @@ export default function Login() {
               </div>
             </div>
           )}
+
+          {/* Debug button - REMOVE THIS AFTER TESTING */}
+          <button
+            type="button"
+            onClick={() => {
+              console.log('Test button clicked')
+              setError('Test error message - if you see this, error display is working!')
+            }}
+            className="text-xs text-gray-500 underline"
+          >
+            Test Error Display (Debug)
+          </button>
         </form>
       </div>
     </div>
