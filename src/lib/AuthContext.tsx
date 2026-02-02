@@ -16,6 +16,7 @@ interface AuthContextType {
 
 export const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
+// Helper: Convert Supabase errors to the specific user messages you requested
 function getUserFriendlyError(error: any): Error {
   const errorMessage = typeof error === 'string' 
     ? error 
@@ -23,21 +24,28 @@ function getUserFriendlyError(error: any): Error {
   
   const message = errorMessage.toLowerCase()
   
+  // 1. Not Confirmed User
   if (message.includes('email not confirmed')) {
     return new Error('Please verify your email address. Check your inbox for the confirmation link.')
   }
+
+  // 2. Wrong Password or Invalid Credentials
+  // Supabase returns 'Invalid login credentials' for both wrong password and wrong email (security best practice)
   if (message.includes('invalid login credentials') || message.includes('invalid email or password') || message.includes('invalid grant')) {
     return new Error('Invalid email or password. Please check your credentials.')
   }
+
+  // 3. User Not Found (Rarely returned directly by Supabase for security, but handled just in case)
   if (message.includes('user not found')) {
     return new Error('No account found with this email. Please sign up first.')
   }
+
+  // 4. Other common errors
   if (message.includes('invalid email')) return new Error('Please enter a valid email address.')
   if (message.includes('rate limit')) return new Error('Too many login attempts. Please wait a moment.')
   if (message.includes('network') || message.includes('fetch')) return new Error('Network error. Check your connection.')
-  if (message.includes('abort')) return new Error('The request was cancelled. Please try again.')
 
-  return new Error(errorMessage)
+  return new Error(errorMessage) // Fallback
 }
 
 export function AuthProvider({ children }: { children: ReactNode }) {
@@ -48,78 +56,43 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const isAuthenticated = !!session && !!user
 
-  // Fetches the application profile from the 'profiles' table (renamed from 'users' to match Supabase convention)
   const fetchUserProfile = useCallback(async (userId: string) => {
     try {
       const { data, error } = await supabase
-        .from('profiles')
+        .from('users')
         .select('*')
         .eq('id', userId)
         .single()
 
-      if (error) {
-        // Handle AbortError specifically to avoid console noise
-        if (error.message?.includes('AbortError')) return null;
-        throw error;
-      }
-      return data as User
+      if (error) throw error
+      setUser(data as User)
     } catch (error) {
       console.error('Error fetching profile:', error)
-      return null
+      setUser(null)
+    } finally {
+      setLoading(false)
     }
   }, [])
 
   useEffect(() => {
-    let mounted = true
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session)
+      setSupabaseUser(session?.user ?? null)
+      if (session?.user) fetchUserProfile(session.user.id)
+      else setLoading(false)
+    })
 
-    async function initializeAuth() {
-      setLoading(true)
-      try {
-        const { data: { session } } = await supabase.auth.getSession()
-        
-        if (mounted) {
-          setSession(session)
-          setSupabaseUser(session?.user ?? null)
-          
-          if (session?.user) {
-            const profile = await fetchUserProfile(session.user.id)
-            if (mounted) setUser(profile)
-          }
-        }
-      } catch (error) {
-        console.error('Initialization error:', error)
-      } finally {
-        if (mounted) setLoading(false)
-      }
-    }
-
-    initializeAuth()
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
-      if (!mounted) return;
-
-      if (session?.user) {
-        setSession(session)
-        setSupabaseUser(session.user)
-        
-        // Fetch profile and update state
-        const profile = await fetchUserProfile(session.user.id)
-        if (mounted) {
-          setUser(profile)
-          setLoading(false)
-        }
-      } else {
-        setSession(null)
-        setSupabaseUser(null)
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session)
+      setSupabaseUser(session?.user ?? null)
+      if (session?.user) fetchUserProfile(session.user.id)
+      else {
         setUser(null)
         setLoading(false)
       }
     })
 
-    return () => {
-      mounted = false
-      subscription.unsubscribe()
-    }
+    return () => subscription.unsubscribe()
   }, [fetchUserProfile])
 
   async function signUp(email: string, password: string, name: string) {
@@ -138,6 +111,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   async function signIn(email: string, password: string) {
     try {
+      // Note: We avoid setting global loading(true) here to prevent UI flickers that might reset form state
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
@@ -148,42 +122,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (data.session?.user) {
         setSession(data.session)
         setSupabaseUser(data.session.user)
-        const profile = await fetchUserProfile(data.session.user.id)
-        setUser(profile)
+        await fetchUserProfile(data.session.user.id)
       }
 
       return { error: null, session: data.session }
     } catch (error: any) {
-      return { 
-        error: error instanceof Error ? error : getUserFriendlyError(error), 
-        session: null 
-      }
+      return { error: error instanceof Error ? error : getUserFriendlyError(error), session: null }
     }
   }
 
   async function signOut() {
-    try {
-      setLoading(true)
-      await supabase.auth.signOut()
-    } finally {
-      setUser(null)
-      setSupabaseUser(null)
-      setSession(null)
-      setLoading(false)
-    }
+    await supabase.auth.signOut()
+    setUser(null)
+    setSupabaseUser(null)
+    setSession(null)
   }
 
   return (
-    <AuthContext.Provider value={{ 
-      user, 
-      supabaseUser, 
-      session, 
-      loading, 
-      isAuthenticated, 
-      signUp, 
-      signIn, 
-      signOut 
-    }}>
+    <AuthContext.Provider value={{ user, supabaseUser, session, loading, isAuthenticated, signUp, signIn, signOut }}>
       {children}
     </AuthContext.Provider>
   )
