@@ -125,14 +125,17 @@ export default function Schedule() {
     setLoading(true)
 
     try {
-      // Fetch users based on role
+      // Fetch users based on role visibility
+      // - Agent: Can see all agents' schedules (but not TL/WFM)
+      // - TL: Can see all agents + TL + WFM schedules
+      // - WFM: Can see all agents + TL + WFM schedules
       let usersQuery = supabase.from('users').select('*')
       
       if (user.role === 'agent') {
-        // Agents see only their own row
-        usersQuery = usersQuery.eq('id', user.id)
+        // Agents can see all agents' schedules, but not TL or WFM
+        usersQuery = usersQuery.eq('role', 'agent')
       }
-      // TL and WFM see all users
+      // TL and WFM see all users (agents, TL, and WFM)
 
       const { data: usersData, error: usersError } = await usersQuery.order('name')
       if (usersError) throw usersError
@@ -145,13 +148,15 @@ export default function Schedule() {
 
       let shiftsQuery = supabase
         .from('shifts')
-        .select('*')
+        .select('*, users!inner(role)')
         .gte('date', startDate)
         .lte('date', endDate)
 
       if (user.role === 'agent') {
-        shiftsQuery = shiftsQuery.eq('user_id', user.id)
+        // Agents can only see shifts for users with role 'agent'
+        shiftsQuery = shiftsQuery.eq('users.role', 'agent')
       }
+      // TL and WFM see all shifts
 
       const { data: shiftsData, error: shiftsError } = await shiftsQuery
       if (shiftsError) throw shiftsError
@@ -159,14 +164,16 @@ export default function Schedule() {
       // Fetch approved leave requests that overlap with this month
       let leavesQuery = supabase
         .from('leave_requests')
-        .select('*')
+        .select('*, users!inner(role)')
         .eq('status', 'approved')
         .lte('start_date', endDate)
         .gte('end_date', startDate)
 
       if (user.role === 'agent') {
-        leavesQuery = leavesQuery.eq('user_id', user.id)
+        // Agents can only see leave requests for users with role 'agent'
+        leavesQuery = leavesQuery.eq('users.role', 'agent')
       }
+      // TL and WFM see all leave requests
 
       const { data: leavesData, error: leavesError } = await leavesQuery
       if (leavesError) throw leavesError
@@ -619,7 +626,7 @@ export default function Schedule() {
                                 </span>
                                 {shift.swapped_with_user_id && (
                                   <div className="text-xs text-gray-500 mt-1 truncate" title={`Swapped with ${swappedUserNames[shift.swapped_with_user_id] || 'Unknown'}`}>
-                                    ↔ {swappedUserNames[shift.swapped_with_user_id]?.split(' ')[0] || '?'}
+                                    â {swappedUserNames[shift.swapped_with_user_id]?.split(' ')[0] || '?'}
                                   </div>
                                 )}
                               </div>
