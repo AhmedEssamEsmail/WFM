@@ -1,5 +1,5 @@
 import { createContext, useEffect, useState, useCallback, ReactNode } from 'react'
-import { User as SupabaseUser, Session } from '@supabase/supabase-js'
+import { User as SupabaseUser, Session, AuthError } from '@supabase/supabase-js'
 import { supabase } from './supabase'
 import type { User } from '../types'
 
@@ -15,6 +15,52 @@ interface AuthContextType {
 }
 
 export const AuthContext = createContext<AuthContextType | undefined>(undefined)
+
+// Helper function to convert Supabase errors to user-friendly messages
+function getUserFriendlyError(error: AuthError | Error): Error {
+  const message = error.message.toLowerCase()
+  
+  // Check for specific Supabase error messages
+  if (message.includes('invalid login credentials') || message.includes('invalid email or password')) {
+    return new Error('Invalid email or password. Please check your credentials and try again.')
+  }
+  
+  if (message.includes('email not confirmed')) {
+    return new Error('Please verify your email address before signing in. Check your inbox for the confirmation link.')
+  }
+  
+  if (message.includes('user not found')) {
+    return new Error('No account found with this email address. Please sign up first.')
+  }
+  
+  if (message.includes('invalid email')) {
+    return new Error('Please enter a valid email address.')
+  }
+  
+  if (message.includes('password is too short') || message.includes('password should be at least')) {
+    return new Error('Password must be at least 6 characters long.')
+  }
+  
+  if (message.includes('user already registered')) {
+    return new Error('An account with this email already exists. Please sign in instead.')
+  }
+  
+  if (message.includes('only @dabdoob.com')) {
+    return new Error('Only @dabdoob.com email addresses are allowed.')
+  }
+  
+  if (message.includes('network') || message.includes('fetch')) {
+    return new Error('Network error. Please check your internet connection and try again.')
+  }
+  
+  if (message.includes('rate limit')) {
+    return new Error('Too many attempts. Please wait a moment and try again.')
+  }
+  
+  // If no specific error matched, return a generic message but keep the original for debugging
+  console.error('Auth error:', error)
+  return new Error('An error occurred during authentication. Please try again.')
+}
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
@@ -81,7 +127,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }
       })
 
-      if (error) throw error
+      if (error) throw getUserFriendlyError(error)
       return { error: null }
     } catch (error) {
       return { error: error as Error }
@@ -96,7 +142,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         password,
       })
 
-      if (error) throw error
+      if (error) throw getUserFriendlyError(error)
 
       // Wait for session to be established and user profile to be fetched
       if (data.session?.user) {
