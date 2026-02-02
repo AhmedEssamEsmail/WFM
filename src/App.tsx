@@ -54,10 +54,6 @@ function PublicRoute({ children }: { children: React.ReactNode }) {
   }
   
   if (user) {
-    // Check if authenticated user has valid domain before redirecting
-    if (user.email && !user.email.endsWith('@dabdoob.com')) {
-      return <Navigate to="/unauthorized" replace />
-    }
     return <Navigate to="/dashboard" replace />
   }
   
@@ -85,6 +81,7 @@ function WFMOnlyRoute({ children }: { children: React.ReactNode }) {
     return <Navigate to="/unauthorized" replace />
   }
   
+  // Only allow WFM users
   if (user.role !== 'wfm') {
     return <Navigate to="/dashboard" replace />
   }
@@ -106,9 +103,13 @@ function App() {
           <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
           <Route path="/schedule" element={<ProtectedRoute><Schedule /></ProtectedRoute>} />
           <Route path="/swap-requests" element={<ProtectedRoute><SwapRequests /></ProtectedRoute>} />
+          {/* Create routes must come BEFORE :id routes to prevent "create" from being matched as an ID */}
+          <Route path="/swap-requests/create" element={<ProtectedRoute><CreateSwapRequest /></ProtectedRoute>} />
           <Route path="/swap-requests/new" element={<ProtectedRoute><CreateSwapRequest /></ProtectedRoute>} />
           <Route path="/swap-requests/:id" element={<ProtectedRoute><SwapRequestDetail /></ProtectedRoute>} />
           <Route path="/leave-requests" element={<ProtectedRoute><LeaveRequests /></ProtectedRoute>} />
+          {/* Create routes must come BEFORE :id routes to prevent "create" from being matched as an ID */}
+          <Route path="/leave-requests/create" element={<ProtectedRoute><CreateLeaveRequest /></ProtectedRoute>} />
           <Route path="/leave-requests/new" element={<ProtectedRoute><CreateLeaveRequest /></ProtectedRoute>} />
           <Route path="/leave-requests/:id" element={<ProtectedRoute><LeaveRequestDetail /></ProtectedRoute>} />
           <Route path="/leave-balances" element={<ProtectedRoute><LeaveBalances /></ProtectedRoute>} />
