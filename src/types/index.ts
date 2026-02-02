@@ -4,7 +4,7 @@ export type ShiftType = 'AM' | 'PM' | 'BET' | 'OFF'
 
 export type SwapRequestStatus = 'pending_acceptance' | 'pending_tl' | 'pending_wfm' | 'approved' | 'rejected'
 
-export type LeaveRequestStatus = 'pending_tl' | 'pending_wfm' | 'approved' | 'rejected'
+export type LeaveRequestStatus = 'pending_tl' | 'pending_wfm' | 'approved' | 'rejected' | 'denied'
 
 export type LeaveType = 'sick' | 'annual' | 'casual' | 'public_holiday' | 'bereavement'
 
@@ -67,20 +67,21 @@ export interface Comment {
   user_id: string
   content: string
   created_at: string
-  user?: User
-  is_system?: boolean
 }
 
-export interface Setting {
+export interface LeaveBalance {
   id: string
-  key: string
-  value: string
+  user_id: string
+  leave_type: LeaveType
+  year: number
+  total_days: number
+  used_days: number
+  created_at: string
   updated_at: string
 }
 
-export interface LeaveTypeConfig {
-  id: string
-  label: string
-  is_active: boolean
-  created_at: string
+export interface Setting {
+  key: string
+  value: string
+  updated_at: string
 }
