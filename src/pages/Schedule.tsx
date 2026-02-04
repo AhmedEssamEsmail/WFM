@@ -75,6 +75,9 @@ export default function Schedule() {
   const [shifts, setShifts] = useState<ShiftWithSwap[]>([])
   const [approvedLeaves, setApprovedLeaves] = useState<LeaveRequest[]>([])
   const [swappedUserNames, setSwappedUserNames] = useState<Record<string, string>>({})
+  useEffect(() => {
+  swappedUserNames
+}, [swappedUserNames])
   const [loading, setLoading] = useState(true)
   const [activeTab, setActiveTab] = useState<'schedule' | 'leave-types'>('schedule')
   
