@@ -3,7 +3,6 @@ import { supabase } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
 import { User, LeaveType } from '../types'
 
-
 interface UserWithBalances extends User {
   balances: Record<LeaveType, number>
 }
@@ -400,12 +399,12 @@ export default function LeaveBalances() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 pb-4">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
+      <div className="sm:flex sm:items-start sm:justify-between">
+        <div className="mb-4 sm:mb-0">
           <h1 className="text-2xl font-bold text-gray-900">Leave Balances</h1>
-          <p className="text-gray-600 mt-1">
+          <p className="text-gray-600 mt-1 text-sm">
             {user?.role === 'wfm' 
               ? 'View and edit leave balances for all users' 
               : user?.role === 'tl'
@@ -416,9 +415,9 @@ export default function LeaveBalances() {
         
         {/* Import/Export Buttons - WFM only */}
         {user?.role === 'wfm' && (
-          <div className="flex gap-3">
-            <label className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 cursor-pointer flex items-center gap-2">
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <div className="flex flex-col sm:flex-row gap-2">
+            <label className="px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 cursor-pointer flex items-center justify-center gap-2 text-sm">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
               </svg>
               Import CSV
@@ -432,9 +431,9 @@ export default function LeaveBalances() {
             </label>
             <button
               onClick={handleExport}
-              className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 flex items-center gap-2"
+              className="px-3 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 flex items-center justify-center gap-2 text-sm"
             >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
               </svg>
               Export CSV
@@ -445,12 +444,12 @@ export default function LeaveBalances() {
 
       {/* Import Preview/Results */}
       {parsedImport && (
-        <div className="bg-white rounded-lg shadow-sm p-6 space-y-4">
+        <div className="bg-white rounded-lg shadow p-4 space-y-3">
           <div className="flex items-center justify-between">
-            <h3 className="font-medium text-gray-900">
+            <h3 className="font-medium text-gray-900 text-sm">
               Import Preview ({parsedImport.length} users)
             </h3>
-            <button onClick={resetImport} className="text-sm text-gray-600 hover:text-gray-800">
+            <button onClick={resetImport} className="text-xs text-gray-600 hover:text-gray-800">
               Clear
             </button>
           </div>
@@ -459,31 +458,31 @@ export default function LeaveBalances() {
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
                 <tr>
-                  <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
-                  <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Email</th>
-                  <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">User</th>
-                  <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Balances</th>
+                  <th className="px-3 py-2 text-left text-xs font-medium text-gray-500">Status</th>
+                  <th className="px-3 py-2 text-left text-xs font-medium text-gray-500">Email</th>
+                  <th className="px-3 py-2 text-left text-xs font-medium text-gray-500">User</th>
+                  <th className="px-3 py-2 text-left text-xs font-medium text-gray-500">Balances</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200">
                 {parsedImport.map((row, i) => (
                   <tr key={i} className={row.error ? 'bg-red-50' : ''}>
-                    <td className="px-4 py-2">
+                    <td className="px-3 py-2">
                       {row.error ? (
-                        <span className="inline-flex px-2 py-0.5 rounded text-xs font-medium bg-red-100 text-red-800">
+                        <span className="inline-flex px-1.5 py-0.5 rounded text-xs font-medium bg-red-100 text-red-800">
                           Error
                         </span>
                       ) : (
-                        <span className="inline-flex px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">
+                        <span className="inline-flex px-1.5 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">
                           Ready
                         </span>
                       )}
                     </td>
-                    <td className="px-4 py-2 text-sm">{row.email}</td>
-                    <td className="px-4 py-2 text-sm">
+                    <td className="px-3 py-2 text-xs">{row.email}</td>
+                    <td className="px-3 py-2 text-xs">
                       {row.userName || <span className="text-red-600">{row.error}</span>}
                     </td>
-                    <td className="px-4 py-2 text-sm text-gray-600">
+                    <td className="px-3 py-2 text-xs text-gray-600">
                       {Object.keys(row.balances).length} type(s)
                     </td>
                   </tr>
@@ -497,7 +496,7 @@ export default function LeaveBalances() {
               <button
                 onClick={handleImportUpload}
                 disabled={importing}
-                className="px-6 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:opacity-50 flex items-center gap-2"
+                className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:opacity-50 flex items-center gap-2 text-sm"
               >
                 {importing ? (
                   <>
@@ -512,8 +511,8 @@ export default function LeaveBalances() {
           )}
           
           {importResult && (
-            <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-              <p className="text-sm text-green-800">
+            <div className="bg-green-50 border border-green-200 rounded-lg p-3">
+              <p className="text-xs text-green-800">
                 Successfully imported <span className="font-bold">{importResult.success}</span> balance(s).
                 {importResult.failed > 0 && (
                   <span className="text-red-600"> {importResult.failed} failed.</span>
@@ -526,141 +525,129 @@ export default function LeaveBalances() {
 
       {/* Info box for WFM */}
       {user?.role === 'wfm' && !parsedImport && (
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-          <p className="text-sm text-blue-800">
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+          <p className="text-xs text-blue-800">
             <span className="font-medium">WFM Tip:</span> Click on any balance cell to edit it directly. 
-            Use Import CSV to bulk update balances (CSV format: email, name, Annual, Casual, Sick, Public Holiday, Bereavement).
+            Use Import CSV to bulk update balances.
           </p>
         </div>
       )}
 
       {error && (
-        <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-red-700">
+        <div className="bg-red-50 border border-red-200 rounded-lg p-3 text-red-700 text-sm">
           {error}
         </div>
       )}
 
-      {/* Balances Table */}
-      <div className="bg-white rounded-lg shadow-sm overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  User
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Role
-                </th>
-                {leaveTypeOrder.map(lt => (
-                  <th 
-                    key={lt}
-                    className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider"
-                  >
-                    {leaveTypeLabels[lt]}
-                  </th>
-                ))}
-                <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Total
-                </th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-200">
-              {usersWithBalances.map(u => {
-                const total = leaveTypeOrder.reduce((acc, lt) => acc + (u.balances[lt] || 0), 0)
-                
-                return (
-                  <tr key={u.id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm font-medium text-gray-900">{u.name}</div>
-                      <div className="text-sm text-gray-500">{u.email}</div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`inline-flex px-2 py-0.5 rounded text-xs font-medium ${
-                        u.role === 'wfm' ? 'bg-purple-100 text-purple-800' :
-                        u.role === 'tl' ? 'bg-green-100 text-green-800' :
-                        'bg-blue-100 text-blue-800'
-                      }`}>
-                        {u.role === 'wfm' ? 'WFM' : u.role === 'tl' ? 'Team Lead' : 'Agent'}
-                      </span>
-                    </td>
-                    {leaveTypeOrder.map(lt => {
-                      const balance = u.balances[lt] || 0
-                      const isEditing = editingCell?.userId === u.id && editingCell?.leaveType === lt
-                      const canEdit = user?.role === 'wfm'
+      {/* Balances Cards - Mobile Friendly */}
+      <div className="space-y-3">
+        {usersWithBalances.map(u => {
+          const total = leaveTypeOrder.reduce((acc, lt) => acc + (u.balances[lt] || 0), 0)
+          
+          return (
+            <div key={u.id} className="bg-white rounded-lg shadow overflow-hidden">
+              {/* User Header */}
+              <div className="px-4 py-3 bg-gray-50 border-b border-gray-200">
+                <div className="flex items-center justify-between">
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm font-medium text-gray-900 truncate">{u.name}</p>
+                    <p className="text-xs text-gray-500 truncate">{u.email}</p>
+                  </div>
+                  <span className={`ml-2 inline-flex px-2 py-0.5 rounded text-xs font-medium whitespace-nowrap ${
+                    u.role === 'wfm' ? 'bg-purple-100 text-purple-800' :
+                    u.role === 'tl' ? 'bg-green-100 text-green-800' :
+                    'bg-blue-100 text-blue-800'
+                  }`}>
+                    {u.role === 'wfm' ? 'WFM' : u.role === 'tl' ? 'TL' : 'Agent'}
+                  </span>
+                </div>
+              </div>
 
-                      return (
-                        <td 
-                          key={lt}
-                          className={`px-4 py-4 text-center ${canEdit ? 'cursor-pointer hover:bg-blue-50' : ''}`}
-                          onClick={() => !isEditing && canEdit && startEditing(u.id, lt, balance)}
-                        >
-                          {isEditing ? (
-                            <div className="flex items-center justify-center gap-1">
-                              <input
-                                type="number"
-                                step="0.25"
-                                value={editValue}
-                                onChange={e => setEditValue(e.target.value)}
-                                onKeyDown={handleKeyDown}
-                                className="w-16 px-2 py-1 text-sm border border-blue-500 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                autoFocus
-                              />
-                              <button
-                                onClick={saveEdit}
-                                disabled={saving}
-                                className="p-1 text-green-600 hover:bg-green-100 rounded"
-                              >
-                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                                </svg>
-                              </button>
-                              <button
-                                onClick={cancelEditing}
-                                className="p-1 text-red-600 hover:bg-red-100 rounded"
-                              >
-                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                                </svg>
-                              </button>
-                            </div>
-                          ) : (
-                            <span className={`text-sm font-medium ${balance > 0 ? 'text-gray-900' : 'text-gray-400'}`}>
-                              {balance.toFixed(2)}
-                            </span>
-                          )}
-                        </td>
-                      )
-                    })}
-                    <td className="px-4 py-4 text-center">
-                      <span className="text-sm font-bold text-primary-600">
-                        {total.toFixed(2)}
-                      </span>
-                    </td>
-                  </tr>
-                )
-              })}
-            </tbody>
-          </table>
-        </div>
+              {/* Balances Grid */}
+              <div className="p-3">
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 mb-3">
+                  {leaveTypeOrder.map(lt => {
+                    const balance = u.balances[lt] || 0
+                    const isEditing = editingCell?.userId === u.id && editingCell?.leaveType === lt
+                    const canEdit = user?.role === 'wfm'
+
+                    return (
+                      <div 
+                        key={lt}
+                        className={`bg-gray-50 rounded-lg p-2 ${canEdit && !isEditing ? 'cursor-pointer hover:bg-blue-50' : ''}`}
+                        onClick={() => !isEditing && canEdit && startEditing(u.id, lt, balance)}
+                      >
+                        <p className="text-xs text-gray-500 mb-1">{leaveTypeLabels[lt]}</p>
+                        {isEditing ? (
+                          <div className="flex items-center gap-1">
+                            <input
+                              type="number"
+                              step="0.25"
+                              value={editValue}
+                              onChange={e => setEditValue(e.target.value)}
+                              onKeyDown={handleKeyDown}
+                              className="w-full px-2 py-1 text-sm border border-blue-500 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                              autoFocus
+                            />
+                            <button
+                              onClick={saveEdit}
+                              disabled={saving}
+                              className="p-1 text-green-600 hover:bg-green-100 rounded flex-shrink-0"
+                            >
+                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                              </svg>
+                            </button>
+                            <button
+                              onClick={cancelEditing}
+                              className="p-1 text-red-600 hover:bg-red-100 rounded flex-shrink-0"
+                            >
+                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                              </svg>
+                            </button>
+                          </div>
+                        ) : (
+                          <p className={`text-base font-semibold ${balance > 0 ? 'text-gray-900' : 'text-gray-400'}`}>
+                            {balance.toFixed(2)}
+                          </p>
+                        )}
+                      </div>
+                    )
+                  })}
+                </div>
+
+                {/* Total */}
+                <div className="pt-2 border-t border-gray-200">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-medium text-gray-700">Total Balance</span>
+                    <span className="text-base font-bold text-primary-600">
+                      {total.toFixed(2)}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )
+        })}
       </div>
 
       {usersWithBalances.length === 0 && (
-        <div className="text-center py-12 bg-white rounded-lg shadow-sm">
-          <p className="text-gray-500">No users found</p>
+        <div className="text-center py-12 bg-white rounded-lg shadow">
+          <p className="text-gray-500 text-sm">No users found</p>
         </div>
       )}
 
       {/* Accrual Info */}
-      <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
-        <h3 className="font-medium text-gray-900 mb-2">Monthly Accrual Information</h3>
-        <p className="text-sm text-gray-600">
+      <div className="bg-gray-50 border border-gray-200 rounded-lg p-3">
+        <h3 className="font-medium text-gray-900 mb-2 text-sm">Monthly Accrual Information</h3>
+        <p className="text-xs text-gray-600 mb-2">
           Leave balances are accrued monthly on the 1st of each month:
         </p>
-        <ul className="mt-2 text-sm text-gray-600 list-disc list-inside">
-          <li>Annual Leave: +1.25 days per month (15 days per year)</li>
-          <li>Casual Leave: +0.5 days per month (6 days per year)</li>
-          <li>Sick, Public Holiday, and Bereavement leave are typically allocated manually or per policy</li>
+        <ul className="text-xs text-gray-600 space-y-1">
+          <li>• Annual Leave: +1.25 days per month (15 days per year)</li>
+          <li>• Casual Leave: +0.5 days per month (6 days per year)</li>
+          <li>• Sick, Public Holiday, and Bereavement leave are typically allocated manually</li>
         </ul>
       </div>
     </div>
