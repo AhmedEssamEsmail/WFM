@@ -134,32 +134,22 @@ export default function EmployeeDetail() {
                 <p className="mt-1 text-gray-900">{employee.employee_id || 'Not assigned'}</p>
               )}
             </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700">Status</label>
-              {isEditable ? (
-                <select
-                  value={formData.status || 'active'}
-                  onChange={(e) => setFormData(f => ({ ...f, status: e.target.value as any }))}
-                  className="mt-1 w-full border rounded-lg px-3 py-2"
-                >
-                  <option value="active">Active</option>
-                  <option value="on_leave">On Leave</option>
-                  <option value="inactive">Inactive</option>
-                  <option value="terminated">Terminated</option>
-                  <option value="suspended">Suspended</option>
-                </select>
-              ) : (
-                <span className={`mt-1 inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                  employee.status === 'active' ? 'bg-green-100 text-green-800' :
-                  employee.status === 'on_leave' ? 'bg-yellow-100 text-yellow-800' :
-                  'bg-gray-100 text-gray-800'
-                }`}>
-                  {employee.status.replace('_', ' ')}
-                </span>
-              )}
-            </div>
-
+<div>
+  <label className="block text-sm font-medium text-gray-700">Role</label>
+  {isEditable ? (
+    <select
+      value={formData.role || 'agent'}
+      onChange={(e) => setFormData(f => ({ ...f, role: e.target.value as any }))}
+      className="mt-1 w-full border rounded-lg px-3 py-2"
+    >
+      <option value="agent">Agent</option>
+      <option value="tl">Team Lead</option>
+      <option value="wfm">WFM</option>
+    </select>
+  ) : (
+    <p className="mt-1 text-gray-900 uppercase">{employee.role}</p>
+  )}
+</div>
             <div>
               <label className="block text-sm font-medium text-gray-700">Department</label>
               {isEditable ? (
