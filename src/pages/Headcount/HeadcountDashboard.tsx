@@ -161,3 +161,4 @@ function StatCard({ title, value, color, loading }: { title: string, value: stri
       </div>
     </div>
   )
+}
