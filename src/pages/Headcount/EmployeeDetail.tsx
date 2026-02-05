@@ -7,9 +7,8 @@ import type { HeadcountUser, Department } from '../../types'
 
 export default function EmployeeDetail() {
   const { id } = useParams<{ id: string }>()
-  const navigate = useNavigate()
   const { canEditHeadcount } = useAuth()
-  const { getEmployee, updateEmployee, getDepartments, loading } = useHeadcount()
+  const { getEmployee, updateEmployee, loading } = useHeadcount()
   const [employee, setEmployee] = useState<HeadcountUser | null>(null)
   const [departments, setDepartments] = useState<Department[]>([])
   const [isEditing, setIsEditing] = useState(false)
