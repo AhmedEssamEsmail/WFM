@@ -19,7 +19,7 @@ export function useAuth() {
   // Headcount permissions
   const canViewHeadcount = useCallback(() => user ? ['tl', 'wfm'].includes(user.role) : false, [user])
   const canEditHeadcount = useCallback(() => user?.role === 'wfm', [user])
-  const canEditEmployee = useCallback((employeeUserId: string) => {
+  const canEditEmployee = useCallback((_employeeUserId: string) => {
     // WFM can edit anyone, TL can only view (not edit)
     return user?.role === 'wfm'
   }, [user])
