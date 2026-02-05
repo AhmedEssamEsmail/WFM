@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { useParams, useNavigate, Link } from 'react-router-dom'
+import { useParams, Link } from 'react-router-dom'
 import { useHeadcount } from '../../hooks/useHeadcount'
 import { useAuth } from '../../hooks/useAuth'
 import ProtectedEdit from '../../components/Headcount/ProtectedEdit'
