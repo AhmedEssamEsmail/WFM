@@ -167,12 +167,6 @@ export default function EmployeeDetail() {
                 <p className="mt-1 text-gray-900">{employee.department || 'Unassigned'}</p>
               )}
             </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700">Role</label>
-              <p className="mt-1 text-gray-900 uppercase">{employee.role}</p>
-            </div>
-
             <div>
               <label className="block text-sm font-medium text-gray-700">Hire Date</label>
               {isEditable ? (
