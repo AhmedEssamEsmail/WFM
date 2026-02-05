@@ -82,7 +82,7 @@ export function useHeadcount() {
       const profileUpdates: any = {}
       
       // Users table fields
-      const userFields = ['employee_id', 'status', 'department', 'hire_date', 'manager_id', 'fte_percentage', 'user_role']
+      const userFields = ['employee_id', 'status', 'department', 'hire_date', 'manager_id', 'fte_percentage', 'role']
       // Profile fields
       const profileFields = ['job_title', 'job_level', 'employment_type', 'location', 'time_zone', 'phone', 'skills', 'certifications', 'max_weekly_hours', 'cost_center', 'budget_code']
       
