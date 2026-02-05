@@ -83,3 +83,64 @@ export interface LeaveTypeConfig {
   is_active: boolean
   created_at: string
 }
+// ADD THESE TYPES TO YOUR EXISTING types/index.ts FILE
+
+// Extended User with headcount fields
+export interface HeadcountUser extends User {
+  employee_id?: string
+  status: 'active' | 'inactive' | 'on_leave' | 'terminated' | 'suspended'
+  department?: string
+  hire_date?: string
+  manager_id?: string
+  fte_percentage: number
+  // Joined fields from headcount_profiles
+  job_title?: string
+  job_level?: 'intern' | 'junior' | 'mid' | 'senior' | 'lead' | 'manager' | 'director'
+  employment_type?: 'full_time' | 'part_time' | 'contractor' | 'intern'
+  location?: string
+  time_zone?: string
+  phone?: string
+  skills?: string[]
+  certifications?: string[]
+  max_weekly_hours?: number
+  cost_center?: string
+  budget_code?: string
+  termination_date?: string
+  onboarding_status?: 'pending' | 'in_progress' | 'completed' | 'n/a'
+  last_active_at?: string
+  // Joined fields
+  manager_name?: string
+  manager_email?: string
+}
+
+export interface Department {
+  id: string
+  name: string
+  code?: string
+  parent_department_id?: string
+  head_id?: string
+  cost_center?: string
+  description?: string
+  active: boolean
+  created_at: string
+}
+
+export interface HeadcountAuditLog {
+  id: string
+  user_id: string
+  action: string
+  previous_values?: Record<string, any>
+  new_values?: Record<string, any>
+  performed_by?: string
+  performed_at: string
+  reason?: string
+  effective_date: string
+}
+
+export interface HeadcountMetrics {
+  total_active: number
+  total_on_leave: number
+  total_fte: number
+  by_department: Record<string, number>
+  by_role: Record<UserRole, number>
+}
