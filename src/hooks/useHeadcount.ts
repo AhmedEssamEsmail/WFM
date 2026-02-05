@@ -82,9 +82,9 @@ export function useHeadcount() {
       const profileUpdates: any = {}
       
       // Users table fields
-      const userFields = ['employee_id', 'status', 'department', 'hire_date', 'manager_id', 'fte_percentage']
+      const userFields = ['employee_id', 'status', 'department', 'hire_date', 'manager_id', 'fte_percentage', 'role']
       // Profile fields
-      const profileFields = ['job_title', 'job_level', 'employment_type', 'location', 'time_zone', 'phone', 'skills', 'certifications', 'max_weekly_hours', 'cost_center', 'budget_code']
+      const profileFields = ['job_title', 'job_level', 'employment_type', 'location', 'time_zone', 'phone', 'skills', 'certifications', 'max_weekly_hours', 'cost_center', 'budget_code', 'Role']
       
       Object.entries(updates).forEach(([key, value]) => {
         if (userFields.includes(key)) {
