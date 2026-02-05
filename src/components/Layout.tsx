@@ -33,7 +33,7 @@ const NAV_ITEMS: NavItem[] = [
   { name: 'Leave Requests', href: '/leave-requests', roles: ['agent', 'tl', 'wfm'], icon: LeaveIcon },
   { name: 'Leave Balances', href: '/leave-balances', roles: ['agent', 'tl', 'wfm'], icon: BalanceIcon },
   { name: 'Schedule Upload', href: '/schedule/upload', roles: ['wfm'], icon: UploadIcon },
-  { name: 'Headcount', href: '/headcount', roles: ['tl', 'wfm'], icon: UsersIcon }, // NEW
+  { name: 'Headcount', href: '/headcount/employees', roles: ['tl', 'wfm'], icon: UsersIcon }, // NEW
   { name: 'Settings', href: '/settings', roles: ['wfm'], icon: SettingsIcon },
 ]
 
