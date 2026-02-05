@@ -494,7 +494,7 @@ export default function Schedule() {
   }
 
   return (
-    <div className="space-y-6 w-full px-4 sm:px-6 lg:px-8">
+    <div className="space-y-6 w-full min-w-0 overflow-x-hidden">
       <div className="sm:flex sm:items-center sm:justify-between">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Schedule</h1>
@@ -575,38 +575,19 @@ export default function Schedule() {
             </button>
           </div>
 
-          {/* Schedule grid - Container with independent scrolling */}
-          <div className="bg-white rounded-lg shadow overflow-hidden">
-            <div 
-              className="overflow-auto"
-              style={{ maxHeight: '60vh' }}
-            >
-              <table className="w-full border-collapse">
-                <thead className="bg-gray-50">
+          {/* Schedule grid */}
+          <div className="bg-white rounded-lg shadow overflow-hidden w-full max-w-full">
+            <div className="min-h-screen overflow-x-visible">
+              <table className="divide-y divide-gray-200 min-w-max w-full">
+                <thead className="bg-gray-50 sticky top-0 z-20">
                   <tr>
-                    <th 
-                      className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-b border-gray-200 bg-gray-50"
-                      style={{
-                        position: 'sticky',
-                        left: 0,
-                        top: 0,
-                        zIndex: 30,
-                        minWidth: '150px',
-                        boxShadow: '2px 0 5px -2px rgba(0,0,0,0.1)'
-                      }}
-                    >
+                    <th className="sticky left-0 z-30 bg-gray-50 px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[150px] shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]">
                       Name
                     </th>
                     {daysInMonth.map(day => (
                       <th
                         key={day.toISOString()}
-                        className="px-2 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider border-b border-gray-200 bg-gray-50"
-                        style={{
-                          position: 'sticky',
-                          top: 0,
-                          zIndex: 20,
-                          minWidth: '60px'
-                        }}
+                        className="px-2 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[60px] bg-gray-50"
                       >
                         <div>{format(day, 'EEE')}</div>
                         <div className="text-gray-900">{format(day, 'd')}</div>
@@ -614,19 +595,10 @@ export default function Schedule() {
                     ))}
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-200">
+                <tbody className="bg-white divide-y divide-gray-200">
                   {filteredUsers.map(u => (
                     <tr key={u.id}>
-                      <td 
-                        className="px-4 py-3 whitespace-nowrap text-sm font-medium text-gray-900 bg-white border-b border-gray-200"
-                        style={{
-                          position: 'sticky',
-                          left: 0,
-                          zIndex: 10,
-                          minWidth: '150px',
-                          boxShadow: '2px 0 5px -2px rgba(0,0,0,0.1)'
-                        }}
-                      >
+                      <td className="sticky left-0 z-10 bg-white px-4 py-3 whitespace-nowrap text-sm font-medium text-gray-900 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]">
                         {u.name}
                       </td>
                       {daysInMonth.map(day => {
@@ -637,9 +609,8 @@ export default function Schedule() {
                         return (
                           <td
                             key={day.toISOString()}
-                            className={`px-2 py-2 text-center border-b border-gray-200 bg-white ${canEdit ? 'cursor-pointer hover:bg-gray-50' : ''}`}
+                            className={`px-2 py-2 text-center ${canEdit ? 'cursor-pointer hover:bg-gray-50' : ''} ${isOnLeave ? 'bg-opacity-50' : ''}`}
                             onClick={() => handleShiftClick(u.id, day)}
-                            style={{ minWidth: '60px' }}
                             title={isOnLeave ? `On ${leave.leave_type} leave (click to edit)` : undefined}
                           >
                             {isOnLeave ? (
@@ -655,7 +626,7 @@ export default function Schedule() {
                                 </span>
                                 {shift.swapped_with_user_id && (
                                   <div className="text-xs text-gray-500 mt-1 truncate" title={`Swapped with ${swappedUserNames[shift.swapped_with_user_id] || 'Unknown'}`}>
-                                    ↔ {swappedUserNames[shift.swapped_with_user_id]?.split(' ')[0] || '?'}
+                                    â {swappedUserNames[shift.swapped_with_user_id]?.split(' ')[0] || '?'}
                                   </div>
                                 )}
                               </div>
