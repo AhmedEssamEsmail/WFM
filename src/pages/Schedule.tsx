@@ -494,8 +494,8 @@ export default function Schedule() {
   }
 
   return (
-    <div className="space-y-6 w-full">
-      <div className="sm:flex sm:items-center sm:justify-between px-4 sm:px-6 lg:px-8">
+    <div className="space-y-6 w-full px-4 sm:px-6 lg:px-8">
+      <div className="sm:flex sm:items-center sm:justify-between">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Schedule</h1>
           <p className="mt-1 text-sm text-gray-500">
@@ -524,7 +524,7 @@ export default function Schedule() {
 
       {/* Tabs for TL/WFM */}
       {canEdit && (
-        <div className="border-b border-gray-200 px-4 sm:px-6 lg:px-8">
+        <div className="border-b border-gray-200">
           <nav className="-mb-px flex space-x-8">
             <button
               onClick={() => setActiveTab('schedule')}
@@ -553,7 +553,7 @@ export default function Schedule() {
       {activeTab === 'schedule' && (
         <>
           {/* Month navigation */}
-          <div className="flex items-center justify-between bg-white rounded-lg shadow px-4 py-3 mx-4 sm:mx-6 lg:mx-8">
+          <div className="flex items-center justify-between bg-white rounded-lg shadow px-4 py-3">
             <button
               onClick={() => setCurrentDate(subMonths(currentDate, 1))}
               className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
@@ -575,21 +575,24 @@ export default function Schedule() {
             </button>
           </div>
 
-          {/* Schedule grid - Fixed layout with proper sticky behavior */}
-          <div className="bg-white rounded-lg shadow overflow-hidden mx-4 sm:mx-6 lg:mx-8">
-            <div className="overflow-auto max-h-[70vh]">
-              <table className="min-w-max border-collapse">
-                <thead>
+          {/* Schedule grid - Container with independent scrolling */}
+          <div className="bg-white rounded-lg shadow overflow-hidden">
+            <div 
+              className="overflow-auto"
+              style={{ maxHeight: '60vh' }}
+            >
+              <table className="w-full border-collapse">
+                <thead className="bg-gray-50">
                   <tr>
                     <th 
-                      className="bg-gray-50 px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-b border-gray-200"
+                      className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-b border-gray-200 bg-gray-50"
                       style={{
                         position: 'sticky',
                         left: 0,
                         top: 0,
                         zIndex: 30,
                         minWidth: '150px',
-                        backgroundColor: '#f9fafb'
+                        boxShadow: '2px 0 5px -2px rgba(0,0,0,0.1)'
                       }}
                     >
                       Name
@@ -602,8 +605,7 @@ export default function Schedule() {
                           position: 'sticky',
                           top: 0,
                           zIndex: 20,
-                          minWidth: '60px',
-                          backgroundColor: '#f9fafb'
+                          minWidth: '60px'
                         }}
                       >
                         <div>{format(day, 'EEE')}</div>
@@ -622,7 +624,7 @@ export default function Schedule() {
                           left: 0,
                           zIndex: 10,
                           minWidth: '150px',
-                          backgroundColor: '#ffffff'
+                          boxShadow: '2px 0 5px -2px rgba(0,0,0,0.1)'
                         }}
                       >
                         {u.name}
@@ -673,7 +675,7 @@ export default function Schedule() {
           </div>
 
           {/* Legend */}
-          <div className="bg-white rounded-lg shadow p-4 mx-4 sm:mx-6 lg:mx-8">
+          <div className="bg-white rounded-lg shadow p-4">
             <h3 className="text-sm font-medium text-gray-700 mb-3">Legend</h3>
             <div className="space-y-3">
               <div>
@@ -719,7 +721,7 @@ export default function Schedule() {
       )}
 
       {activeTab === 'leave-types' && canEdit && (
-        <div className="bg-white rounded-lg shadow mx-4 sm:mx-6 lg:mx-8">
+        <div className="bg-white rounded-lg shadow">
           <div className="px-4 py-5 sm:px-6 flex justify-between items-center border-b">
             <div>
               <h3 className="text-lg font-medium text-gray-900">Leave Types</h3>
