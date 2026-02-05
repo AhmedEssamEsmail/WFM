@@ -72,57 +72,79 @@ export function useHeadcount() {
   }, [])
 
   // Update employee (WFM only)
-  const updateEmployee = useCallback(async (id: string, updates: Partial<HeadcountUser>) => {
-    setLoading(true)
-    setError(null)
+const updateEmployee = useCallback(async (id: string, updates: Partial<HeadcountUser>) => {
+  setLoading(true)
+  setError(null)
+  
+  try {
+    // DEBUG: Check current auth status
+    const { data: { session } } = await supabase.auth.getSession()
+    console.log('🔍 Current session:', {
+      userId: session?.user?.id,
+      email: session?.user?.email,
+      hasSession: !!session
+    })
+
+    // DEBUG: Check if we can read from users table
+    const { data: currentUser, error: userCheckError } = await supabase
+      .from('users')
+      .select('id, email, role')
+      .eq('id', session?.user?.id)
+      .single()
     
-    try {
-      // Split updates between users and headcount_profiles tables
-      const userUpdates: any = {}
-      const profileUpdates: any = {}
-      
-      // Users table fields
-      const userFields = ['employee_id', 'status', 'department', 'hire_date', 'manager_id', 'fte_percentage', 'role']
-      // Profile fields
-      const profileFields = ['job_title', 'job_level', 'employment_type', 'location', 'time_zone', 'phone', 'skills', 'certifications', 'max_weekly_hours', 'cost_center', 'budget_code']
-      
-      Object.entries(updates).forEach(([key, value]) => {
-        if (userFields.includes(key)) {
-          userUpdates[key] = value
-        } else if (profileFields.includes(key)) {
-          profileUpdates[key] = value
-        }
-      })
-
-      // Update users table
-      if (Object.keys(userUpdates).length > 0) {
-        const { error: userError } = await supabase
-          .from('users')
-          .update(userUpdates)
-          .eq('id', id)
-        
-        if (userError) throw userError
+    console.log('🔍 Current user from DB:', currentUser)
+    console.log('🔍 User check error:', userCheckError)
+    
+    // Split updates between users and headcount_profiles tables
+    const userUpdates: any = {}
+    const profileUpdates: any = {}
+    
+    // Users table fields
+    const userFields = ['employee_id', 'status', 'department', 'hire_date', 'manager_id', 'fte_percentage', 'role']
+    // Profile fields
+    const profileFields = ['job_title', 'job_level', 'employment_type', 'location', 'time_zone', 'phone', 'skills', 'certifications', 'max_weekly_hours', 'cost_center', 'budget_code']
+    
+    Object.entries(updates).forEach(([key, value]) => {
+      if (userFields.includes(key)) {
+        userUpdates[key] = value
+      } else if (profileFields.includes(key)) {
+        profileUpdates[key] = value
       }
+    })
 
-      // Update headcount_profiles table
-      if (Object.keys(profileUpdates).length > 0) {
-        const { error: profileError } = await supabase
-          .from('headcount_profiles')
-          .update(profileUpdates)
-          .eq('user_id', id)
-        
-        if (profileError) throw profileError
-      }
+    console.log('🔍 Attempting to update:', { userUpdates, profileUpdates })
 
-      return true
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to update employee')
-      return false
-    } finally {
-      setLoading(false)
+    // Update users table
+    if (Object.keys(userUpdates).length > 0) {
+      const { error: userError } = await supabase
+        .from('users')
+        .update(userUpdates)
+        .eq('id', id)
+      
+      console.log('🔍 Users table update error:', userError)
+      if (userError) throw userError
     }
-  }, [])
 
+    // Update headcount_profiles table
+    if (Object.keys(profileUpdates).length > 0) {
+      const { error: profileError } = await supabase
+        .from('headcount_profiles')
+        .update(profileUpdates)
+        .eq('user_id', id)
+      
+      console.log('🔍 Profile update error:', profileError)
+      if (profileError) throw profileError
+    }
+
+    return true
+  } catch (err) {
+    console.error('🔍 Update failed:', err)
+    setError(err instanceof Error ? err.message : 'Failed to update employee')
+    return false
+  } finally {
+    setLoading(false)
+  }
+}, [])
   // Get departments list
   const getDepartments = useCallback(async (): Promise<Department[]> => {
     try {
