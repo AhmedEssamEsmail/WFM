@@ -494,8 +494,8 @@ export default function Schedule() {
   }
 
   return (
-    <div className="space-y-6 w-full min-w-0">
-      <div className="sm:flex sm:items-center sm:justify-between px-4 sm:px-0">
+    <div className="space-y-6 w-full">
+      <div className="sm:flex sm:items-center sm:justify-between px-4 sm:px-6 lg:px-8">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Schedule</h1>
           <p className="mt-1 text-sm text-gray-500">
@@ -524,7 +524,7 @@ export default function Schedule() {
 
       {/* Tabs for TL/WFM */}
       {canEdit && (
-        <div className="border-b border-gray-200 px-4 sm:px-0">
+        <div className="border-b border-gray-200 px-4 sm:px-6 lg:px-8">
           <nav className="-mb-px flex space-x-8">
             <button
               onClick={() => setActiveTab('schedule')}
@@ -553,7 +553,7 @@ export default function Schedule() {
       {activeTab === 'schedule' && (
         <>
           {/* Month navigation */}
-          <div className="flex items-center justify-between bg-white rounded-lg shadow px-4 py-3 mx-4 sm:mx-0">
+          <div className="flex items-center justify-between bg-white rounded-lg shadow px-4 py-3 mx-4 sm:mx-6 lg:mx-8">
             <button
               onClick={() => setCurrentDate(subMonths(currentDate, 1))}
               className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
@@ -575,133 +575,105 @@ export default function Schedule() {
             </button>
           </div>
 
-          {/* Schedule grid - Using CSS Grid for pinned columns */}
-          <div className="bg-white rounded-lg shadow overflow-hidden mx-4 sm:mx-0">
-            <div className="schedule-container" style={{
-              display: 'grid',
-              gridTemplateColumns: '150px repeat(auto-fill, minmax(60px, 1fr))',
-              overflow: 'auto',
-              maxHeight: '70vh',
-              position: 'relative'
-            }}>
-              {/* Header Row - Sticky */}
-              <div style={{
-                position: 'sticky',
-                top: 0,
-                left: 0,
-                zIndex: 30,
-                backgroundColor: '#f9fafb',
-                padding: '0.75rem 1rem',
-                fontSize: '0.75rem',
-                fontWeight: 500,
-                textTransform: 'uppercase',
-                color: '#6b7280',
-                letterSpacing: '0.05em',
-                borderBottom: '1px solid #e5e7eb',
-                minWidth: '150px'
-              }}>
-                Name
-              </div>
-              {daysInMonth.map(day => (
-                <div
-                  key={`header-${day.toISOString()}`}
-                  style={{
-                    position: 'sticky',
-                    top: 0,
-                    zIndex: 20,
-                    backgroundColor: '#f9fafb',
-                    padding: '0.75rem 0.5rem',
-                    textAlign: 'center',
-                    fontSize: '0.75rem',
-                    fontWeight: 500,
-                    textTransform: 'uppercase',
-                    color: '#6b7280',
-                    letterSpacing: '0.05em',
-                    borderBottom: '1px solid #e5e7eb',
-                    minWidth: '60px'
-                  }}
-                >
-                  <div>{format(day, 'EEE')}</div>
-                  <div style={{ color: '#111827' }}>{format(day, 'd')}</div>
-                </div>
-              ))}
-
-              {/* Data Rows */}
-              {filteredUsers.map(u => (
-                <>
-                  {/* Name Cell - Sticky Left */}
-                  <div
-                    key={`name-${u.id}`}
-                    style={{
-                      position: 'sticky',
-                      left: 0,
-                      zIndex: 10,
-                      backgroundColor: '#ffffff',
-                      padding: '0.75rem 1rem',
-                      fontSize: '0.875rem',
-                      fontWeight: 500,
-                      color: '#111827',
-                      whiteSpace: 'nowrap',
-                      borderBottom: '1px solid #e5e7eb',
-                      minWidth: '150px'
-                    }}
-                  >
-                    {u.name}
-                  </div>
-                  {/* Shift Cells */}
-                  {daysInMonth.map(day => {
-                    const shift = getShiftForUserAndDate(u.id, day)
-                    const leave = getLeaveForUserAndDate(u.id, day)
-                    const isOnLeave = !!leave
-                    
-                    return (
-                      <div
-                        key={`${u.id}-${day.toISOString()}`}
-                        onClick={() => handleShiftClick(u.id, day)}
+          {/* Schedule grid - Fixed layout with proper sticky behavior */}
+          <div className="bg-white rounded-lg shadow overflow-hidden mx-4 sm:mx-6 lg:mx-8">
+            <div className="overflow-auto max-h-[70vh]">
+              <table className="min-w-max border-collapse">
+                <thead>
+                  <tr>
+                    <th 
+                      className="bg-gray-50 px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-b border-gray-200"
+                      style={{
+                        position: 'sticky',
+                        left: 0,
+                        top: 0,
+                        zIndex: 30,
+                        minWidth: '150px',
+                        backgroundColor: '#f9fafb'
+                      }}
+                    >
+                      Name
+                    </th>
+                    {daysInMonth.map(day => (
+                      <th
+                        key={day.toISOString()}
+                        className="px-2 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider border-b border-gray-200 bg-gray-50"
                         style={{
-                          padding: '0.5rem',
-                          textAlign: 'center',
-                          cursor: canEdit ? 'pointer' : 'default',
-                          borderBottom: '1px solid #e5e7eb',
+                          position: 'sticky',
+                          top: 0,
+                          zIndex: 20,
                           minWidth: '60px',
-                          backgroundColor: isOnLeave ? 'rgba(0,0,0,0.02)' : '#ffffff'
+                          backgroundColor: '#f9fafb'
                         }}
-                        onMouseEnter={(e) => canEdit && (e.currentTarget.style.backgroundColor = '#f9fafb')}
-                        onMouseLeave={(e) => canEdit && (e.currentTarget.style.backgroundColor = isOnLeave ? 'rgba(0,0,0,0.02)' : '#ffffff')}
-                        title={isOnLeave ? `On ${leave.leave_type} leave (click to edit)` : undefined}
                       >
-                        {isOnLeave ? (
-                          <div className="relative">
-                            <span className={`inline-flex items-center px-2 py-1 rounded text-xs font-medium border ${leaveColors[leave.leave_type] || 'bg-gray-100 text-gray-800 border-gray-300'}`}>
-                              {leaveLabels[leave.leave_type] || leave.leave_type}
-                            </span>
-                          </div>
-                        ) : shift ? (
-                          <div className="relative">
-                            <span className={`inline-flex items-center px-2 py-1 rounded text-xs font-medium ${shiftColors[shift.shift_type]}`}>
-                              {shiftLabels[shift.shift_type]}
-                            </span>
-                            {shift.swapped_with_user_id && (
-                              <div className="text-xs text-gray-500 mt-1 truncate" title={`Swapped with ${swappedUserNames[shift.swapped_with_user_id] || 'Unknown'}`}>
-                                ↔ {swappedUserNames[shift.swapped_with_user_id]?.split(' ')[0] || '?'}
+                        <div>{format(day, 'EEE')}</div>
+                        <div className="text-gray-900">{format(day, 'd')}</div>
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-200">
+                  {filteredUsers.map(u => (
+                    <tr key={u.id}>
+                      <td 
+                        className="px-4 py-3 whitespace-nowrap text-sm font-medium text-gray-900 bg-white border-b border-gray-200"
+                        style={{
+                          position: 'sticky',
+                          left: 0,
+                          zIndex: 10,
+                          minWidth: '150px',
+                          backgroundColor: '#ffffff'
+                        }}
+                      >
+                        {u.name}
+                      </td>
+                      {daysInMonth.map(day => {
+                        const shift = getShiftForUserAndDate(u.id, day)
+                        const leave = getLeaveForUserAndDate(u.id, day)
+                        const isOnLeave = !!leave
+                        
+                        return (
+                          <td
+                            key={day.toISOString()}
+                            className={`px-2 py-2 text-center border-b border-gray-200 bg-white ${canEdit ? 'cursor-pointer hover:bg-gray-50' : ''}`}
+                            onClick={() => handleShiftClick(u.id, day)}
+                            style={{ minWidth: '60px' }}
+                            title={isOnLeave ? `On ${leave.leave_type} leave (click to edit)` : undefined}
+                          >
+                            {isOnLeave ? (
+                              <div className="relative">
+                                <span className={`inline-flex items-center px-2 py-1 rounded text-xs font-medium border ${leaveColors[leave.leave_type] || 'bg-gray-100 text-gray-800 border-gray-300'}`}>
+                                  {leaveLabels[leave.leave_type] || leave.leave_type}
+                                </span>
                               </div>
+                            ) : shift ? (
+                              <div className="relative">
+                                <span className={`inline-flex items-center px-2 py-1 rounded text-xs font-medium ${shiftColors[shift.shift_type]}`}>
+                                  {shiftLabels[shift.shift_type]}
+                                </span>
+                                {shift.swapped_with_user_id && (
+                                  <div className="text-xs text-gray-500 mt-1 truncate" title={`Swapped with ${swappedUserNames[shift.swapped_with_user_id] || 'Unknown'}`}>
+                                    ↔ {swappedUserNames[shift.swapped_with_user_id]?.split(' ')[0] || '?'}
+                                  </div>
+                                )}
+                              </div>
+                            ) : canEdit ? (
+                              <span className="text-gray-300 text-xs">+</span>
+                            ) : (
+                              <span className="text-gray-300">-</span>
                             )}
-                          </div>
-                        ) : canEdit ? (
-                          <span className="text-gray-300 text-xs">+</span>
-                        ) : (
-                          <span className="text-gray-300">-</span>
-                        )}
-                      </div>
-                    )
-                  })}
-                </>
-              ))}
+                          </td>
+                        )
+                      })}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
           </div>
 
           {/* Legend */}
-          <div className="bg-white rounded-lg shadow p-4 mx-4 sm:mx-0">
+          <div className="bg-white rounded-lg shadow p-4 mx-4 sm:mx-6 lg:mx-8">
             <h3 className="text-sm font-medium text-gray-700 mb-3">Legend</h3>
             <div className="space-y-3">
               <div>
@@ -747,7 +719,7 @@ export default function Schedule() {
       )}
 
       {activeTab === 'leave-types' && canEdit && (
-        <div className="bg-white rounded-lg shadow mx-4 sm:mx-0">
+        <div className="bg-white rounded-lg shadow mx-4 sm:mx-6 lg:mx-8">
           <div className="px-4 py-5 sm:px-6 flex justify-between items-center border-b">
             <div>
               <h3 className="text-lg font-medium text-gray-900">Leave Types</h3>
