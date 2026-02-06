@@ -207,3 +207,134 @@ const updateEmployee = useCallback(async (id: string, updates: Partial<Headcount
     getDepartmentSummary,
   }
                           }
+import { useCallback, useState } from 'react'
+import { supabase } from '../lib/supabase'
+import type { HeadcountUser, Department, HeadcountMetrics } from '../types'
+
+export function useHeadcount() {
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  // ... (keep all your existing functions)
+
+  // Bulk import employees from CSV
+  const bulkImportEmployees = useCallback(async (employees: Partial<HeadcountUser>[]) => {
+    setLoading(true)
+    setError(null)
+    
+    try {
+      const results = {
+        success: 0,
+        failed: 0,
+        errors: [] as { row: number; email: string; error: string }[]
+      }
+
+      for (let i = 0; i < employees.length; i++) {
+        const emp = employees[i]
+        
+        try {
+          // Validate required fields
+          if (!emp.email || !emp.name) {
+            results.failed++
+            results.errors.push({
+              row: i + 2, // +2 because row 1 is header and array is 0-indexed
+              email: emp.email || 'unknown',
+              error: 'Missing required fields (email or name)'
+            })
+            continue
+          }
+
+          // Check if user exists
+          const { data: existingUser } = await supabase
+            .from('users')
+            .select('id')
+            .eq('email', emp.email)
+            .single()
+
+          if (existingUser) {
+            // Update existing user
+            const userUpdates: any = {}
+            const profileUpdates: any = {}
+            
+            const userFields = ['employee_id', 'status', 'department', 'hire_date', 'manager_id', 'fte_percentage', 'role', 'name']
+            const profileFields = ['job_title', 'job_level', 'employment_type', 'location', 'time_zone', 'phone', 'max_weekly_hours', 'cost_center', 'budget_code']
+            
+            Object.entries(emp).forEach(([key, value]) => {
+              if (value !== undefined && value !== '') {
+                if (userFields.includes(key)) {
+                  userUpdates[key] = value
+                } else if (profileFields.includes(key)) {
+                  profileUpdates[key] = value
+                }
+              }
+            })
+
+            if (Object.keys(userUpdates).length > 0) {
+              const { error: userError } = await supabase
+                .from('users')
+                .update(userUpdates)
+                .eq('id', existingUser.id)
+              
+              if (userError) throw userError
+            }
+
+            if (Object.keys(profileUpdates).length > 0) {
+              const { error: profileError } = await supabase
+                .from('headcount_profiles')
+                .upsert({
+                  user_id: existingUser.id,
+                  ...profileUpdates
+                }, {
+                  onConflict: 'user_id'
+                })
+              
+              if (profileError) throw profileError
+            }
+          } else {
+            // Create new user - Note: This requires the user to exist in auth.users first
+            // You might need to adjust this based on your user creation workflow
+            results.failed++
+            results.errors.push({
+              row: i + 2,
+              email: emp.email,
+              error: 'User does not exist in auth system. Please create user account first.'
+            })
+            continue
+          }
+
+          results.success++
+        } catch (err) {
+          results.failed++
+          results.errors.push({
+            row: i + 2,
+            email: emp.email || 'unknown',
+            error: err instanceof Error ? err.message : 'Unknown error'
+          })
+        }
+      }
+
+      return results
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to import employees')
+      return {
+        success: 0,
+        failed: employees.length,
+        errors: [{ row: 0, email: 'all', error: err instanceof Error ? err.message : 'Unknown error' }]
+      }
+    } finally {
+      setLoading(false)
+    }
+  }, [])
+
+  return {
+    loading,
+    error,
+    getEmployees,
+    getEmployee,
+    updateEmployee,
+    getDepartments,
+    getMetrics,
+    getDepartmentSummary,
+    bulkImportEmployees, // Add this
+  }
+          }
