@@ -383,38 +383,63 @@ ALTER TABLE headcount_audit_log ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY "Users can view all users"
     ON users FOR SELECT
-    TO authenticated
-    USING (true);
+    TO public
+    USING ((auth.jwt() ->> 'email'::text) ~~ '%@dabdoob.com'::text);
 
-CREATE POLICY "Users can update own profile"
+CREATE POLICY "Allow view active users"
+    ON users FOR SELECT
+    TO authenticated
+    USING (status = ANY (ARRAY['active'::text, 'on_leave'::text]));
+
+CREATE POLICY "Users can insert own profile"
+    ON users FOR INSERT
+    TO public
+    WITH CHECK ((auth.uid() = id) AND ((auth.jwt() ->> 'email'::text) ~~ '%@dabdoob.com'::text));
+
+CREATE POLICY "WFM and users can update"
     ON users FOR UPDATE
     TO authenticated
-    USING (auth.uid() = id)
-    WITH CHECK (auth.uid() = id);
-
-CREATE POLICY "WFM can update any user"
-    ON users FOR UPDATE
-    TO authenticated
-    USING (get_user_role(auth.uid()) = 'wfm');
+    USING ((get_user_role(auth.uid()) = 'wfm'::user_role) OR (auth.uid() = id))
+    WITH CHECK ((get_user_role(auth.uid()) = 'wfm'::user_role) OR (auth.uid() = id));
 
 -- ============================================
 -- SHIFTS POLICIES
 -- ============================================
+
+CREATE POLICY "Users can view shifts"
+    ON shifts FOR SELECT
+    TO public
+    USING ((auth.jwt() ->> 'email'::text) ~~ '%@dabdoob.com'::text);
 
 CREATE POLICY "Users can view all shifts"
     ON shifts FOR SELECT
     TO authenticated
     USING (true);
 
+CREATE POLICY "Users can insert shifts"
+    ON shifts FOR INSERT
+    TO public
+    WITH CHECK ((auth.jwt() ->> 'email'::text) ~~ '%@dabdoob.com'::text);
+
 CREATE POLICY "Users can insert own shifts"
     ON shifts FOR INSERT
     TO authenticated
     WITH CHECK (auth.uid() = user_id);
 
+CREATE POLICY "Users can update shifts"
+    ON shifts FOR UPDATE
+    TO public
+    USING ((auth.jwt() ->> 'email'::text) ~~ '%@dabdoob.com'::text);
+
 CREATE POLICY "Users can update own shifts"
     ON shifts FOR UPDATE
     TO authenticated
     USING (auth.uid() = user_id);
+
+CREATE POLICY "Users can delete shifts"
+    ON shifts FOR DELETE
+    TO public
+    USING ((auth.jwt() ->> 'email'::text) ~~ '%@dabdoob.com'::text);
 
 CREATE POLICY "WFM can manage all shifts"
     ON shifts FOR ALL
@@ -425,64 +450,143 @@ CREATE POLICY "WFM can manage all shifts"
 -- SWAP REQUESTS POLICIES
 -- ============================================
 
+CREATE POLICY "Users can view swap requests"
+    ON swap_requests FOR SELECT
+    TO public
+    USING ((auth.jwt() ->> 'email'::text) ~~ '%@dabdoob.com'::text);
+
 CREATE POLICY "Users can view own swap requests"
     ON swap_requests FOR SELECT
     TO authenticated
     USING (
         auth.uid() = requester_id OR 
         auth.uid() = target_user_id OR
-        get_user_role(auth.uid()) IN ('tl', 'wfm')
+        get_user_role(auth.uid()) = ANY (ARRAY['tl'::user_role, 'wfm'::user_role])
     );
 
 CREATE POLICY "Users can create swap requests"
     ON swap_requests FOR INSERT
-    TO authenticated
-    WITH CHECK (
-        auth.uid() = requester_id
-        OR get_user_role(auth.uid()) IN ('wfm', 'tl')
+    TO public
+    WITH CHECK ((auth.jwt() ->> 'email'::text) ~~ '%@dabdoob.com'::text);
+
+CREATE POLICY "Users can update own swap requests"
+    ON swap_requests FOR UPDATE
+    TO public
+    USING ((requester_id = auth.uid()) AND ((auth.jwt() ->> 'email'::text) ~~ '%@dabdoob.com'::text));
+
+CREATE POLICY "Users can update swap requests they're involved in"
+    ON swap_requests FOR UPDATE
+    TO public
+    USING (
+        (auth.uid() = requester_id) OR 
+        (auth.uid() = target_user_id) OR 
+        (EXISTS (SELECT 1 FROM users WHERE ((users.id = auth.uid()) AND (users.role = ANY (ARRAY['wfm'::user_role, 'tl'::user_role])))))
     );
 
-CREATE POLICY "Users can update swap requests"
+CREATE POLICY "Target can accept swap request"
     ON swap_requests FOR UPDATE
     TO authenticated
-    USING (
-        auth.uid() = requester_id OR 
-        auth.uid() = target_user_id OR
-        get_user_role(auth.uid()) IN ('tl', 'wfm')
-    );
+    USING ((auth.uid() = target_user_id) AND (status = 'pending_acceptance'::swap_request_status));
+
+CREATE POLICY "TL can approve swap request"
+    ON swap_requests FOR UPDATE
+    TO authenticated
+    USING ((get_user_role(auth.uid()) = ANY (ARRAY['tl'::user_role, 'wfm'::user_role])) AND (status = 'pending_tl'::swap_request_status));
+
+CREATE POLICY "WFM can approve swap request"
+    ON swap_requests FOR UPDATE
+    TO authenticated
+    USING ((get_user_role(auth.uid()) = 'wfm'::user_role) AND (status = 'pending_wfm'::swap_request_status));
 
 CREATE POLICY "Users can delete own swap requests"
     ON swap_requests FOR DELETE
+    TO public
+    USING ((requester_id = auth.uid()) AND ((auth.jwt() ->> 'email'::text) ~~ '%@dabdoob.com'::text));
+
+CREATE POLICY "Requester can cancel swap request"
+    ON swap_requests FOR DELETE
     TO authenticated
-    USING (
-        auth.uid() = requester_id
-        OR get_user_role(auth.uid()) IN ('wfm', 'tl')
-    );
+    USING ((auth.uid() = requester_id) AND (status = 'pending_acceptance'::swap_request_status));
 
 -- ============================================
 -- LEAVE REQUESTS POLICIES
 -- ============================================
 
-CREATE POLICY "Users can view own leave requests"
+CREATE POLICY "Users can view leave requests"
     ON leave_requests FOR SELECT
-    TO authenticated
-    USING (
-        auth.uid() = user_id OR
-        get_user_role(auth.uid()) IN ('tl', 'wfm')
-    );
+    TO public
+    USING ((auth.jwt() ->> 'email'::text) ~~ '%@dabdoob.com'::text);
 
 CREATE POLICY "Users can create leave requests"
     ON leave_requests FOR INSERT
+    TO public
+    WITH CHECK ((auth.jwt() ->> 'email'::text) ~~ '%@dabdoob.com'::text);
+
+CREATE POLICY "Users can insert leave requests"
+    ON leave_requests FOR INSERT
     TO authenticated
     WITH CHECK (
-        auth.uid() = user_id
-        OR get_user_role(auth.uid()) IN ('wfm', 'tl')
+        (auth.uid() = user_id) OR 
+        (EXISTS (SELECT 1 FROM users WHERE ((users.id = auth.uid()) AND (users.role = ANY (ARRAY['tl'::user_role, 'wfm'::user_role])))))
     );
 
-CREATE POLICY "TL and WFM can update leave requests"
+CREATE POLICY "Users can update own leave requests"
+    ON leave_requests FOR UPDATE
+    TO public
+    USING ((user_id = auth.uid()) AND ((auth.jwt() ->> 'email'::text) ~~ '%@dabdoob.com'::text));
+
+CREATE POLICY "Users can update leave requests"
     ON leave_requests FOR UPDATE
     TO authenticated
-    USING (get_user_role(auth.uid()) IN ('tl', 'wfm'));
+    USING (
+        ((auth.uid() = user_id) AND (status <> 'approved'::leave_request_status)) OR 
+        (EXISTS (SELECT 1 FROM users WHERE ((users.id = auth.uid()) AND (users.role = ANY (ARRAY['tl'::user_role, 'wfm'::user_role])))))
+    )
+    WITH CHECK (
+        ((auth.uid() = user_id) AND (status <> 'approved'::leave_request_status)) OR 
+        (EXISTS (SELECT 1 FROM users WHERE ((users.id = auth.uid()) AND (users.role = ANY (ARRAY['tl'::user_role, 'wfm'::user_role])))))
+    );
+
+CREATE POLICY "TL can approve leave requests"
+    ON leave_requests FOR UPDATE
+    TO authenticated
+    USING ((get_user_role(auth.uid()) = ANY (ARRAY['tl'::user_role, 'wfm'::user_role])) AND (status = 'pending_tl'::leave_request_status));
+
+CREATE POLICY "WFM can approve leave requests"
+    ON leave_requests FOR UPDATE
+    TO authenticated
+    USING ((get_user_role(auth.uid()) = 'wfm'::user_role) AND (status = 'pending_wfm'::leave_request_status));
+
+CREATE POLICY "TL/WFM can modify approved leaves"
+    ON leave_requests FOR UPDATE
+    TO public
+    USING (
+        (EXISTS (SELECT 1 FROM users WHERE ((users.id = auth.uid()) AND (users.role = ANY (ARRAY['wfm'::user_role, 'tl'::user_role]))))) AND 
+        (status = 'approved'::leave_request_status)
+    );
+
+CREATE POLICY "Users can delete own leave requests"
+    ON leave_requests FOR DELETE
+    TO public
+    USING ((user_id = auth.uid()) AND ((auth.jwt() ->> 'email'::text) ~~ '%@dabdoob.com'::text));
+
+CREATE POLICY "Users can cancel pending leave requests"
+    ON leave_requests FOR DELETE
+    TO authenticated
+    USING ((auth.uid() = user_id) AND (status = 'pending_tl'::leave_request_status));
+
+CREATE POLICY "Users can delete leave requests"
+    ON leave_requests FOR DELETE
+    TO authenticated
+    USING (
+        ((auth.uid() = user_id) AND (status <> 'approved'::leave_request_status)) OR 
+        (EXISTS (SELECT 1 FROM users WHERE ((users.id = auth.uid()) AND (users.role = ANY (ARRAY['tl'::user_role, 'wfm'::user_role])))))
+    );
+
+CREATE POLICY "TL/WFM can delete leave requests"
+    ON leave_requests FOR DELETE
+    TO public
+    USING (EXISTS (SELECT 1 FROM users WHERE ((users.id = auth.uid()) AND (users.role = ANY (ARRAY['wfm'::user_role, 'tl'::user_role])))));
 
 -- ============================================
 -- LEAVE BALANCES POLICIES
@@ -490,150 +594,208 @@ CREATE POLICY "TL and WFM can update leave requests"
 
 CREATE POLICY "Users can view own leave balances"
     ON leave_balances FOR SELECT
-    TO authenticated
-    USING (
-        auth.uid() = user_id OR
-        get_user_role(auth.uid()) IN ('tl', 'wfm')
-    );
+    TO public
+    USING ((user_id = auth.uid()) AND ((auth.jwt() ->> 'email'::text) ~~ '%@dabdoob.com'::text));
+
+CREATE POLICY "Users can insert own leave balances"
+    ON leave_balances FOR INSERT
+    TO public
+    WITH CHECK ((user_id = auth.uid()) AND ((auth.jwt() ->> 'email'::text) ~~ '%@dabdoob.com'::text));
+
+CREATE POLICY "Users can update own leave balances"
+    ON leave_balances FOR UPDATE
+    TO public
+    USING ((user_id = auth.uid()) AND ((auth.jwt() ->> 'email'::text) ~~ '%@dabdoob.com'::text));
 
 CREATE POLICY "WFM can manage leave balances"
     ON leave_balances FOR ALL
     TO authenticated
-    USING (get_user_role(auth.uid()) = 'wfm');
+    USING (get_user_role(auth.uid()) = 'wfm'::user_role);
 
 -- ============================================
 -- LEAVE BALANCE HISTORY POLICIES
 -- ============================================
 
+CREATE POLICY "Users can view own leave balance history"
+    ON leave_balance_history FOR SELECT
+    TO public
+    USING ((user_id = auth.uid()) AND ((auth.jwt() ->> 'email'::text) ~~ '%@dabdoob.com'::text));
+
 CREATE POLICY "Users can view own balance history"
     ON leave_balance_history FOR SELECT
     TO authenticated
     USING (
-        auth.uid() = user_id OR
-        get_user_role(auth.uid()) IN ('tl', 'wfm')
+        (user_id = auth.uid()) OR 
+        (EXISTS (SELECT 1 FROM users WHERE ((users.id = auth.uid()) AND (users.role = ANY (ARRAY['tl'::user_role, 'wfm'::user_role])))))
     );
 
-CREATE POLICY "WFM can manage balance history"
-    ON leave_balance_history FOR ALL
+CREATE POLICY "System can insert leave balance history"
+    ON leave_balance_history FOR INSERT
+    TO public
+    WITH CHECK ((auth.jwt() ->> 'email'::text) ~~ '%@dabdoob.com'::text);
+
+CREATE POLICY "WFM can insert balance history"
+    ON leave_balance_history FOR INSERT
     TO authenticated
-    USING (get_user_role(auth.uid()) = 'wfm');
+    WITH CHECK (EXISTS (SELECT 1 FROM users WHERE ((users.id = auth.uid()) AND (users.role = 'wfm'::user_role))));
+
+CREATE POLICY "WFM can view all history"
+    ON leave_balance_history FOR SELECT
+    TO authenticated
+    USING (EXISTS (SELECT 1 FROM users WHERE ((users.id = auth.uid()) AND (users.role = 'wfm'::user_role))));
 
 -- ============================================
 -- COMMENTS POLICIES
 -- ============================================
 
+CREATE POLICY "Users can view comments"
+    ON comments FOR SELECT
+    TO public
+    USING ((auth.jwt() ->> 'email'::text) ~~ '%@dabdoob.com'::text);
+
 CREATE POLICY "Users can view comments on their requests"
     ON comments FOR SELECT
     TO authenticated
-    USING (
-        auth.uid() = user_id
-        OR (request_type = 'leave' AND EXISTS (
-            SELECT 1 FROM leave_requests lr 
-            WHERE lr.id = comments.request_id 
-            AND lr.user_id = auth.uid()
-        ))
-        OR (request_type = 'swap' AND EXISTS (
-            SELECT 1 FROM swap_requests sr 
-            WHERE sr.id = comments.request_id 
-            AND (sr.requester_id = auth.uid() OR sr.target_user_id = auth.uid())
-        ))
-        OR get_user_role(auth.uid()) IN ('tl', 'wfm')
-    );
+    USING (true);
+
+CREATE POLICY "Users can view related comments"
+    ON comments FOR SELECT
+    TO authenticated
+    USING (true);
+
+CREATE POLICY "Users can create comments"
+    ON comments FOR INSERT
+    TO public
+    WITH CHECK ((user_id = auth.uid()) AND ((auth.jwt() ->> 'email'::text) ~~ '%@dabdoob.com'::text));
 
 CREATE POLICY "Users can add comments"
     ON comments FOR INSERT
     TO authenticated
-    WITH CHECK (
-        auth.uid() = user_id
-        AND (
-            (request_type = 'leave' AND (
-                EXISTS (
-                    SELECT 1 FROM leave_requests lr 
-                    WHERE lr.id = request_id 
-                    AND lr.user_id = auth.uid()
-                )
-                OR get_user_role(auth.uid()) IN ('tl', 'wfm')
-            ))
-            OR (request_type = 'swap' AND (
-                EXISTS (
-                    SELECT 1 FROM swap_requests sr 
-                    WHERE sr.id = request_id 
-                    AND (sr.requester_id = auth.uid() OR sr.target_user_id = auth.uid())
-                )
-                OR get_user_role(auth.uid()) IN ('tl', 'wfm')
-            ))
-        )
-    );
+    WITH CHECK (auth.uid() = user_id);
+
+CREATE POLICY "Users can update own comments"
+    ON comments FOR UPDATE
+    TO public
+    USING ((user_id = auth.uid()) AND ((auth.jwt() ->> 'email'::text) ~~ '%@dabdoob.com'::text));
+
+CREATE POLICY "Users can delete own comments"
+    ON comments FOR DELETE
+    TO public
+    USING ((user_id = auth.uid()) AND ((auth.jwt() ->> 'email'::text) ~~ '%@dabdoob.com'::text));
 
 -- ============================================
 -- SETTINGS POLICIES
 -- ============================================
 
-CREATE POLICY "Anyone can view settings"
+CREATE POLICY "Users can view settings"
+    ON settings FOR SELECT
+    TO public
+    USING ((auth.jwt() ->> 'email'::text) ~~ '%@dabdoob.com'::text);
+
+CREATE POLICY "Anyone can read settings"
     ON settings FOR SELECT
     TO authenticated
     USING (true);
 
+CREATE POLICY "Everyone can read settings"
+    ON settings FOR SELECT
+    TO authenticated
+    USING (true);
+
+CREATE POLICY "Admins can manage settings"
+    ON settings FOR ALL
+    TO public
+    USING ((auth.jwt() ->> 'email'::text) ~~ '%@dabdoob.com'::text);
+
+CREATE POLICY "WFM can update settings"
+    ON settings FOR UPDATE
+    TO authenticated
+    USING (EXISTS (SELECT 1 FROM users WHERE ((users.id = auth.uid()) AND (users.role = 'wfm'::user_role))));
+
 CREATE POLICY "WFM can manage settings"
     ON settings FOR ALL
     TO authenticated
-    USING (get_user_role(auth.uid()) = 'wfm');
+    USING (get_user_role(auth.uid()) = 'wfm'::user_role);
 
 -- ============================================
 -- LEAVE TYPES POLICIES
 -- ============================================
 
-CREATE POLICY "Anyone can view leave types"
+CREATE POLICY "Users can view leave types"
     ON leave_types FOR SELECT
-    TO authenticated
-    USING (true);
+    TO public
+    USING ((auth.jwt() ->> 'email'::text) ~~ '%@dabdoob.com'::text);
 
-CREATE POLICY "WFM can manage leave types"
+CREATE POLICY "Admins can manage leave types"
     ON leave_types FOR ALL
-    TO authenticated
-    USING (get_user_role(auth.uid()) = 'wfm');
+    TO public
+    USING ((auth.jwt() ->> 'email'::text) ~~ '%@dabdoob.com'::text);
+
+CREATE POLICY "Allow WFM to manage leave_types"
+    ON leave_types FOR ALL
+    TO public
+    USING (EXISTS (SELECT 1 FROM users WHERE ((users.id = auth.uid()) AND (users.role = 'wfm'::user_role))))
+    WITH CHECK (EXISTS (SELECT 1 FROM users WHERE ((users.id = auth.uid()) AND (users.role = 'wfm'::user_role))));
 
 -- ============================================
 -- DEPARTMENTS POLICIES
 -- ============================================
 
-CREATE POLICY "Anyone can view departments"
+CREATE POLICY "All view departments"
     ON departments FOR SELECT
     TO authenticated
     USING (true);
 
-CREATE POLICY "WFM can manage departments"
+CREATE POLICY "WFM edit departments"
     ON departments FOR ALL
     TO authenticated
-    USING (get_user_role(auth.uid()) = 'wfm');
+    USING (EXISTS (SELECT 1 FROM users WHERE ((users.id = auth.uid()) AND (users.role = 'wfm'::user_role))));
 
 -- ============================================
 -- HEADCOUNT PROFILES POLICIES
 -- ============================================
 
-CREATE POLICY "TL and WFM can view headcount profiles"
+CREATE POLICY "Users view own profile"
     ON headcount_profiles FOR SELECT
     TO authenticated
-    USING (get_user_role(auth.uid()) IN ('tl', 'wfm'));
+    USING (user_id = auth.uid());
 
-CREATE POLICY "WFM can manage headcount profiles"
+CREATE POLICY "TL view department profiles"
+    ON headcount_profiles FOR SELECT
+    TO authenticated
+    USING (
+        EXISTS (
+            SELECT 1 FROM users 
+            WHERE ((users.id = auth.uid()) AND 
+                   (users.role = 'tl'::user_role) AND 
+                   (users.department = (SELECT users_1.department FROM users users_1 WHERE (users_1.id = headcount_profiles.user_id))))
+        )
+    );
+
+CREATE POLICY "WFM full access profiles"
     ON headcount_profiles FOR ALL
     TO authenticated
-    USING (get_user_role(auth.uid()) = 'wfm');
+    USING (EXISTS (SELECT 1 FROM users WHERE ((users.id = auth.uid()) AND (users.role = 'wfm'::user_role))))
+    WITH CHECK (EXISTS (SELECT 1 FROM users WHERE ((users.id = auth.uid()) AND (users.role = 'wfm'::user_role))));
 
 -- ============================================
 -- HEADCOUNT AUDIT LOG POLICIES
 -- ============================================
 
-CREATE POLICY "WFM can view audit log"
+CREATE POLICY "Users view own audit"
     ON headcount_audit_log FOR SELECT
     TO authenticated
-    USING (get_user_role(auth.uid()) = 'wfm');
+    USING (user_id = auth.uid());
 
-CREATE POLICY "WFM can insert audit log"
+CREATE POLICY "WFM view all audit"
+    ON headcount_audit_log FOR SELECT
+    TO authenticated
+    USING (EXISTS (SELECT 1 FROM users WHERE ((users.id = auth.uid()) AND (users.role = 'wfm'::user_role))));
+
+CREATE POLICY "WFM can insert audit logs"
     ON headcount_audit_log FOR INSERT
     TO authenticated
-    WITH CHECK (get_user_role(auth.uid()) = 'wfm');
+    WITH CHECK (EXISTS (SELECT 1 FROM users WHERE ((users.id = auth.uid()) AND (users.role = 'wfm'::user_role))));
 
 -- ============================================
 -- INITIAL DATA

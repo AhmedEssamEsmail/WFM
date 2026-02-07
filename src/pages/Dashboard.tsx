@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo, useCallback } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
 import { supabase } from '../lib/supabase'
@@ -29,7 +29,7 @@ export default function Dashboard() {
     }
   }, [user])
 
-  const fetchRequests = async () => {
+  const fetchRequests = useCallback(async () => {
     setLoading(true)
     try {
       // Fetch swap requests
@@ -101,15 +101,15 @@ export default function Dashboard() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [user, isManager])
 
-  const formatDate = (dateString: string) => {
+  const formatDate = useCallback((dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
       month: 'short',
       day: 'numeric',
       year: 'numeric'
     })
-  }
+  }, [])
 
   return (
     <div className="pb-4">
