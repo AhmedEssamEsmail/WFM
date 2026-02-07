@@ -364,8 +364,67 @@ export default function SwapRequestDetail() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
+      <div className="space-y-6">
+        {/* Header Skeleton */}
+        <div className="flex items-center justify-between">
+          <div className="flex-1">
+            <div className="h-6 w-16 bg-gray-200 rounded mb-2 animate-pulse"></div>
+            <div className="h-8 w-64 bg-gray-200 rounded animate-pulse"></div>
+          </div>
+          <div className="h-8 w-32 bg-gray-200 rounded-full animate-pulse"></div>
+        </div>
+
+        {/* Swap Details Skeleton */}
+        <div className="bg-white rounded-lg shadow-sm p-6">
+          <div className="h-6 w-32 bg-gray-200 rounded mb-4 animate-pulse"></div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="border rounded-lg p-4">
+              <div className="h-5 w-32 bg-gray-200 rounded mb-2 animate-pulse"></div>
+              <div className="h-4 w-40 bg-gray-200 rounded mb-3 animate-pulse"></div>
+              <div className="h-5 w-28 bg-gray-200 rounded mb-1 animate-pulse"></div>
+              <div className="h-8 w-24 bg-gray-200 rounded mb-3 animate-pulse"></div>
+              <div className="h-5 w-28 bg-gray-200 rounded mb-1 animate-pulse"></div>
+              <div className="h-8 w-24 bg-gray-200 rounded animate-pulse"></div>
+            </div>
+            <div className="border rounded-lg p-4">
+              <div className="h-5 w-32 bg-gray-200 rounded mb-2 animate-pulse"></div>
+              <div className="h-4 w-40 bg-gray-200 rounded mb-3 animate-pulse"></div>
+              <div className="h-5 w-28 bg-gray-200 rounded mb-1 animate-pulse"></div>
+              <div className="h-8 w-24 bg-gray-200 rounded mb-3 animate-pulse"></div>
+              <div className="h-5 w-28 bg-gray-200 rounded mb-1 animate-pulse"></div>
+              <div className="h-8 w-24 bg-gray-200 rounded animate-pulse"></div>
+            </div>
+          </div>
+        </div>
+
+        {/* Timeline Skeleton */}
+        <div className="bg-white rounded-lg shadow-sm p-6">
+          <div className="h-6 w-40 bg-gray-200 rounded mb-4 animate-pulse"></div>
+          <div className="space-y-4">
+            {[1, 2, 3, 4].map((i) => (
+              <div key={i} className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-full bg-gray-200 animate-pulse"></div>
+                <div className="flex-1">
+                  <div className="h-5 w-32 bg-gray-200 rounded mb-1 animate-pulse"></div>
+                  <div className="h-4 w-48 bg-gray-200 rounded animate-pulse"></div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Comments Skeleton */}
+        <div className="bg-white rounded-lg shadow-sm p-6">
+          <div className="h-6 w-32 bg-gray-200 rounded mb-4 animate-pulse"></div>
+          <div className="space-y-4">
+            {[1, 2].map((i) => (
+              <div key={i} className="p-3 bg-gray-100 rounded-lg">
+                <div className="h-4 w-24 bg-gray-200 rounded mb-2 animate-pulse"></div>
+                <div className="h-4 w-full bg-gray-200 rounded animate-pulse"></div>
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
     )
   }
