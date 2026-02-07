@@ -6,6 +6,7 @@ import { LEAVE_LABELS, getStatusColor, getStatusLabel } from '../lib/designSyste
 import { swapRequestsService, leaveRequestsService } from '../services'
 import { formatDate as formatDateUtil } from '../utils'
 import { ROUTES } from '../constants'
+import { handleDatabaseError } from '../lib/errorHandler'
 
 interface SwapRequestWithUsers extends SwapRequest {
   requester: User
@@ -74,7 +75,7 @@ export default function Dashboard() {
 
       setLeaveRequests(filteredLeaves.slice(0, 5) as LeaveRequestWithUser[])
     } catch (error) {
-      console.error('Error fetching requests:', error)
+      handleDatabaseError(error, 'fetch dashboard requests')
     } finally {
       setLoading(false)
     }

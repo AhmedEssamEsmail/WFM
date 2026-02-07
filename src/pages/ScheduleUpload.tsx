@@ -7,6 +7,7 @@ import { format, eachDayOfInterval } from 'date-fns'
 import { shiftsService } from '../services'
 import { downloadCSV, arrayToCSV } from '../utils'
 import { ROUTES, ERROR_MESSAGES } from '../constants'
+import { handleDatabaseError, handleValidationError } from '../lib/errorHandler'
 
 interface ParsedRow {
   email: string
@@ -177,7 +178,7 @@ export default function ScheduleUpload() {
       setParseResult(result)
     } catch (err) {
       setError('Failed to parse CSV file')
-      console.error(err)
+      handleValidationError(err, 'CSV file')
     }
   }
 
@@ -207,7 +208,7 @@ export default function ScheduleUpload() {
             }])
             successCount++
           } catch (err) {
-            console.error('Shift insert error:', err)
+            handleDatabaseError(err, 'insert shift')
             failedCount++
           }
         }
@@ -216,7 +217,7 @@ export default function ScheduleUpload() {
       setUploadResult({ success: successCount, failed: failedCount })
     } catch (err) {
       setError(ERROR_MESSAGES.SERVER)
-      console.error(err)
+      handleDatabaseError(err, 'upload shifts')
     } finally {
       setUploading(false)
     }
@@ -320,7 +321,7 @@ export default function ScheduleUpload() {
       setExportStartDate('')
       setExportEndDate('')
     } catch (err) {
-      console.error('Export error:', err)
+      handleDatabaseError(err, 'export schedule')
       setError(ERROR_MESSAGES.SERVER)
     } finally {
       setExporting(false)

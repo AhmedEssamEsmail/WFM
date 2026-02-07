@@ -4,6 +4,7 @@ import { supabase } from './supabase'
 import type { User } from '../types'
 import { authService } from '../services'
 import { ERROR_MESSAGES } from '../constants'
+import { handleDatabaseError } from './errorHandler'
 
 interface AuthContextType {
   user: User | null
@@ -63,7 +64,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const data = await authService.getUserProfile(userId)
       setUser(data)
     } catch (error) {
-      console.error('Error fetching profile:', error)
+      handleDatabaseError(error, 'fetch user profile')
       setUser(null)
     } finally {
       setLoading(false)

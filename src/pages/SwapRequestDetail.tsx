@@ -6,6 +6,7 @@ import { getStatusColor, getStatusLabel, SHIFT_DESCRIPTIONS } from '../lib/desig
 import { swapRequestsService, commentsService, settingsService, authService, shiftsService } from '../services'
 import { formatDate, formatDateTime } from '../utils'
 import { ERROR_MESSAGES } from '../constants'
+import { handleDatabaseError } from '../lib/errorHandler'
 
 interface ShiftWithUser extends Shift {
   user?: User
@@ -65,7 +66,7 @@ export default function SwapRequestDetail() {
       const commentsData = await commentsService.getComments(id!, 'swap')
       setComments(commentsData as CommentWithSystem[])
     } catch (error) {
-      console.error('Error fetching request details:', error)
+      handleDatabaseError(error, 'fetch request details')
       setError(ERROR_MESSAGES.NOT_FOUND)
     } finally {
       setLoading(false)
@@ -78,7 +79,7 @@ export default function SwapRequestDetail() {
     try {
       await commentsService.createSystemComment(id, 'swap', content, user.id)
     } catch (error) {
-      console.error('Error creating system comment:', error)
+      handleDatabaseError(error, 'create system comment')
     }
   }
 
@@ -99,7 +100,7 @@ export default function SwapRequestDetail() {
 
       await fetchRequestDetails()
     } catch (error) {
-      console.error('Error accepting request:', error)
+      handleDatabaseError(error, 'accept request')
       setError(ERROR_MESSAGES.SERVER)
     } finally {
       setSubmitting(false)
@@ -123,7 +124,7 @@ export default function SwapRequestDetail() {
 
       await fetchRequestDetails()
     } catch (error) {
-      console.error('Error declining request:', error)
+      handleDatabaseError(error, 'decline request')
       setError(ERROR_MESSAGES.SERVER)
     } finally {
       setSubmitting(false)
@@ -218,7 +219,7 @@ export default function SwapRequestDetail() {
 
       await fetchRequestDetails()
     } catch (error) {
-      console.error('Error approving request:', error)
+      handleDatabaseError(error, 'approve request')
       setError(ERROR_MESSAGES.SERVER)
     } finally {
       setSubmitting(false)
@@ -242,7 +243,7 @@ export default function SwapRequestDetail() {
 
       await fetchRequestDetails()
     } catch (error) {
-      console.error('Error rejecting request:', error)
+      handleDatabaseError(error, 'reject request')
       setError(ERROR_MESSAGES.SERVER)
     } finally {
       setSubmitting(false)
@@ -305,7 +306,7 @@ export default function SwapRequestDetail() {
 
       await fetchRequestDetails()
     } catch (error) {
-      console.error('Error revoking decision:', error)
+      handleDatabaseError(error, 'revoke decision')
       setError(ERROR_MESSAGES.SERVER)
     } finally {
       setSubmitting(false)
@@ -328,7 +329,7 @@ export default function SwapRequestDetail() {
       setNewComment('')
       await fetchRequestDetails()
     } catch (error) {
-      console.error('Error adding comment:', error)
+      handleDatabaseError(error, 'add comment')
       setError(ERROR_MESSAGES.SERVER)
     } finally {
       setSubmitting(false)
@@ -659,7 +660,7 @@ export default function SwapRequestDetail() {
             comments.map((comment) => (
               <div key={comment.id} className={`p-3 rounded-lg ${comment.is_system ? 'bg-gray-100' : 'bg-blue-50'}`}>
                 <div className="flex justify-between items-start mb-1">
-                  <span className="text-sm font-medium text-blue-800">
+                  <span className={`text-sm font-medium ${comment.is_system ? 'text-gray-700' : 'text-blue-800'}`}>
                     {comment.is_system ? 'System' : (comment as any).users?.name || 'Unknown User'}
                   </span>
                   <span className="text-xs text-gray-500">

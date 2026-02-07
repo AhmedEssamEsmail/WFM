@@ -4,6 +4,7 @@ import { useAuth } from '../hooks/useAuth'
 import { useToast } from '../lib/ToastContext'
 import { settingsService } from '../services'
 import { ROUTES, SUCCESS_MESSAGES, ERROR_MESSAGES } from '../constants'
+import { handleDatabaseError } from '../lib/errorHandler'
 
 export default function Settings() {
   const navigate = useNavigate()
@@ -32,7 +33,7 @@ export default function Settings() {
       setAutoApprove(autoApproveValue)
       setAllowLeaveExceptions(exceptionsValue)
     } catch (err) {
-      console.error('Error fetching settings:', err)
+      handleDatabaseError(err, 'fetch settings')
     } finally {
       setLoading(false)
     }

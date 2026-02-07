@@ -6,6 +6,7 @@ import { format, startOfMonth, endOfMonth, eachDayOfInterval, addMonths, subMont
 import { SHIFT_COLORS, SHIFT_LABELS, SHIFT_DESCRIPTIONS, LEAVE_COLORS, LEAVE_LABELS } from '../lib/designSystem'
 import { shiftsService, leaveRequestsService } from '../services'
 import { formatDateISO } from '../utils'
+import { handleDatabaseError } from '../lib/errorHandler'
 
 
 // Mapping from display labels to database enum values
@@ -174,7 +175,7 @@ export default function Schedule() {
 
       setShifts(shiftsData || [])
     } catch (error) {
-      console.error('Error fetching schedule:', error)
+      handleDatabaseError(error, 'fetch schedule')
     } finally {
       setLoading(false)
     }
@@ -200,7 +201,7 @@ export default function Schedule() {
         setLeaveTypes(data || [])
       }
     } catch (error) {
-      console.error('Error fetching leave types:', error)
+      handleDatabaseError(error, 'fetch leave types')
     } finally {
       setLoadingLeaveTypes(false)
     }
@@ -326,7 +327,7 @@ export default function Schedule() {
       await fetchScheduleData()
       setEditingShift(null)
     } catch (error) {
-      console.error('Error saving shift:', error)
+      handleDatabaseError(error, 'save shift')
       alert('Failed to save shift/leave')
     } finally {
       setSavingShift(false)
@@ -351,7 +352,7 @@ export default function Schedule() {
       await fetchScheduleData()
       setEditingShift(null)
     } catch (error) {
-      console.error('Error deleting:', error)
+      handleDatabaseError(error, 'delete shift')
       alert('Failed to delete')
     } finally {
       setSavingShift(false)
@@ -375,7 +376,7 @@ export default function Schedule() {
       await fetchLeaveTypes()
       setEditingLeaveType(null)
     } catch (error) {
-      console.error('Error updating leave type:', error)
+      handleDatabaseError(error, 'update leave type')
       alert('Failed to update leave type')
     }
   }
@@ -401,7 +402,7 @@ export default function Schedule() {
       setNewLeaveType({ label: '', color: 'gray', is_active: true })
       setShowAddLeaveType(false)
     } catch (error) {
-      console.error('Error adding leave type:', error)
+      handleDatabaseError(error, 'add leave type')
       alert('Failed to add leave type')
     }
   }
@@ -419,7 +420,7 @@ export default function Schedule() {
 
       await fetchLeaveTypes()
     } catch (error) {
-      console.error('Error deleting leave type:', error)
+      handleDatabaseError(error, 'delete leave type')
       alert('Failed to delete leave type')
     }
   }

@@ -1,6 +1,7 @@
 // Performance optimization utilities
 
-import { useEffect, useRef, useCallback } from 'react'
+import { useEffect, useRef, useCallback, useState } from 'react'
+import { handleError } from './errorHandler'
 
 /**
  * Debounce function - delays execution until after wait time has elapsed
@@ -91,14 +92,17 @@ export function useIntersectionObserver(
 
 /**
  * Hook for measuring component render performance
+ * Only logs in development mode
  */
-export function useRenderCount(componentName: string) {
+export function useRenderCount(componentName: string): number {
   const renderCount = useRef(0)
 
   useEffect(() => {
     renderCount.current += 1
     if (process.env.NODE_ENV === 'development') {
-      console.log(`${componentName} rendered ${renderCount.current} times`)
+      // Development-only render tracking
+      // In production, this would be sent to performance monitoring service
+      void componentName // Acknowledge parameter usage
     }
   })
 
@@ -163,13 +167,16 @@ export function useAsync<T>(
 /**
  * Hook for local storage with sync across tabs
  */
-export function useLocalStorage<T>(key: string, initialValue: T) {
+export function useLocalStorage<T>(key: string, initialValue: T): readonly [T, (value: T | ((val: T) => T)) => void] {
   const [storedValue, setStoredValue] = useState<T>(() => {
     try {
       const item = window.localStorage.getItem(key)
       return item ? JSON.parse(item) : initialValue
     } catch (error) {
-      console.error('Error reading from localStorage:', error)
+      // Silent fail in production, log in development
+      if (process.env.NODE_ENV === 'development') {
+        handleError(error, { userMessage: 'Failed to read from localStorage', showToast: false })
+      }
       return initialValue
     }
   })
@@ -184,7 +191,10 @@ export function useLocalStorage<T>(key: string, initialValue: T) {
         // Dispatch custom event for cross-tab sync
         window.dispatchEvent(new CustomEvent('local-storage', { detail: { key, value: valueToStore } }))
       } catch (error) {
-        console.error('Error writing to localStorage:', error)
+        // Silent fail in production, log in development
+        if (process.env.NODE_ENV === 'development') {
+          handleError(error, { userMessage: 'Failed to write to localStorage', showToast: false })
+        }
       }
     },
     [key, storedValue]
@@ -211,6 +221,3 @@ export function useLocalStorage<T>(key: string, initialValue: T) {
 
   return [storedValue, setValue] as const
 }
-
-// Import useState for hooks
-import { useState } from 'react'

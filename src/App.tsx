@@ -1,10 +1,11 @@
-import { lazy, Suspense } from 'react'
+import { lazy, Suspense, useEffect } from 'react'
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
 import { QueryClientProvider } from '@tanstack/react-query'
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
 import { queryClient } from './lib/queryClient'
 import { AuthProvider } from './lib/AuthContext'
-import { ToastProvider } from './lib/ToastContext'
+import { ToastProvider, useToast } from './lib/ToastContext'
+import { initializeErrorHandler } from './lib/errorHandler'
 import { useAuth } from './hooks/useAuth'
 import Layout from './components/Layout'
 
@@ -36,6 +37,23 @@ function PageLoader() {
       <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
     </div>
   )
+}
+
+// Initialize error handler with toast function
+function ErrorHandlerInitializer() {
+  const { error: showError } = useToast()
+  
+  useEffect(() => {
+    // Create a wrapper that matches the expected signature
+    const errorToastFn = (message: string, type: 'error' | 'success' | 'warning' | 'info') => {
+      if (type === 'error') {
+        showError(message)
+      }
+    }
+    initializeErrorHandler(errorToastFn)
+  }, [showError])
+  
+  return null
 }
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
@@ -140,6 +158,7 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
         <ToastProvider>
+          <ErrorHandlerInitializer />
           <Router>
             <Suspense fallback={<PageLoader />}>
               <Routes>

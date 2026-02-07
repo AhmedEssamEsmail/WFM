@@ -6,6 +6,7 @@ import { LEAVE_DESCRIPTIONS, getStatusColor, getStatusLabel } from '../lib/desig
 import { leaveRequestsService, commentsService, settingsService, authService } from '../services'
 import { formatDate, formatDateTime, getDaysBetween } from '../utils'
 import { ROUTES, ERROR_MESSAGES } from '../constants'
+import { handleDatabaseError } from '../lib/errorHandler'
 
 interface CommentWithSystem extends Comment {
   is_system?: boolean
@@ -38,7 +39,7 @@ export default function LeaveRequestDetail() {
       const value = await settingsService.getAllowLeaveExceptionsSetting()
       setAllowExceptions(value)
     } catch (err) {
-      console.error('Error fetching exception setting:', err)
+      handleDatabaseError(err, 'fetch exception setting')
     }
   }
 
@@ -55,7 +56,7 @@ export default function LeaveRequestDetail() {
       // Fetch comments
       await fetchComments()
     } catch (err) {
-      console.error('Error fetching request details:', err)
+      handleDatabaseError(err, 'fetch request details')
       setError(ERROR_MESSAGES.NOT_FOUND)
     } finally {
       setLoading(false)
@@ -67,7 +68,7 @@ export default function LeaveRequestDetail() {
       const data = await commentsService.getComments(id!, 'leave')
       setComments(data as CommentWithSystem[])
     } catch (err) {
-      console.error('Error fetching comments:', err)
+      handleDatabaseError(err, 'fetch comments')
     }
   }
 
@@ -96,7 +97,7 @@ export default function LeaveRequestDetail() {
       // Refresh the request
       await fetchRequestDetails()
     } catch (err) {
-      console.error('Error approving request:', err)
+      handleDatabaseError(err, 'approve request')
       setError(ERROR_MESSAGES.SERVER)
     } finally {
       setSubmitting(false)
@@ -117,7 +118,7 @@ export default function LeaveRequestDetail() {
       // Refresh the request
       await fetchRequestDetails()
     } catch (err) {
-      console.error('Error rejecting request:', err)
+      handleDatabaseError(err, 'reject request')
       setError(ERROR_MESSAGES.SERVER)
     } finally {
       setSubmitting(false)
@@ -138,7 +139,7 @@ export default function LeaveRequestDetail() {
       // Refresh the request
       await fetchRequestDetails()
     } catch (err) {
-      console.error('Error requesting exception:', err)
+      handleDatabaseError(err, 'request exception')
       setError(ERROR_MESSAGES.SERVER)
     } finally {
       setRequestingException(false)
@@ -151,7 +152,7 @@ export default function LeaveRequestDetail() {
     try {
       await commentsService.createSystemComment(id!, 'leave', content, user.id)
     } catch (err) {
-      console.error('Error adding system comment:', err)
+      handleDatabaseError(err, 'add system comment')
     }
   }
 
@@ -170,7 +171,7 @@ export default function LeaveRequestDetail() {
       setNewComment('')
       await fetchComments()
     } catch (err) {
-      console.error('Error adding comment:', err)
+      handleDatabaseError(err, 'add comment')
       setError(ERROR_MESSAGES.SERVER)
     } finally {
       setSubmitting(false)
@@ -476,7 +477,7 @@ export default function LeaveRequestDetail() {
                 className={`p-3 rounded-lg ${comment.is_system ? 'bg-gray-100' : 'bg-blue-50'}`}
               >
                 <div className="flex justify-between items-start mb-1">
-                  <span className="text-sm font-medium text-blue-800">
+                  <span className={`text-sm font-medium ${comment.is_system ? 'text-gray-700' : 'text-blue-800'}`}>
                     {comment.is_system ? 'System' : (comment as any).users?.name || 'Unknown User'}
                   </span>
                   <span className="text-xs text-gray-500">
