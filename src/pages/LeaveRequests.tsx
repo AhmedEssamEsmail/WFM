@@ -2,34 +2,11 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
-import { LeaveRequest, User, LeaveType, LeaveRequestStatus } from '../types'
+import { LeaveRequest, User } from '../types'
+import { LEAVE_DESCRIPTIONS, getStatusColor, getStatusLabel } from '../lib/designSystem'
 
 interface LeaveRequestWithUser extends LeaveRequest {
   user: User
-}
-
-const LEAVE_TYPE_LABELS: Record<LeaveType, string> = {
-  sick: 'Sick',
-  annual: 'Annual',
-  casual: 'Casual',
-  public_holiday: 'Public Holiday',
-  bereavement: 'Bereavement'
-}
-
-const STATUS_COLORS: Record<LeaveRequestStatus, string> = {
-  pending_tl: 'bg-blue-100 text-blue-800',
-  pending_wfm: 'bg-purple-100 text-purple-800',
-  approved: 'bg-green-100 text-green-800',
-  rejected: 'bg-red-100 text-red-800',
-  denied: 'bg-orange-100 text-orange-800'
-}
-
-const STATUS_LABELS: Record<LeaveRequestStatus, string> = {
-  pending_tl: 'Pending TL',
-  pending_wfm: 'Pending WFM',
-  approved: 'Approved',
-  rejected: 'Rejected',
-  denied: 'Denied (Insufficient Balance)'
 }
 
 export default function LeaveRequests() {
@@ -159,7 +136,7 @@ export default function LeaveRequests() {
             className="block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 text-sm"
           >
             <option value="all">All Types</option>
-            {Object.entries(LEAVE_TYPE_LABELS).map(([value, label]) => (
+            {Object.entries(LEAVE_DESCRIPTIONS).map(([value, label]) => (
               <option key={value} value={value}>{label}</option>
             ))}
           </select>
@@ -199,10 +176,10 @@ export default function LeaveRequests() {
                     </p>
                     <div className="flex items-center gap-2">
                       <span className="inline-flex px-2 py-0.5 text-xs font-medium rounded bg-gray-100 text-gray-800">
-                        {LEAVE_TYPE_LABELS[request.leave_type]}
+                        {LEAVE_DESCRIPTIONS[request.leave_type]}
                       </span>
-                      <span className={`inline-flex px-2 py-0.5 text-xs font-semibold rounded ${STATUS_COLORS[request.status]}`}>
-                        {STATUS_LABELS[request.status]}
+                      <span className={`inline-flex px-2 py-0.5 text-xs font-semibold rounded ${getStatusColor(request.status)}`}>
+                        {getStatusLabel(request.status)}
                       </span>
                     </div>
                   </div>

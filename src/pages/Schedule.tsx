@@ -3,36 +3,7 @@ import { supabase } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
 import { User, Shift, ShiftType, LeaveType, LeaveTypeConfig, LeaveRequest } from '../types'
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, addMonths, subMonths, isWithinInterval, parseISO } from 'date-fns'
-
-const shiftColors: Record<ShiftType, string> = {
-  AM: 'bg-blue-100 text-blue-800',
-  PM: 'bg-purple-100 text-purple-800',
-  BET: 'bg-orange-100 text-orange-800',
-  OFF: 'bg-gray-100 text-gray-800'
-}
-
-const shiftLabels: Record<ShiftType, string> = {
-  AM: 'AM',
-  PM: 'PM',
-  BET: 'BET',
-  OFF: 'OFF'
-}
-
-const leaveColors: Record<LeaveType, string> = {
-  sick: 'bg-red-100 text-red-800 border-red-300',
-  annual: 'bg-green-100 text-green-800 border-green-300',
-  casual: 'bg-yellow-100 text-yellow-800 border-yellow-300',
-  public_holiday: 'bg-indigo-100 text-indigo-800 border-indigo-300',
-  bereavement: 'bg-gray-200 text-gray-800 border-gray-400',
-}
-
-const leaveLabels: Record<LeaveType, string> = {
-  sick: 'Sick',
-  annual: 'Annual',
-  casual: 'Casual',
-  public_holiday: 'Holiday',
-  bereavement: 'Bereav.',
-}
+import { SHIFT_COLORS, SHIFT_LABELS, SHIFT_DESCRIPTIONS, LEAVE_COLORS, LEAVE_LABELS } from '../lib/designSystem'
 
 
 // Mapping from display labels to database enum values
@@ -261,7 +232,7 @@ export default function Schedule() {
     // Find the label for the leave type enum value
     if (existingLeave) {
       // Get the display label from leave_type enum
-      const leaveLabel = leaveLabels[existingLeave.leave_type as LeaveType] || existingLeave.leave_type
+      const leaveLabel = LEAVE_LABELS[existingLeave.leave_type as LeaveType] || existingLeave.leave_type
       setSelectedLeaveType(leaveLabel)
     } else {
       setSelectedLeaveType(null)
@@ -576,20 +547,25 @@ export default function Schedule() {
           </div>
 
           {/* Schedule grid */}
-          <div className="bg-white rounded-lg shadow overflow-hidden w-full max-w-full">
-            <div className="min-h-screen overflow-x-visible">
-              <table className="divide-y divide-gray-200 min-w-max w-full">
+          <div className="bg-white rounded-lg shadow overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-gray-200">
                 <thead className="bg-gray-50 sticky top-0 z-20">
                   <tr>
-                    <th className="sticky left-0 z-30 bg-gray-50 px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[150px] shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]">
+                    <th 
+                      scope="col"
+                      className="sticky left-0 z-30 bg-gray-50 px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[120px] sm:min-w-[150px] shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]"
+                    >
                       Name
                     </th>
                     {daysInMonth.map(day => (
                       <th
                         key={day.toISOString()}
-                        className="px-2 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[60px] bg-gray-50"
+                        scope="col"
+                        className="px-2 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[50px] sm:min-w-[60px] bg-gray-50"
                       >
-                        <div>{format(day, 'EEE')}</div>
+                        <div className="sr-only">{format(day, 'EEEE')}</div>
+                        <div aria-hidden="true">{format(day, 'EEE')}</div>
                         <div className="text-gray-900">{format(day, 'd')}</div>
                       </th>
                     ))}
@@ -598,31 +574,52 @@ export default function Schedule() {
                 <tbody className="bg-white divide-y divide-gray-200">
                   {filteredUsers.map(u => (
                     <tr key={u.id}>
-                      <td className="sticky left-0 z-10 bg-white px-4 py-3 whitespace-nowrap text-sm font-medium text-gray-900 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]">
+                      <th 
+                        scope="row"
+                        className="sticky left-0 z-10 bg-white px-4 py-3 whitespace-nowrap text-sm font-medium text-gray-900 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]"
+                      >
                         {u.name}
-                      </td>
+                      </th>
                       {daysInMonth.map(day => {
                         const shift = getShiftForUserAndDate(u.id, day)
                         const leave = getLeaveForUserAndDate(u.id, day)
                         const isOnLeave = !!leave
+                        const dateStr = format(day, 'MMMM d, yyyy')
                         
                         return (
                           <td
                             key={day.toISOString()}
-                            className={`px-2 py-2 text-center ${canEdit ? 'cursor-pointer hover:bg-gray-50' : ''} ${isOnLeave ? 'bg-opacity-50' : ''}`}
-                            onClick={() => handleShiftClick(u.id, day)}
-                            title={isOnLeave ? `On ${leave.leave_type} leave (click to edit)` : undefined}
+                            className={`px-2 py-3 text-center ${canEdit ? 'cursor-pointer hover:bg-gray-50' : ''} ${isOnLeave ? 'bg-opacity-50' : ''}`}
+                            onClick={() => canEdit && handleShiftClick(u.id, day)}
+                            onKeyDown={(e) => {
+                              if (canEdit && (e.key === 'Enter' || e.key === ' ')) {
+                                e.preventDefault()
+                                handleShiftClick(u.id, day)
+                              }
+                            }}
+                            tabIndex={canEdit ? 0 : -1}
+                            role={canEdit ? 'button' : undefined}
+                            aria-label={
+                              isOnLeave 
+                                ? `${u.name} on ${leave.leave_type} leave on ${dateStr}${canEdit ? ', press Enter to edit' : ''}`
+                                : shift
+                                ? `${u.name} has ${shift.shift_type} shift on ${dateStr}${canEdit ? ', press Enter to edit' : ''}`
+                                : canEdit
+                                ? `No shift for ${u.name} on ${dateStr}, press Enter to add`
+                                : `No shift for ${u.name} on ${dateStr}`
+                            }
+                            title={isOnLeave ? `On ${leave.leave_type} leave${canEdit ? ' (click to edit)' : ''}` : undefined}
                           >
                             {isOnLeave ? (
                               <div className="relative">
-                                <span className={`inline-flex items-center px-2 py-1 rounded text-xs font-medium border ${leaveColors[leave.leave_type] || 'bg-gray-100 text-gray-800 border-gray-300'}`}>
-                                  {leaveLabels[leave.leave_type] || leave.leave_type}
+                                <span className={`inline-flex items-center px-2 py-1 rounded text-xs font-medium border ${LEAVE_COLORS[leave.leave_type] || 'bg-gray-100 text-gray-800 border-gray-300'}`}>
+                                  {LEAVE_LABELS[leave.leave_type] || leave.leave_type}
                                 </span>
                               </div>
                             ) : shift ? (
                               <div className="relative">
-                                <span className={`inline-flex items-center px-2 py-1 rounded text-xs font-medium ${shiftColors[shift.shift_type]}`}>
-                                  {shiftLabels[shift.shift_type]}
+                                <span className={`inline-flex items-center px-2 py-1 rounded text-xs font-medium ${SHIFT_COLORS[shift.shift_type]}`}>
+                                  {SHIFT_LABELS[shift.shift_type]}
                                 </span>
                                 {shift.swapped_with_user_id && (
                                   <div className="text-xs text-gray-500 mt-1 truncate" title={`Swapped with ${swappedUserNames[shift.swapped_with_user_id] || 'Unknown'}`}>
@@ -652,16 +649,13 @@ export default function Schedule() {
               <div>
                 <h4 className="text-xs font-medium text-gray-500 uppercase mb-2">Shifts</h4>
                 <div className="flex flex-wrap gap-4">
-                  {Object.entries(shiftColors).map(([type, color]) => (
+                  {Object.entries(SHIFT_COLORS).map(([type, color]) => (
                     <div key={type} className="flex items-center gap-2">
                       <span className={`inline-flex items-center px-2 py-1 rounded text-xs font-medium ${color}`}>
-                        {shiftLabels[type as ShiftType]}
+                        {SHIFT_LABELS[type as ShiftType]}
                       </span>
                       <span className="text-sm text-gray-600">
-                        {type === 'AM' && 'Morning'}
-                        {type === 'PM' && 'Afternoon'}
-                        {type === 'BET' && 'Between'}
-                        {type === 'OFF' && 'Day Off'}
+                        {SHIFT_DESCRIPTIONS[type as ShiftType]}
                       </span>
                     </div>
                   ))}
@@ -670,10 +664,10 @@ export default function Schedule() {
               <div>
                 <h4 className="text-xs font-medium text-gray-500 uppercase mb-2">Leave Types</h4>
                 <div className="flex flex-wrap gap-4">
-                  {Object.entries(leaveColors).map(([type, color]) => (
+                  {Object.entries(LEAVE_COLORS).map(([type, color]) => (
                     <div key={type} className="flex items-center gap-2">
                       <span className={`inline-flex items-center px-2 py-1 rounded text-xs font-medium border ${color}`}>
-                        {leaveLabels[type as LeaveType]}
+                        {LEAVE_LABELS[type as LeaveType]}
                       </span>
                       <span className="text-sm text-gray-600">
                         {type === 'sick' && 'Sick Leave'}
@@ -854,7 +848,7 @@ export default function Schedule() {
             <div className="space-y-3">
               <label className="block text-sm font-medium text-gray-700">Shift Type</label>
               <div className="grid grid-cols-2 gap-3">
-                {(Object.keys(shiftColors) as ShiftType[]).map(type => (
+                {(Object.keys(SHIFT_COLORS) as ShiftType[]).map(type => (
                   <button
                     key={type}
                     onClick={() => { setSelectedShiftType(type); setSelectedLeaveType(null); }}
@@ -864,8 +858,8 @@ export default function Schedule() {
                         : 'border-gray-200 hover:border-gray-300'
                     }`}
                   >
-                    <span className={`inline-flex items-center px-2 py-1 rounded text-xs font-medium ${shiftColors[type]}`}>
-                      {shiftLabels[type]}
+                    <span className={`inline-flex items-center px-2 py-1 rounded text-xs font-medium ${SHIFT_COLORS[type]}`}>
+                      {SHIFT_LABELS[type]}
                     </span>
                   </button>
                 ))}
@@ -895,7 +889,7 @@ export default function Schedule() {
                       }`}
                     >
                       <span className={`inline-flex items-center px-2 py-1 rounded text-xs font-medium ${
-                        leaveColors[labelToLeaveTypeEnum[leaveType.label] as LeaveType] || 'bg-gray-100 text-gray-800'
+                        LEAVE_COLORS[labelToLeaveTypeEnum[leaveType.label] as LeaveType] || 'bg-gray-100 text-gray-800'
                       }`}>
                         {leaveType.label}
                       </span>

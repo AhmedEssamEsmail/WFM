@@ -2,15 +2,16 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
+import { useToast } from '../lib/ToastContext'
 
 export default function Settings() {
   const navigate = useNavigate()
   const { user } = useAuth()
+  const { success, error: showError } = useToast()
   const [autoApprove, setAutoApprove] = useState(false)
   const [allowLeaveExceptions, setAllowLeaveExceptions] = useState(true)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
-  const [message, setMessage] = useState('')
 
   useEffect(() => {
     // Redirect if not WFM
@@ -50,7 +51,6 @@ export default function Settings() {
 
   async function handleAutoApproveToggle() {
     setSaving(true)
-    setMessage('')
 
     try {
       const newValue = !autoApprove
@@ -68,11 +68,10 @@ export default function Settings() {
       if (error) throw error
 
       setAutoApprove(newValue)
-      setMessage('Settings saved successfully!')
-      setTimeout(() => setMessage(''), 3000)
+      success('Auto-approve setting updated successfully!')
     } catch (err) {
       console.error('Error saving settings:', err)
-      setMessage('Failed to save settings')
+      showError('Failed to save settings. Please try again.')
     } finally {
       setSaving(false)
     }
@@ -80,7 +79,6 @@ export default function Settings() {
 
   async function handleExceptionsToggle() {
     setSaving(true)
-    setMessage('')
 
     try {
       const newValue = !allowLeaveExceptions
@@ -98,11 +96,10 @@ export default function Settings() {
       if (error) throw error
 
       setAllowLeaveExceptions(newValue)
-      setMessage('Settings saved successfully!')
-      setTimeout(() => setMessage(''), 3000)
+      success('Leave exceptions setting updated successfully!')
     } catch (err) {
       console.error('Error saving settings:', err)
-      setMessage('Failed to save settings')
+      showError('Failed to save settings. Please try again.')
     } finally {
       setSaving(false)
     }
@@ -119,12 +116,6 @@ export default function Settings() {
   return (
     <div className="max-w-2xl mx-auto p-6">
       <h1 className="text-2xl font-bold text-gray-900 mb-6">WFM Settings</h1>
-
-      {message && (
-        <div className={`mb-4 p-3 rounded ${message.includes('success') ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
-          {message}
-        </div>
-      )}
 
       <div className="bg-white rounded-lg shadow p-6 space-y-6">
         {/* Auto-Approve Toggle */}

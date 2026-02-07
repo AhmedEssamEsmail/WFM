@@ -2,7 +2,8 @@ import { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
 import { supabase } from '../lib/supabase'
-import type { SwapRequest, LeaveRequest, User, LeaveType, SwapRequestStatus, LeaveRequestStatus } from '../types'
+import type { SwapRequest, LeaveRequest, User } from '../types'
+import { LEAVE_LABELS, getStatusColor, getStatusLabel } from '../lib/designSystem'
 
 interface SwapRequestWithUsers extends SwapRequest {
   requester: User
@@ -11,32 +12,6 @@ interface SwapRequestWithUsers extends SwapRequest {
 
 interface LeaveRequestWithUser extends LeaveRequest {
   user: User
-}
-
-const LEAVE_TYPE_LABELS: Record<LeaveType, string> = {
-  sick: 'Sick',
-  annual: 'Annual',
-  casual: 'Casual',
-  public_holiday: 'Public Holiday',
-  bereavement: 'Bereavement'
-}
-
-const STATUS_COLORS: Record<SwapRequestStatus | LeaveRequestStatus, string> = {
-  pending_acceptance: 'bg-yellow-100 text-yellow-800',
-  pending_tl: 'bg-blue-100 text-blue-800',
-  pending_wfm: 'bg-purple-100 text-purple-800',
-  approved: 'bg-green-100 text-green-800',
-  rejected: 'bg-red-100 text-red-800',
-  denied: 'bg-orange-100 text-orange-800'
-}
-
-const STATUS_LABELS: Record<SwapRequestStatus | LeaveRequestStatus, string> = {
-  pending_acceptance: 'Pending Acceptance',
-  pending_tl: 'Pending TL',
-  pending_wfm: 'Pending WFM',
-  approved: 'Approved',
-  rejected: 'Rejected',
-  denied: 'Denied (Insufficient Balance)'
 }
 
 export default function Dashboard() {
@@ -226,8 +201,8 @@ export default function Dashboard() {
                         → {request.target_user?.name || 'Unknown'}
                       </p>
                     </div>
-                    <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ml-2 ${STATUS_COLORS[request.status]}`}>
-                      {STATUS_LABELS[request.status]}
+                    <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ml-2 ${getStatusColor(request.status)}`}>
+                      {getStatusLabel(request.status)}
                     </span>
                   </div>
                   <p className="text-xs text-gray-500">
@@ -273,11 +248,11 @@ export default function Dashboard() {
                         {request.user?.name || 'Unknown'}
                       </p>
                       <p className="text-xs text-gray-500 mt-0.5">
-                        {LEAVE_TYPE_LABELS[request.leave_type]}
+                        {LEAVE_LABELS[request.leave_type]}
                       </p>
                     </div>
-                    <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ml-2 ${STATUS_COLORS[request.status]}`}>
-                      {STATUS_LABELS[request.status]}
+                    <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ml-2 ${getStatusColor(request.status)}`}>
+                      {getStatusLabel(request.status)}
                     </span>
                   </div>
                   <p className="text-xs text-gray-500">

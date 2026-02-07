@@ -2,27 +2,12 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
-import { SwapRequest, User, SwapRequestStatus } from '../types'
+import { SwapRequest, User } from '../types'
+import { getStatusColor, getStatusLabel } from '../lib/designSystem'
 
 interface SwapRequestWithUsers extends SwapRequest {
   requester: User
   target_user: User
-}
-
-const STATUS_COLORS: Record<SwapRequestStatus, string> = {
-  pending_acceptance: 'bg-yellow-100 text-yellow-800',
-  pending_tl: 'bg-blue-100 text-blue-800',
-  pending_wfm: 'bg-purple-100 text-purple-800',
-  approved: 'bg-green-100 text-green-800',
-  rejected: 'bg-red-100 text-red-800'
-}
-
-const STATUS_LABELS: Record<SwapRequestStatus, string> = {
-  pending_acceptance: 'Pending Acceptance',
-  pending_tl: 'Pending TL',
-  pending_wfm: 'Pending WFM',
-  approved: 'Approved',
-  rejected: 'Rejected'
 }
 
 export default function SwapRequests() {
@@ -182,8 +167,8 @@ export default function SwapRequests() {
                       {request.requester?.email || 'N/A'}
                     </p>
                   </div>
-                  <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ml-2 whitespace-nowrap ${STATUS_COLORS[request.status]}`}>
-                    {STATUS_LABELS[request.status]}
+                  <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ml-2 whitespace-nowrap ${getStatusColor(request.status)}`}>
+                    {getStatusLabel(request.status)}
                   </span>
                 </div>
                 <div className="text-xs text-gray-500">

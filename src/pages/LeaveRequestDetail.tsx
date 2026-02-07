@@ -2,32 +2,9 @@ import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
-import { LeaveRequest, User, Comment, LeaveType, LeaveRequestStatus } from '../types'
+import { LeaveRequest, User, Comment, LeaveRequestStatus } from '../types'
 import { format } from 'date-fns'
-
-const leaveTypeLabels: Record<LeaveType, string> = {
-  sick: 'Sick Leave',
-  annual: 'Annual Leave',
-  casual: 'Casual Leave',
-  public_holiday: 'Public Holiday',
-  bereavement: 'Bereavement Leave'
-}
-
-const statusLabels: Record<LeaveRequestStatus, string> = {
-  pending_tl: 'Pending TL Approval',
-  pending_wfm: 'Pending WFM Approval',
-  approved: 'Approved',
-  rejected: 'Rejected',
-  denied: 'Denied (Insufficient Balance)'
-}
-
-const statusColors: Record<LeaveRequestStatus, string> = {
-  pending_tl: 'bg-yellow-100 text-yellow-800',
-  pending_wfm: 'bg-blue-100 text-blue-800',
-  approved: 'bg-green-100 text-green-800',
-  rejected: 'bg-red-100 text-red-800',
-  denied: 'bg-orange-100 text-orange-800'
-}
+import { LEAVE_DESCRIPTIONS, getStatusColor, getStatusLabel } from '../lib/designSystem'
 
 interface CommentWithSystem extends Comment {
   is_system?: boolean
@@ -325,8 +302,8 @@ export default function LeaveRequestDetail() {
           </button>
           <h1 className="text-2xl font-bold text-gray-900">Leave Request Details</h1>
         </div>
-        <span className={`px-3 py-1 rounded-full text-sm font-medium ${statusColors[request.status]}`}>
-          {statusLabels[request.status]}
+        <span className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(request.status)}`}>
+          {getStatusLabel(request.status)}
         </span>
       </div>
 
@@ -349,7 +326,7 @@ export default function LeaveRequestDetail() {
 
           <div>
             <h3 className="text-sm font-medium text-gray-500">Leave Type</h3>
-            <p className="text-lg text-gray-900">{leaveTypeLabels[request.leave_type]}</p>
+            <p className="text-lg text-gray-900">{LEAVE_DESCRIPTIONS[request.leave_type]}</p>
           </div>
 
           <div>

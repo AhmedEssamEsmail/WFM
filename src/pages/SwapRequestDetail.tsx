@@ -4,29 +4,7 @@ import { supabase } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
 import { SwapRequest, User, Shift, Comment, SwapRequestStatus, ShiftType } from '../types'
 import { format } from 'date-fns'
-
-const statusLabels: Record<SwapRequestStatus, string> = {
-  pending_acceptance: 'Pending Acceptance',
-  pending_tl: 'Pending TL Approval',
-  pending_wfm: 'Pending WFM Approval',
-  approved: 'Approved',
-  rejected: 'Rejected'
-}
-
-const statusColors: Record<SwapRequestStatus, string> = {
-  pending_acceptance: 'bg-orange-100 text-orange-800',
-  pending_tl: 'bg-yellow-100 text-yellow-800',
-  pending_wfm: 'bg-blue-100 text-blue-800',
-  approved: 'bg-green-100 text-green-800',
-  rejected: 'bg-red-100 text-red-800'
-}
-
-const shiftLabels: Record<ShiftType, string> = {
-  AM: 'Morning (AM)',
-  PM: 'Afternoon (PM)',
-  BET: 'Between (BET)',
-  OFF: 'Day Off'
-}
+import { getStatusColor, getStatusLabel, SHIFT_DESCRIPTIONS } from '../lib/designSystem'
 
 interface ShiftWithUser extends Shift {
   user?: User
@@ -166,7 +144,7 @@ export default function SwapRequestDetail() {
 
       // Create system comment
       await createSystemComment(
-        `${user.name} accepted the swap request. Status changed from ${statusLabels[oldStatus]} to Pending TL Approval`
+        `${user.name} accepted the swap request. Status changed from ${getStatusLabel(oldStatus)} to Pending TL Approval`
       )
 
       await fetchRequestDetails()
@@ -195,7 +173,7 @@ export default function SwapRequestDetail() {
 
       // Create system comment
       await createSystemComment(
-        `${user.name} declined the swap request. Status changed from ${statusLabels[oldStatus]} to Rejected`
+        `${user.name} declined the swap request. Status changed from ${getStatusLabel(oldStatus)} to Rejected`
       )
 
       await fetchRequestDetails()
@@ -344,11 +322,11 @@ export default function SwapRequestDetail() {
       // Create system comment with appropriate message
       if (user.role === 'tl' && newStatus === 'approved') {
         await createSystemComment(
-          `${user.name} approved (auto-approved by system). Status changed from ${statusLabels[oldStatus]} to ${statusLabels[newStatus]}`
+          `${user.name} approved (auto-approved by system). Status changed from ${getStatusLabel(oldStatus)} to ${getStatusLabel(newStatus)}`
         )
       } else {
         await createSystemComment(
-          `${user.name} approved. Status changed from ${statusLabels[oldStatus]} to ${statusLabels[newStatus]}`
+          `${user.name} approved. Status changed from ${getStatusLabel(oldStatus)} to ${getStatusLabel(newStatus)}`
         )
       }
 
@@ -378,7 +356,7 @@ export default function SwapRequestDetail() {
 
       // Create system comment
       await createSystemComment(
-        `${user.name} rejected. Status changed from ${statusLabels[oldStatus]} to Rejected`
+        `${user.name} rejected. Status changed from ${getStatusLabel(oldStatus)} to Rejected`
       )
 
       await fetchRequestDetails()
@@ -486,7 +464,7 @@ export default function SwapRequestDetail() {
 
       // Create system comment
       await createSystemComment(
-        `${user.name} revoked decision. Status reset from ${statusLabels[oldStatus]} to Pending TL Approval. All 4 shifts restored to original values.`
+        `${user.name} revoked decision. Status reset from ${getStatusLabel(oldStatus)} to Pending TL Approval. All 4 shifts restored to original values.`
       )
 
       await fetchRequestDetails()
@@ -582,8 +560,8 @@ export default function SwapRequestDetail() {
           </button>
           <h1 className="text-2xl font-bold text-gray-900">Swap Request Details</h1>
         </div>
-        <span className={`px-3 py-1 rounded-full text-sm font-medium ${statusColors[request.status]}`}>
-          {statusLabels[request.status]}
+        <span className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(request.status)}`}>
+          {getStatusLabel(request.status)}
         </span>
       </div>
 
@@ -607,7 +585,7 @@ export default function SwapRequestDetail() {
               <div className="mb-3">
                 <p className="font-medium">{format(new Date(request.requester_original_date), 'MMM d, yyyy')}</p>
                 <span className="inline-block mt-1 px-2 py-1 bg-blue-100 text-blue-800 rounded text-sm">
-                  {request.requester_original_shift_type ? shiftLabels[request.requester_original_shift_type as ShiftType] : 'Unknown'}
+                  {request.requester_original_shift_type ? SHIFT_DESCRIPTIONS[request.requester_original_shift_type as ShiftType] : 'Unknown'}
                 </span>
               </div>
             )}
@@ -617,7 +595,7 @@ export default function SwapRequestDetail() {
               <div>
                 <p className="font-medium">{format(new Date(request.target_original_date), 'MMM d, yyyy')}</p>
                 <span className="inline-block mt-1 px-2 py-1 bg-blue-100 text-blue-800 rounded text-sm">
-                  {request.requester_original_shift_type_on_target_date ? shiftLabels[request.requester_original_shift_type_on_target_date as ShiftType] : 'Unknown'}
+                  {request.requester_original_shift_type_on_target_date ? SHIFT_DESCRIPTIONS[request.requester_original_shift_type_on_target_date as ShiftType] : 'Unknown'}
                 </span>
               </div>
             )}
@@ -633,7 +611,7 @@ export default function SwapRequestDetail() {
               <div className="mb-3">
                 <p className="font-medium">{format(new Date(request.requester_original_date), 'MMM d, yyyy')}</p>
                 <span className="inline-block mt-1 px-2 py-1 bg-purple-100 text-purple-800 rounded text-sm">
-                  {request.target_original_shift_type_on_requester_date ? shiftLabels[request.target_original_shift_type_on_requester_date as ShiftType] : 'Unknown'}
+                  {request.target_original_shift_type_on_requester_date ? SHIFT_DESCRIPTIONS[request.target_original_shift_type_on_requester_date as ShiftType] : 'Unknown'}
                 </span>
               </div>
             )}
@@ -643,7 +621,7 @@ export default function SwapRequestDetail() {
               <div>
                 <p className="font-medium">{format(new Date(request.target_original_date), 'MMM d, yyyy')}</p>
                 <span className="inline-block mt-1 px-2 py-1 bg-purple-100 text-purple-800 rounded text-sm">
-                  {request.target_original_shift_type ? shiftLabels[request.target_original_shift_type as ShiftType] : 'Unknown'}
+                  {request.target_original_shift_type ? SHIFT_DESCRIPTIONS[request.target_original_shift_type as ShiftType] : 'Unknown'}
                 </span>
               </div>
             )}
