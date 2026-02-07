@@ -23,22 +23,27 @@ A comprehensive Workforce Management system for shift scheduling, swap requests,
 
 ## Features
 
-### Shift Management
+### Core Features
+
+#### Shift Management
 - View and manage daily shifts with four shift types: **AM**, **PM**, **BET**, and **OFF**
 - Interactive calendar-based schedule view with color-coded shifts
 - Bulk schedule upload via CSV for WFM administrators
 - Track original shift assignments after swaps are completed
 - Swap history tracking with original user information
+- **Mobile-responsive** schedule table with horizontal scrolling
+- Sticky name column for easy reference while scrolling
 
-### Swap Requests
+#### Swap Requests
 - Request shift swaps with colleagues
 - Multi-level approval workflow (peer acceptance → TL → WFM)
 - Store and display all 4 shift types involved in a swap (requester's 2 shifts + target's 2 shifts)
 - Full request detail pages with status timelines and approval history
 - Comment system for discussions on swap requests
 - Automatic shift updates upon approval
+- **Unified design system** with consistent colors and status indicators
 
-### Leave Management
+#### Leave Management
 - Submit leave requests for multiple leave types: **Sick**, **Annual**, **Casual**, **Public Holiday**, **Bereavement**
 - Multi-level approval workflow (TL → WFM)
 - Automatic leave balance validation before submission
@@ -47,6 +52,71 @@ A comprehensive Workforce Management system for shift scheduling, swap requests,
 - Support for denied status with reason tracking
 - Comment system for discussions on leave requests
 - Date range selection with validation
+- **Unified design system** with consistent status colors
+
+#### Reports & Analytics (TL/WFM Only)
+- **Comprehensive Reports Dashboard** with date range filtering
+- Summary cards showing key metrics:
+  - Total swap requests and approval rates
+  - Total leave requests and approval rates
+  - Total leave days taken
+  - Active users count
+- **Interactive Charts**:
+  - Swap requests by user (bar chart)
+  - Leave requests by type (pie chart)
+  - Shift distribution (bar chart)
+  - Request status breakdown (pie chart)
+- **CSV Export** functionality for all report data
+- Custom date range selection (current month, last month, custom)
+
+### User Experience Improvements
+
+#### Error Handling & Feedback
+- **Error Boundary** component for graceful error recovery
+- **Toast Notification System** with 4 types:
+  - Success (green) - Confirmations
+  - Error (red) - Failures
+  - Warning (yellow) - Cautions
+  - Info (blue) - Information
+- Contextual error messages with actionable guidance
+- Automatic toast dismissal with manual close option
+
+#### Loading States
+- **Skeleton Components** for better perceived performance:
+  - Table skeleton (5 rows)
+  - Card skeleton (single and grid)
+  - Text skeleton (single and multiple lines)
+  - Avatar skeleton
+  - Button skeleton
+  - Input skeleton
+  - List skeleton
+- Consistent loading indicators across all pages
+
+#### Performance Optimization
+- **React Query Integration** for:
+  - Automatic data caching
+  - Background refetching
+  - Optimistic updates
+  - Request deduplication
+- Reduced API calls and improved response times
+- Better offline experience with cached data
+
+#### Accessibility Features
+- **ARIA labels** for screen readers
+- **Keyboard navigation** support (Enter/Space keys)
+- **Semantic HTML** with proper heading hierarchy
+- **Focus indicators** for interactive elements
+- **Skip links** for keyboard users
+- Proper `<th scope>` attributes for table headers
+- Descriptive button labels and tooltips
+
+#### Mobile Responsiveness
+- Fully responsive layout for all screen sizes
+- Touch-friendly interface with proper target sizes (44px minimum)
+- Horizontal scrolling for wide tables
+- Collapsible sidebar navigation on mobile
+- Optimized spacing and typography for mobile devices
+- Sign out button always visible on all screen sizes
 
 ### Leave Balance Management
 - Track leave balances by type for each employee
@@ -142,11 +212,18 @@ Agent requests swap
 | **Frontend** | React 18 + TypeScript |
 | **Build Tool** | Vite 6 |
 | **Styling** | Tailwind CSS 3 with custom primary color palette |
+| **State Management** | React Query (TanStack Query) for server state |
 | **Backend / BaaS** | Supabase (PostgreSQL + Auth + Row-Level Security) |
 | **Routing** | React Router v6 |
 | **Date Utilities** | date-fns 3 |
+| **Testing** | Vitest + React Testing Library (36 tests) |
 | **Linting** | ESLint 9 + typescript-eslint + React Hooks plugin |
 | **Deployment** | Vercel |
+
+### Build Stats
+- **Bundle Size**: 571 KB (150 KB gzipped)
+- **Test Coverage**: 36 passing unit tests
+- **TypeScript**: Strict mode enabled with zero errors
 
 ---
 
@@ -170,15 +247,25 @@ WFM/
 │   ├── index.css                    # Global styles with Tailwind directives
 │   ├── components/
 │   │   ├── Layout.tsx               # App shell with sidebar navigation & RBAC
+│   │   ├── ErrorBoundary.tsx        # Error boundary for graceful error handling
+│   │   ├── Toast.tsx                # Toast notification component
+│   │   ├── ToastContainer.tsx       # Toast container with positioning
+│   │   ├── Skeleton.tsx             # Loading skeleton components (7 variants)
 │   │   └── Headcount/
 │   │       ├── EmployeeTable.tsx    # Employee directory table component
 │   │       └── ProtectedEdit.tsx    # Protected edit wrapper for WFM-only actions
 │   ├── hooks/
 │   │   ├── useAuth.ts               # Authentication hook with role helpers
-│   │   └── useHeadcount.ts          # Headcount data fetching & mutations
+│   │   ├── useHeadcount.ts          # Headcount data fetching & mutations
+│   │   ├── useSwapRequests.ts       # Swap requests with React Query
+│   │   ├── useLeaveRequests.ts      # Leave requests with React Query
+│   │   └── useSettings.ts           # Settings management with React Query
 │   ├── lib/
 │   │   ├── supabase.ts              # Supabase client initialization
-│   │   └── AuthContext.tsx          # Auth provider with session management
+│   │   ├── AuthContext.tsx          # Auth provider with session management
+│   │   ├── ToastContext.tsx         # Toast notification context
+│   │   ├── queryClient.ts           # React Query client configuration
+│   │   └── designSystem.ts          # Unified design system (colors, styles, helpers)
 │   ├── pages/
 │   │   ├── Dashboard.tsx            # Main dashboard with pending requests
 │   │   ├── Login.tsx                # Login page with domain validation
@@ -192,12 +279,18 @@ WFM/
 │   │   ├── LeaveRequestDetail.tsx   # Individual leave request details
 │   │   ├── CreateLeaveRequest.tsx   # Create new leave request
 │   │   ├── LeaveBalances.tsx        # Leave balance management (WFM only)
+│   │   ├── Reports.tsx              # Reports dashboard with charts (TL/WFM only)
 │   │   ├── Settings.tsx             # WFM settings configuration
 │   │   ├── Unauthorized.tsx         # Unauthorized domain access page
 │   │   └── Headcount/
 │   │       ├── HeadcountDashboard.tsx    # Headcount metrics dashboard
 │   │       ├── EmployeeDirectory.tsx     # Employee directory with filters
 │   │       └── EmployeeDetail.tsx        # Individual employee profile
+│   ├── test/                        # Unit tests (36 passing tests)
+│   │   ├── setup.ts                 # Test configuration
+│   │   ├── components/              # Component tests
+│   │   ├── hooks/                   # Hook tests
+│   │   └── utils/                   # Utility tests
 │   └── types/
 │       └── index.ts                 # TypeScript type definitions
 ├── .env.example                     # Environment variable template
@@ -396,6 +489,9 @@ Get these values from your Supabase project dashboard under Settings → API.
 | `npm run build` | Type-check with TypeScript and build for production |
 | `npm run preview` | Preview production build locally |
 | `npm run lint` | Run ESLint to check code quality |
+| `npm run test` | Run unit tests with Vitest |
+| `npm run test:ui` | Run tests with Vitest UI |
+| `npm run test:coverage` | Generate test coverage report |
 
 ---
 
@@ -482,8 +578,10 @@ All imports include validation, error reporting, and rollback on failure.
 
 ## Design System
 
+The application uses a **unified design system** (`src/lib/designSystem.ts`) for consistent styling across all components.
+
 ### Color Palette
-The application uses a custom blue primary color palette based on Tailwind's blue scale:
+Custom blue primary color palette based on Tailwind's blue scale:
 
 | Shade | Hex | Usage |
 |-------|-----|-------|
@@ -498,16 +596,54 @@ The application uses a custom blue primary color palette based on Tailwind's blu
 | primary-800 | `#1e40af` | Dark accents |
 | primary-900 | `#1e3a8a` | Darkest accents |
 
+### Semantic Colors
+Consistent color system for different states:
+- **Success**: Green (`bg-green-100`, `text-green-800`)
+- **Error**: Red (`bg-red-100`, `text-red-800`)
+- **Warning**: Yellow (`bg-yellow-100`, `text-yellow-800`)
+- **Info**: Blue (`bg-blue-100`, `text-blue-800`)
+- **Neutral**: Gray (`bg-gray-100`, `text-gray-800`)
+
 ### Shift Type Colors
 - **AM**: Blue (`bg-blue-100`, `text-blue-800`)
-- **PM**: Green (`bg-green-100`, `text-green-800`)
-- **BET**: Purple (`bg-purple-100`, `text-purple-800`)
+- **PM**: Purple (`bg-purple-100`, `text-purple-800`)
+- **BET**: Orange (`bg-orange-100`, `text-orange-800`)
 - **OFF**: Gray (`bg-gray-100`, `text-gray-800`)
 
+### Leave Type Colors
+- **Sick**: Red with border (`bg-red-100`, `text-red-800`, `border-red-300`)
+- **Annual**: Green with border (`bg-green-100`, `text-green-800`, `border-green-300`)
+- **Casual**: Yellow with border (`bg-yellow-100`, `text-yellow-800`, `border-yellow-300`)
+- **Public Holiday**: Indigo with border (`bg-indigo-100`, `text-indigo-800`, `border-indigo-300`)
+- **Bereavement**: Gray with border (`bg-gray-200`, `text-gray-800`, `border-gray-400`)
+
 ### Status Colors
-- **Pending**: Yellow (`bg-yellow-100`, `text-yellow-800`)
+- **Pending Acceptance**: Yellow (`bg-yellow-100`, `text-yellow-800`)
+- **Pending TL**: Blue (`bg-blue-100`, `text-blue-800`)
+- **Pending WFM**: Purple (`bg-purple-100`, `text-purple-800`)
 - **Approved**: Green (`bg-green-100`, `text-green-800`)
-- **Rejected/Denied**: Red (`bg-red-100`, `text-red-800`)
+- **Rejected**: Red (`bg-red-100`, `text-red-800`)
+- **Denied**: Orange (`bg-orange-100`, `text-orange-800`)
+
+### Role Colors
+- **Agent**: Blue (`bg-blue-100`, `text-blue-800`)
+- **Team Lead**: Green (`bg-green-100`, `text-green-800`)
+- **WFM**: Purple (`bg-purple-100`, `text-purple-800`)
+
+### Reusable Components
+The design system includes pre-defined styles for:
+- **Buttons**: Primary, secondary, success, danger, warning, ghost, link
+- **Badges**: Default, large, small sizes
+- **Cards**: Default, hover, bordered, flat
+- **Inputs**: Default, error, disabled states
+
+### Helper Functions
+- `getStatusColor()` - Get color class for any request status
+- `getStatusLabel()` - Get label for any request status
+- `getShiftColor()` - Get color class for shift types
+- `getLeaveColor()` - Get color class for leave types
+- `getRoleColor()` - Get color class for user roles
+- `cn()` - Combine class names utility
 
 ### Typography
 - Font Family: System font stack (default Tailwind)
