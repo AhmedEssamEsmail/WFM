@@ -123,19 +123,19 @@ export default function Layout({ children }: LayoutProps) {
           </div>
 
           {user && (
-            <div className="flex items-center gap-2 sm:gap-3">
-              <div className="hidden sm:block text-right">
-                <p className="text-sm font-semibold text-gray-900 leading-none mb-1 truncate max-w-[150px]">{user.name}</p>
+            <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+              <div className="hidden sm:block text-right min-w-0 flex-shrink">
+                <p className="text-sm font-semibold text-gray-900 leading-none mb-1 truncate max-w-[120px]">{user.name}</p>
                 <span className={`inline-block px-2 py-0.5 rounded-full text-[10px] uppercase tracking-wider font-bold ${ROLE_COLORS[user.role]}`}>
                   {ROLE_LABELS[user.role]}
                 </span>
               </div>
               <button
                 onClick={signOut}
-                className="flex items-center gap-1.5 px-2.5 py-1.5 text-sm font-medium text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors border border-gray-200 whitespace-nowrap"
+                className="flex items-center gap-1.5 px-3 py-2 text-sm font-medium text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors border border-gray-200 whitespace-nowrap flex-shrink-0"
                 aria-label="Sign out"
               >
-                <SignOutIcon className="w-4 h-4" />
+                <SignOutIcon className="w-4 h-4 flex-shrink-0" />
                 <span className="hidden sm:inline">Sign out</span>
               </button>
             </div>
