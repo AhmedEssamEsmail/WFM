@@ -464,9 +464,9 @@ export default function Schedule() {
   }
 
   return (
-    <div className="space-y-6 w-full">
-      <div className="sm:flex sm:items-center sm:justify-between gap-4">
-        <div className="flex-shrink-0">
+    <div className="space-y-6 w-full min-w-0 overflow-x-hidden">
+      <div className="sm:flex sm:items-center sm:justify-between">
+        <div>
           <h1 className="text-2xl font-bold text-gray-900">Schedule</h1>
           <p className="mt-1 text-sm text-gray-500">
             {canEdit ? 'View and manage team schedules' : 'View your schedule'}
@@ -475,7 +475,7 @@ export default function Schedule() {
         
         {/* Agent Filter - Only show for TL/WFM */}
         {canEdit && (
-          <div className="mt-4 sm:mt-0 flex-shrink-0">
+          <div className="mt-4 sm:mt-0">
             <label htmlFor="agent-filter" className="sr-only">Filter by agent</label>
             <select
               id="agent-filter"

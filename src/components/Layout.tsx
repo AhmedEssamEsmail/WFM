@@ -113,18 +113,18 @@ export default function Layout({ children }: LayoutProps) {
       {/* --- MAIN CONTENT AREA --- */}
       <div className={`flex-1 flex flex-col min-h-screen transition-all duration-300 ${sidebarCollapsed ? 'md:ml-20' : 'md:ml-64'}`}>
         {/* Header */}
-        <header className="sticky top-0 z-20 bg-white/80 backdrop-blur-md border-b border-gray-200 h-16 flex items-center justify-between px-4 sm:px-6 lg:px-8">
-          <button onClick={() => setMobileMenuOpen(true)} className="md:hidden p-2 text-gray-500 hover:bg-gray-100 rounded-md flex-shrink-0">
+        <header className="sticky top-0 z-20 bg-white/80 backdrop-blur-md border-b border-gray-200 h-16 flex items-center justify-between px-4 sm:px-8">
+          <button onClick={() => setMobileMenuOpen(true)} className="md:hidden p-2 text-gray-500 hover:bg-gray-100 rounded-md">
             <MenuIcon />
           </button>
 
-          <div className="hidden md:block text-sm text-gray-500 font-medium italic flex-shrink-0">
+          <div className="hidden md:block text-sm text-gray-500 font-medium italic">
             Management Portal
           </div>
 
           {user && (
-            <div className="flex items-center gap-2 sm:gap-4 ml-auto">
-              <div className="hidden lg:block text-right flex-shrink-0">
+            <div className="flex items-center gap-4">
+              <div className="hidden sm:block text-right">
                 <p className="text-sm font-semibold text-gray-900 leading-none mb-1">{user.name}</p>
                 <span className={`px-2 py-0.5 rounded-full text-[10px] uppercase tracking-wider font-bold ${ROLE_COLORS[user.role]}`}>
                   {ROLE_LABELS[user.role]}
@@ -132,18 +132,18 @@ export default function Layout({ children }: LayoutProps) {
               </div>
               <button
                 onClick={signOut}
-                className="flex items-center gap-1.5 sm:gap-2 px-2 sm:px-3 py-1.5 text-sm font-medium text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors border border-gray-200 flex-shrink-0"
+                className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors border border-gray-200"
               >
-                <SignOutIcon className="w-4 h-4 flex-shrink-0" />
-                <span className="hidden sm:inline whitespace-nowrap">Sign out</span>
+                <SignOutIcon className="w-4 h-4" />
+                <span className="hidden xs:inline">Sign out</span>
               </button>
             </div>
           )}
         </header>
 
         {/* Content */}
-        <main className="flex-1 p-4 sm:p-6 lg:p-8 overflow-y-auto">
-          <div className="max-w-full mx-auto animate-in fade-in duration-500">
+        <main className="flex-1 p-4 sm:p-8 overflow-y-auto">
+          <div className="max-w-7xl mx-auto animate-in fade-in duration-500">
             {children}
           </div>
         </main>
