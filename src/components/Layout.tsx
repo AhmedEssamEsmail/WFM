@@ -113,17 +113,13 @@ export default function Layout({ children }: LayoutProps) {
       {/* --- MAIN CONTENT AREA --- */}
       <div className={`flex-1 flex flex-col min-h-screen transition-all duration-300 ${sidebarCollapsed ? 'md:ml-20' : 'md:ml-48'}`}>
         {/* Header */}
-        <header className="sticky top-0 z-20 bg-white/80 backdrop-blur-md border-b border-gray-200 h-16 flex items-center justify-between px-4 sm:px-6 lg:px-8">
-          <button onClick={() => setMobileMenuOpen(true)} className="md:hidden p-2 text-gray-500 hover:bg-gray-100 rounded-md">
+        <header className="sticky top-0 z-20 bg-white/80 backdrop-blur-md border-b border-gray-200 h-16 flex items-center justify-end px-4 sm:px-6 lg:px-8 gap-4">
+          <button onClick={() => setMobileMenuOpen(true)} className="md:hidden p-2 text-gray-500 hover:bg-gray-100 rounded-md mr-auto">
             <MenuIcon />
           </button>
 
-          <div className="hidden md:block text-sm text-gray-500 font-medium italic flex-shrink-0">
-            Management Portal
-          </div>
-
           {user && (
-            <div className="flex items-center gap-2 sm:gap-3 ml-auto">
+            <div className="flex items-center gap-2 sm:gap-3">
               <div className="hidden lg:block text-right flex-shrink-0">
                 <p className="text-sm font-semibold text-gray-900 leading-none mb-1 truncate max-w-[150px]">{user.name}</p>
                 <span className={`inline-block px-2 py-0.5 rounded-full text-[10px] uppercase tracking-wider font-bold ${ROLE_COLORS[user.role]}`}>
