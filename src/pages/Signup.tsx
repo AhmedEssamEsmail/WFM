@@ -1,6 +1,8 @@
 import { useState, FormEvent } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
+import { signupSchema } from '../utils/validators'
+import { ROUTES, SUCCESS_MESSAGES } from '../constants'
 
 export default function Signup() {
   const [name, setName] = useState('')
@@ -17,27 +19,17 @@ export default function Signup() {
     e.preventDefault()
     setError(null)
 
-    // Validate domain
-    if (!email.endsWith('@dabdoob.com')) {
-      setError('Only @dabdoob.com email addresses are allowed')
-      return
-    }
-
-    // Validate password match
-    if (password !== confirmPassword) {
-      setError('Passwords do not match')
-      return
-    }
-
-    // Validate password length
-    if (password.length < 6) {
-      setError('Password must be at least 6 characters')
+    // Validate with Zod
+    const result = signupSchema.safeParse({ name, email, password, confirmPassword })
+    if (!result.success) {
+      const firstError = result.error.issues[0]
+      setError(firstError.message)
       return
     }
 
     setLoading(true)
 
-    const { error } = await signUp(email, password, name)
+    const { error } = await signUp(result.data.email, result.data.password, result.data.name)
     
     if (error) {
       setError(error.message)
@@ -50,7 +42,7 @@ export default function Signup() {
     
     // Redirect to login after 3 seconds
     setTimeout(() => {
-      navigate('/login')
+      navigate(ROUTES.LOGIN)
     }, 3000)
   }
 
@@ -62,7 +54,7 @@ export default function Signup() {
             <svg className="mx-auto h-12 w-12 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
-            <h2 className="mt-4 text-lg font-medium text-green-800">Account created successfully!</h2>
+            <h2 className="mt-4 text-lg font-medium text-green-800">{SUCCESS_MESSAGES.SIGNUP}</h2>
             <p className="mt-2 text-sm text-green-600">
               Please check your email to confirm your account. Redirecting to login...
             </p>
@@ -82,7 +74,7 @@ export default function Signup() {
           </h2>
           <p className="mt-2 text-center text-sm text-gray-600">
             Already have an account?{' '}
-            <Link to="/login" className="font-medium text-primary-600 hover:text-primary-500">
+            <Link to={ROUTES.LOGIN} className="font-medium text-primary-600 hover:text-primary-500">
               Sign in
             </Link>
           </p>

@@ -1,6 +1,8 @@
 import { useState, useEffect, FormEvent } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
+import { loginSchema } from '../utils/validators'
+import { ROUTES } from '../constants'
 
 export default function Login() {
   const [email, setEmail] = useState('')
@@ -22,23 +24,24 @@ export default function Login() {
   async function handleSubmit(e: FormEvent) {
     e.preventDefault()
     
-    // 1. Clear error ONLY when submitting
+    // Clear error
     setError(null)
     setLoading(true)
 
-    // Validation
-    if (!email || !password) {
-      setError('Please enter both email and password')
+    // Validate with Zod
+    const result = loginSchema.safeParse({ email, password })
+    if (!result.success) {
+      const firstError = result.error.issues[0]
+      setError(firstError.message)
       setLoading(false)
       return
     }
 
     // Attempt Sign In
-    const result = await signIn(email, password)
+    const signInResult = await signIn(result.data.email, result.data.password)
     
-    if (result.error) {
-      // 2. Set the error message returned from our updated AuthContext
-      setError(result.error.message)
+    if (signInResult.error) {
+      setError(signInResult.error.message)
       setLoading(false)
     }
     // If success, the useEffect above will handle the redirect
@@ -62,7 +65,7 @@ export default function Login() {
           </h2>
           <p className="mt-2 text-center text-sm text-gray-600">
             Or{' '}
-            <Link to="/signup" className="font-medium text-primary-600 hover:text-primary-500">
+            <Link to={ROUTES.SIGNUP} className="font-medium text-primary-600 hover:text-primary-500">
               create a new account
             </Link>
           </p>
@@ -81,7 +84,7 @@ export default function Login() {
                 autoComplete="email"
                 required
                 value={email}
-                // FIX: Removed setError(null) here to prevent disappearing errors
+                // Removed setError(null) here to prevent disappearing errors
                 onChange={(e) => setEmail(e.target.value)}
                 className="mt-1 appearance-none relative block w-full px-3 py-2 border border-gray-300 rounded-md placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
                 placeholder="you@dabdoob.com"
@@ -98,7 +101,7 @@ export default function Login() {
                 autoComplete="current-password"
                 required
                 value={password}
-                // FIX: Removed setError(null) here too
+                // Removed setError(null) here too
                 onChange={(e) => setPassword(e.target.value)}
                 className="mt-1 appearance-none relative block w-full px-3 py-2 border border-gray-300 rounded-md placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
                 placeholder="********"

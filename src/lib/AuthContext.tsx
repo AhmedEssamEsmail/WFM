@@ -2,6 +2,8 @@ import { createContext, useEffect, useState, useCallback, ReactNode } from 'reac
 import { User as SupabaseUser, Session } from '@supabase/supabase-js'
 import { supabase } from './supabase'
 import type { User } from '../types'
+import { authService } from '../services'
+import { ERROR_MESSAGES } from '../constants'
 
 interface AuthContextType {
   user: User | null
@@ -43,7 +45,7 @@ function getUserFriendlyError(error: any): Error {
   // 4. Other common errors
   if (message.includes('invalid email')) return new Error('Please enter a valid email address.')
   if (message.includes('rate limit')) return new Error('Too many login attempts. Please wait a moment.')
-  if (message.includes('network') || message.includes('fetch')) return new Error('Network error. Check your connection.')
+  if (message.includes('network') || message.includes('fetch')) return new Error(ERROR_MESSAGES.NETWORK)
 
   return new Error(errorMessage) // Fallback
 }
@@ -58,14 +60,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const fetchUserProfile = useCallback(async (userId: string) => {
     try {
-      const { data, error } = await supabase
-        .from('users')
-        .select('*')
-        .eq('id', userId)
-        .single()
-
-      if (error) throw error
-      setUser(data as User)
+      const data = await authService.getUserProfile(userId)
+      setUser(data)
     } catch (error) {
       console.error('Error fetching profile:', error)
       setUser(null)
@@ -97,15 +93,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   async function signUp(email: string, password: string, name: string) {
     try {
-      const { error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: { data: { name } }
-      })
-      if (error) throw getUserFriendlyError(error)
+      await authService.signUp(email, password, name)
       return { error: null }
     } catch (error) {
-      return { error: error as Error }
+      return { error: getUserFriendlyError(error) }
     }
   }
 
@@ -132,7 +123,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   async function signOut() {
-    await supabase.auth.signOut()
+    await authService.signOut()
     setUser(null)
     setSupabaseUser(null)
     setSession(null)
