@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { supabase } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
 import { LeaveRequest, User, Comment, LeaveRequestStatus } from '../types'
-import { format } from 'date-fns'
 import { LEAVE_DESCRIPTIONS, getStatusColor, getStatusLabel } from '../lib/designSystem'
+import { leaveRequestsService, commentsService, settingsService, authService } from '../services'
+import { formatDate, formatDateTime, getDaysBetween } from '../utils'
+import { ROUTES, ERROR_MESSAGES } from '../constants'
 
 interface CommentWithSystem extends Comment {
   is_system?: boolean
@@ -34,19 +35,8 @@ export default function LeaveRequestDetail() {
 
   async function fetchExceptionSetting() {
     try {
-      const { data, error } = await supabase
-        .from('settings')
-        .select('value')
-        .eq('key', 'allow_leave_exceptions')
-        .maybeSingle()
-
-      if (error) {
-        console.error('Error fetching exception setting:', error)
-        return
-      }
-
-      // Default to true if setting doesn't exist
-      setAllowExceptions(data?.value !== 'false')
+      const value = await settingsService.getAllowLeaveExceptionsSetting()
+      setAllowExceptions(value)
     } catch (err) {
       console.error('Error fetching exception setting:', err)
     }
@@ -54,31 +44,19 @@ export default function LeaveRequestDetail() {
 
   async function fetchRequestDetails() {
     try {
-      // Fetch leave request
-      const { data: requestData, error: requestError } = await supabase
-        .from('leave_requests')
-        .select('*')
-        .eq('id', id)
-        .single()
-
-      if (requestError) throw requestError
+      // Fetch leave request with user details
+      const requestData = await leaveRequestsService.getLeaveRequestById(id!)
       setRequest(requestData)
 
       // Fetch requester details
-      const { data: userData, error: userError } = await supabase
-        .from('users')
-        .select('*')
-        .eq('id', requestData.user_id)
-        .single()
-
-      if (userError) throw userError
+      const userData = await authService.getUserProfile(requestData.user_id)
       setRequester(userData)
 
-      // Fetch comments with user info
+      // Fetch comments
       await fetchComments()
     } catch (err) {
       console.error('Error fetching request details:', err)
-      setError('Failed to load request details')
+      setError(ERROR_MESSAGES.NOT_FOUND)
     } finally {
       setLoading(false)
     }
@@ -86,18 +64,8 @@ export default function LeaveRequestDetail() {
 
   async function fetchComments() {
     try {
-      const { data, error } = await supabase
-        .from('comments')
-        .select(`
-          *,
-          user:users(*)
-        `)
-        .eq('request_id', id)
-        .eq('request_type', 'leave')
-        .order('created_at', { ascending: true })
-
-      if (error) throw error
-      setComments(data || [])
+      const data = await commentsService.getComments(id!, 'leave')
+      setComments(data as CommentWithSystem[])
     } catch (err) {
       console.error('Error fetching comments:', err)
     }
@@ -110,27 +78,17 @@ export default function LeaveRequestDetail() {
 
     try {
       let newStatus: LeaveRequestStatus = request.status
-      const updates: Partial<LeaveRequest> = {}
+      let approvalField: 'tl_approved_at' | 'wfm_approved_at' | undefined
 
       if (user.role === 'tl' && request.status === 'pending_tl') {
         newStatus = 'pending_wfm'
-        updates.tl_approved_at = new Date().toISOString()
+        approvalField = 'tl_approved_at'
       } else if (user.role === 'wfm' && (request.status === 'pending_wfm' || request.status === 'pending_tl')) {
         newStatus = 'approved'
-        updates.wfm_approved_at = new Date().toISOString()
-        if (request.status === 'pending_tl') {
-          updates.tl_approved_at = new Date().toISOString()
-        }
+        approvalField = 'wfm_approved_at'
       }
 
-      updates.status = newStatus
-
-      const { error: updateError } = await supabase
-        .from('leave_requests')
-        .update(updates)
-        .eq('id', id)
-
-      if (updateError) throw updateError
+      await leaveRequestsService.updateLeaveRequestStatus(id!, newStatus, approvalField)
 
       // Add system comment
       await addSystemComment(`Request approved by ${user.name} (${user.role.toUpperCase()})`)
@@ -139,7 +97,7 @@ export default function LeaveRequestDetail() {
       await fetchRequestDetails()
     } catch (err) {
       console.error('Error approving request:', err)
-      setError('Failed to approve request')
+      setError(ERROR_MESSAGES.SERVER)
     } finally {
       setSubmitting(false)
     }
@@ -151,12 +109,7 @@ export default function LeaveRequestDetail() {
     setError('')
 
     try {
-      const { error: updateError } = await supabase
-        .from('leave_requests')
-        .update({ status: 'rejected' })
-        .eq('id', id)
-
-      if (updateError) throw updateError
+      await leaveRequestsService.updateLeaveRequestStatus(id!, 'rejected')
 
       // Add system comment
       await addSystemComment(`Request rejected by ${user.name} (${user.role.toUpperCase()})`)
@@ -165,7 +118,7 @@ export default function LeaveRequestDetail() {
       await fetchRequestDetails()
     } catch (err) {
       console.error('Error rejecting request:', err)
-      setError('Failed to reject request')
+      setError(ERROR_MESSAGES.SERVER)
     } finally {
       setSubmitting(false)
     }
@@ -177,12 +130,7 @@ export default function LeaveRequestDetail() {
     setError('')
 
     try {
-      const { error: updateError } = await supabase
-        .from('leave_requests')
-        .update({ status: 'pending_tl' })
-        .eq('id', id)
-
-      if (updateError) throw updateError
+      await leaveRequestsService.updateLeaveRequestStatus(id!, 'pending_tl')
 
       // Add system comment
       await addSystemComment('Exception requested - sent for TL approval')
@@ -191,7 +139,7 @@ export default function LeaveRequestDetail() {
       await fetchRequestDetails()
     } catch (err) {
       console.error('Error requesting exception:', err)
-      setError('Failed to request exception')
+      setError(ERROR_MESSAGES.SERVER)
     } finally {
       setRequestingException(false)
     }
@@ -201,17 +149,7 @@ export default function LeaveRequestDetail() {
     if (!user) return
 
     try {
-      const { error } = await supabase
-        .from('comments')
-        .insert({
-          request_id: id,
-          request_type: 'leave',
-          user_id: user.id,
-          content,
-          is_system: true
-        })
-
-      if (error) throw error
+      await commentsService.createSystemComment(id!, 'leave', content, user.id)
     } catch (err) {
       console.error('Error adding system comment:', err)
     }
@@ -222,32 +160,25 @@ export default function LeaveRequestDetail() {
     setSubmitting(true)
 
     try {
-      const { error } = await supabase
-        .from('comments')
-        .insert({
-          request_id: id,
-          request_type: 'leave',
-          user_id: user.id,
-          content: newComment.trim()
-        })
-
-      if (error) throw error
+      await commentsService.createComment({
+        request_id: id!,
+        request_type: 'leave',
+        user_id: user.id,
+        content: newComment.trim()
+      })
 
       setNewComment('')
       await fetchComments()
     } catch (err) {
       console.error('Error adding comment:', err)
-      setError('Failed to add comment')
+      setError(ERROR_MESSAGES.SERVER)
     } finally {
       setSubmitting(false)
     }
   }
 
   const calculateDays = (start: string, end: string) => {
-    const startDate = new Date(start)
-    const endDate = new Date(end)
-    const diffTime = Math.abs(endDate.getTime() - startDate.getTime())
-    return Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1
+    return getDaysBetween(start, end)
   }
 
   const canApprove = () => {
@@ -292,7 +223,7 @@ export default function LeaveRequestDetail() {
       <div className="flex items-center justify-between">
         <div>
           <button
-            onClick={() => navigate('/leave')}
+            onClick={() => navigate(ROUTES.LEAVE_REQUESTS)}
             className="text-gray-500 hover:text-gray-700 mb-2 flex items-center gap-1"
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -332,7 +263,7 @@ export default function LeaveRequestDetail() {
           <div>
             <h3 className="text-sm font-medium text-gray-500">Dates</h3>
             <p className="text-lg text-gray-900">
-              {format(new Date(request.start_date), 'MMM d, yyyy')} - {format(new Date(request.end_date), 'MMM d, yyyy')}
+              {formatDate(request.start_date)} - {formatDate(request.end_date)}
             </p>
             <p className="text-sm text-gray-500">
               {calculateDays(request.start_date, request.end_date)} day(s)
@@ -342,7 +273,7 @@ export default function LeaveRequestDetail() {
           <div>
             <h3 className="text-sm font-medium text-gray-500">Submitted</h3>
             <p className="text-lg text-gray-900">
-              {format(new Date(request.created_at), 'MMM d, yyyy h:mm a')}
+              {formatDateTime(request.created_at)}
             </p>
           </div>
 
@@ -415,7 +346,7 @@ export default function LeaveRequestDetail() {
             <div>
               <p className="font-medium text-gray-900">Created</p>
               <p className="text-sm text-gray-500">
-                Created on {format(new Date(request.created_at), 'MMM d, yyyy h:mm a')}
+                Created on {formatDateTime(request.created_at)}
               </p>
             </div>
           </div>
@@ -476,7 +407,7 @@ export default function LeaveRequestDetail() {
                 </p>
                 {request.tl_approved_at && (
                   <p className="text-sm text-gray-500">
-                    Approved on {format(new Date(request.tl_approved_at), 'MMM d, yyyy h:mm a')}
+                    Approved on {formatDateTime(request.tl_approved_at)}
                   </p>
                 )}
               </div>
@@ -522,7 +453,7 @@ export default function LeaveRequestDetail() {
                 </p>
                 {request.wfm_approved_at && (
                   <p className="text-sm text-gray-500">
-                    Approved on {format(new Date(request.wfm_approved_at), 'MMM d, yyyy h:mm a')}
+                    Approved on {formatDateTime(request.wfm_approved_at)}
                   </p>
                 )}
               </div>
@@ -549,7 +480,7 @@ export default function LeaveRequestDetail() {
                     {comment.is_system ? 'System' : comment.user?.name || 'Unknown User'}
                   </span>
                   <span className="text-xs text-gray-500">
-                    {format(new Date(comment.created_at), 'MMM d, yyyy h:mm a')}
+                    {formatDateTime(comment.created_at)}
                   </span>
                 </div>
                 <p className="text-sm text-gray-800">{comment.content}</p>

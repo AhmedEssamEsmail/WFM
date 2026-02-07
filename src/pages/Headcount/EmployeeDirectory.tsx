@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { useHeadcount } from '../../hooks/useHeadcount'
 import { useAuth } from '../../hooks/useAuth'
 import type { HeadcountUser, Department } from '../../types'
+import { downloadCSV, arrayToCSV } from '../../utils'
 
 export default function EmployeeDirectory() {
   const { canEditHeadcount } = useAuth()
@@ -51,52 +52,25 @@ export default function EmployeeDirectory() {
 
   // Export to CSV
   const handleExport = useCallback(() => {
-    const headers = [
-      'Employee ID',
-      'Name',
-      'Email',
-      'Department',
-      'Role',
-      'Status',
-      'Job Title',
-      'Job Level',
-      'Employment Type',
-      'Location',
-      'Manager',
-      'FTE %',
-      'Hire Date',
-    ]
+    const csvData = employees.map(emp => ({
+      'Employee ID': emp.employee_id || '',
+      'Name': emp.name || '',
+      'Email': emp.email || '',
+      'Department': emp.department || '',
+      'Role': emp.role || '',
+      'Status': emp.status || '',
+      'Job Title': emp.job_title || '',
+      'Job Level': emp.job_level || '',
+      'Employment Type': emp.employment_type || '',
+      'Location': emp.location || '',
+      'Manager': emp.manager_name || '',
+      'FTE %': (emp.fte_percentage * 100).toString(),
+      'Hire Date': emp.hire_date || '',
+    }))
 
-    const rows = employees.map(emp => [
-      emp.employee_id || '',
-      emp.name || '',
-      emp.email || '',
-      emp.department || '',
-      emp.role || '',
-      emp.status || '',
-      emp.job_title || '',
-      emp.job_level || '',
-      emp.employment_type || '',
-      emp.location || '',
-      emp.manager_name || '',
-      (emp.fte_percentage * 100).toString(),
-      emp.hire_date || '',
-    ])
-
-    const csvContent = [
-      headers.join(','),
-      ...rows.map(row => row.map(cell => `"${cell}"`).join(','))
-    ].join('\n')
-
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
-    const link = document.createElement('a')
-    const url = URL.createObjectURL(blob)
-    link.setAttribute('href', url)
-    link.setAttribute('download', `employees_export_${new Date().toISOString().split('T')[0]}.csv`)
-    link.style.visibility = 'hidden'
-    document.body.appendChild(link)
-    link.click()
-    document.body.removeChild(link)
+    const csvContent = arrayToCSV(csvData)
+    const filename = `employees_export_${new Date().toISOString().split('T')[0]}.csv`
+    downloadCSV(filename, csvContent)
   }, [employees])
 
   // Download CSV template

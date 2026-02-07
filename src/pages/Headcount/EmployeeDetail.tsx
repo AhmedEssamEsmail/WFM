@@ -4,6 +4,7 @@ import { useHeadcount } from '../../hooks/useHeadcount'
 import { useAuth } from '../../hooks/useAuth'
 import ProtectedEdit from '../../components/Headcount/ProtectedEdit'
 import type { HeadcountUser, Department } from '../../types'
+import { ROUTES } from '../../constants'
 
 export default function EmployeeDetail() {
   const { id } = useParams<{ id: string }>()
@@ -70,7 +71,7 @@ export default function EmployeeDetail() {
       {/* Header */}
       <div className="flex justify-between items-start">
         <div>
-          <Link to="/headcount/employees" className="text-primary-600 hover:text-primary-800 text-sm mb-2 inline-block">
+          <Link to={ROUTES.HEADCOUNT_EMPLOYEES} className="text-primary-600 hover:text-primary-800 text-sm mb-2 inline-block">
             ← Back to Directory
           </Link>
           <h1 className="text-2xl font-bold text-gray-900">{employee.name}</h1>

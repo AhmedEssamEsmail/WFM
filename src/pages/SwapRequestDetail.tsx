@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { supabase } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
 import { SwapRequest, User, Shift, Comment, SwapRequestStatus, ShiftType } from '../types'
-import { format } from 'date-fns'
 import { getStatusColor, getStatusLabel, SHIFT_DESCRIPTIONS } from '../lib/designSystem'
+import { swapRequestsService, commentsService, settingsService, authService, shiftsService } from '../services'
+import { formatDate, formatDateTime } from '../utils'
+import { ERROR_MESSAGES } from '../constants'
 
 interface ShiftWithUser extends Shift {
   user?: User
@@ -40,72 +41,32 @@ export default function SwapRequestDetail() {
 
   async function fetchRequestDetails() {
     try {
-      // Fetch swap request
-      const { data: requestData, error: requestError } = await supabase
-        .from('swap_requests')
-        .select('*, requester_original_date, requester_original_shift_type, target_original_date, target_original_shift_type, requester_original_shift_type_on_target_date, target_original_shift_type_on_requester_date')
-        .eq('id', id)
-        .single()
-
-      if (requestError) throw requestError
+      // Fetch swap request with all details
+      const requestData = await swapRequestsService.getSwapRequestById(id!)
       setRequest(requestData)
 
       // Fetch requester info
-      const { data: requesterData, error: requesterError } = await supabase
-        .from('users')
-        .select('*')
-        .eq('id', requestData.requester_id)
-        .single()
-
-      if (requesterError) throw requesterError
+      const requesterData = await authService.getUserProfile(requestData.requester_id)
       setRequester(requesterData)
 
       // Fetch target user info
-      const { data: targetData, error: targetError } = await supabase
-        .from('users')
-        .select('*')
-        .eq('id', requestData.target_user_id)
-        .single()
-
-      if (targetError) throw targetError
+      const targetData = await authService.getUserProfile(requestData.target_user_id)
       setTargetUser(targetData)
 
       // Fetch requester's shift
-      const { data: requesterShiftData, error: requesterShiftError } = await supabase
-        .from('shifts')
-        .select('*')
-        .eq('id', requestData.requester_shift_id)
-        .single()
-
-      if (requesterShiftError) throw requesterShiftError
+      const requesterShiftData = await shiftsService.getShiftById(requestData.requester_shift_id)
       setRequesterShift({ ...requesterShiftData, user: requesterData })
 
       // Fetch target's shift
-      const { data: targetShiftData, error: targetShiftError } = await supabase
-        .from('shifts')
-        .select('*')
-        .eq('id', requestData.target_shift_id)
-        .single()
-
-      if (targetShiftError) throw targetShiftError
+      const targetShiftData = await shiftsService.getShiftById(requestData.target_shift_id)
       setTargetShift({ ...targetShiftData, user: targetData })
 
-      // Fetch comments with user info
-      const { data: commentsData, error: commentsError } = await supabase
-        .from('comments')
-        .select(`
-          *,
-          user:users(*)
-        `)
-        .eq('request_id', id)
-        .eq('request_type', 'swap')
-        .order('created_at', { ascending: true })
-
-      if (commentsError) throw commentsError
-      setComments(commentsData || [])
+      // Fetch comments
+      const commentsData = await commentsService.getComments(id!, 'swap')
+      setComments(commentsData as CommentWithSystem[])
     } catch (error) {
       console.error('Error fetching request details:', error)
-      setError('Failed to load request details')
+      setError(ERROR_MESSAGES.NOT_FOUND)
     } finally {
       setLoading(false)
     }
@@ -115,13 +76,7 @@ export default function SwapRequestDetail() {
     if (!id || !user) return
 
     try {
-      await supabase.from('comments').insert({
-        request_id: id,
-        request_type: 'swap',
-        user_id: user.id,
-        content,
-        is_system: true
-      })
+      await commentsService.createSystemComment(id, 'swap', content, user.id)
     } catch (error) {
       console.error('Error creating system comment:', error)
     }
@@ -135,12 +90,7 @@ export default function SwapRequestDetail() {
 
     try {
       const oldStatus = request.status
-      const { error: updateError } = await supabase
-        .from('swap_requests')
-        .update({ status: 'pending_tl' })
-        .eq('id', id)
-
-      if (updateError) throw updateError
+      await swapRequestsService.updateSwapRequestStatus(id!, 'pending_tl')
 
       // Create system comment
       await createSystemComment(
@@ -150,7 +100,7 @@ export default function SwapRequestDetail() {
       await fetchRequestDetails()
     } catch (error) {
       console.error('Error accepting request:', error)
-      setError('Failed to accept request')
+      setError(ERROR_MESSAGES.SERVER)
     } finally {
       setSubmitting(false)
     }
@@ -164,12 +114,7 @@ export default function SwapRequestDetail() {
 
     try {
       const oldStatus = request.status
-      const { error: updateError } = await supabase
-        .from('swap_requests')
-        .update({ status: 'rejected' })
-        .eq('id', id)
-
-      if (updateError) throw updateError
+      await swapRequestsService.updateSwapRequestStatus(id!, 'rejected')
 
       // Create system comment
       await createSystemComment(
@@ -179,7 +124,7 @@ export default function SwapRequestDetail() {
       await fetchRequestDetails()
     } catch (error) {
       console.error('Error declining request:', error)
-      setError('Failed to decline request')
+      setError(ERROR_MESSAGES.SERVER)
     } finally {
       setSubmitting(false)
     }
@@ -194,128 +139,69 @@ export default function SwapRequestDetail() {
     try {
       const oldStatus = request.status
       let newStatus: SwapRequestStatus
-      let updateData: Partial<SwapRequest> = {}
+      let approvalField: 'tl_approved_at' | 'wfm_approved_at' | undefined
 
       if (user.role === 'tl' && request.status === 'pending_tl') {
         // Check if auto-approve is enabled
-        const { data: autoApproveSetting } = await supabase
-          .from('settings')
-          .select('value')
-          .eq('key', 'wfm_auto_approve')
-          .maybeSingle()
-
-        const autoApproveEnabled = autoApproveSetting?.value === 'true'
+        const autoApproveEnabled = await settingsService.getAutoApproveSetting()
 
         if (autoApproveEnabled) {
           // Auto-approve: skip WFM and go straight to approved
           newStatus = 'approved'
-          updateData = {
-            status: newStatus,
-            tl_approved_at: new Date().toISOString(),
-            wfm_approved_at: new Date().toISOString() // Mark as auto-approved
-          }
+          approvalField = 'wfm_approved_at' // Mark as auto-approved
         } else {
           // Normal flow: send to WFM for approval
           newStatus = 'pending_wfm'
-          updateData = {
-            status: newStatus,
-            tl_approved_at: new Date().toISOString()
-          }
+          approvalField = 'tl_approved_at'
         }
       } else if (user.role === 'wfm' && (request.status === 'pending_wfm' || request.status === 'pending_tl')) {
         newStatus = 'approved'
-        updateData = {
-          status: newStatus,
-          wfm_approved_at: new Date().toISOString()
-        }
-        if (request.status === 'pending_tl') {
-          updateData.tl_approved_at = new Date().toISOString()
-        }
+        approvalField = 'wfm_approved_at'
       } else {
         throw new Error('Cannot approve this request')
       }
 
-      const { error: updateError } = await supabase
-        .from('swap_requests')
-        .update(updateData)
-        .eq('id', id)
-
-      if (updateError) throw updateError
+      await swapRequestsService.updateSwapRequestStatus(id!, newStatus, approvalField)
 
       // If fully approved, execute the swap across ALL 4 shift records
       if (newStatus === 'approved' && requesterShift && targetShift && request) {
-        // A swap means both users exchange their shift types on BOTH dates
-        //
-        // Example:
-        // Before: Agent X: 2-Feb (AM), 7-Feb (OFF) | Agent Y: 2-Feb (PM), 7-Feb (PM)
-        // Swapping "Agent X's 2-Feb" with "Agent Y's 7-Feb"
-        // After:  Agent X: 2-Feb (PM), 7-Feb (PM) | Agent Y: 2-Feb (AM), 7-Feb (OFF)
-        //
-        // We need to:
-        // 1. Get all 4 shifts (both users on both dates)
-        // 2. Swap shift_types for both users on both dates
-
         const requesterDate = requesterShift.date
         const targetDate = targetShift.date
         const requesterId = request.requester_id
         const targetUserId = request.target_user_id
 
         // Get Agent Y's shift on requester's date (2-Feb)
-        const { data: targetOnRequesterDate } = await supabase
-          .from('shifts')
-          .select('*')
-          .eq('user_id', targetUserId)
-          .eq('date', requesterDate)
-          .single()
+        const targetOnRequesterDateShifts = await shiftsService.getShifts(requesterDate, requesterDate)
+        const targetOnRequesterDate = targetOnRequesterDateShifts.find(s => s.user_id === targetUserId)
 
         // Get Agent X's shift on target's date (7-Feb)
-        const { data: requesterOnTargetDate } = await supabase
-          .from('shifts')
-          .select('*')
-          .eq('user_id', requesterId)
-          .eq('date', targetDate)
-          .single()
+        const requesterOnTargetDateShifts = await shiftsService.getShifts(targetDate, targetDate)
+        const requesterOnTargetDate = requesterOnTargetDateShifts.find(s => s.user_id === requesterId)
 
         // Store original shift types
-        const requesterShiftTypeOnReqDate = requesterShift.shift_type // Agent X on 2-Feb
-        const targetShiftTypeOnTgtDate = targetShift.shift_type // Agent Y on 7-Feb
-        const targetShiftTypeOnReqDate = targetOnRequesterDate?.shift_type // Agent Y on 2-Feb
-        const requesterShiftTypeOnTgtDate = requesterOnTargetDate?.shift_type // Agent X on 7-Feb
+        const requesterShiftTypeOnReqDate = requesterShift.shift_type
+        const targetShiftTypeOnTgtDate = targetShift.shift_type
+        const targetShiftTypeOnReqDate = targetOnRequesterDate?.shift_type
+        const requesterShiftTypeOnTgtDate = requesterOnTargetDate?.shift_type
 
-        // Update 1: Agent X on requester date (2-Feb) gets Agent Y's shift type from that date
+        // Update 1: Agent X on requester date gets Agent Y's shift type from that date
         if (targetShiftTypeOnReqDate) {
-          const { error } = await supabase
-            .from('shifts')
-            .update({ shift_type: targetShiftTypeOnReqDate })
-            .eq('id', requesterShift.id)
-          if (error) throw error
+          await shiftsService.updateShift(requesterShift.id, { shift_type: targetShiftTypeOnReqDate })
         }
 
-        // Update 2: Agent Y on requester date (2-Feb) gets Agent X's shift type from that date
+        // Update 2: Agent Y on requester date gets Agent X's shift type from that date
         if (targetOnRequesterDate) {
-          const { error } = await supabase
-            .from('shifts')
-            .update({ shift_type: requesterShiftTypeOnReqDate })
-            .eq('id', targetOnRequesterDate.id)
-          if (error) throw error
+          await shiftsService.updateShift(targetOnRequesterDate.id, { shift_type: requesterShiftTypeOnReqDate })
         }
 
-        // Update 3: Agent X on target date (7-Feb) gets Agent Y's shift type from that date
+        // Update 3: Agent X on target date gets Agent Y's shift type from that date
         if (requesterOnTargetDate && targetShiftTypeOnTgtDate) {
-          const { error } = await supabase
-            .from('shifts')
-            .update({ shift_type: targetShiftTypeOnTgtDate })
-            .eq('id', requesterOnTargetDate.id)
-          if (error) throw error
+          await shiftsService.updateShift(requesterOnTargetDate.id, { shift_type: targetShiftTypeOnTgtDate })
         }
 
-        // Update 4: Agent Y on target date (7-Feb) gets Agent X's shift type from that date
+        // Update 4: Agent Y on target date gets Agent X's shift type from that date
         if (requesterShiftTypeOnTgtDate) {
-          const { error } = await supabase
-            .from('shifts')
-            .update({ shift_type: requesterShiftTypeOnTgtDate })
-            .eq('id', targetShift.id)
-          if (error) throw error
+          await shiftsService.updateShift(targetShift.id, { shift_type: requesterShiftTypeOnTgtDate })
         }
       }
 
@@ -333,7 +219,7 @@ export default function SwapRequestDetail() {
       await fetchRequestDetails()
     } catch (error) {
       console.error('Error approving request:', error)
-      setError('Failed to approve request')
+      setError(ERROR_MESSAGES.SERVER)
     } finally {
       setSubmitting(false)
     }
@@ -347,12 +233,7 @@ export default function SwapRequestDetail() {
 
     try {
       const oldStatus = request.status
-      const { error: updateError } = await supabase
-        .from('swap_requests')
-        .update({ status: 'rejected' })
-        .eq('id', id)
-
-      if (updateError) throw updateError
+      await swapRequestsService.updateSwapRequestStatus(id!, 'rejected')
 
       // Create system comment
       await createSystemComment(
@@ -362,7 +243,7 @@ export default function SwapRequestDetail() {
       await fetchRequestDetails()
     } catch (error) {
       console.error('Error rejecting request:', error)
-      setError('Failed to reject request')
+      setError(ERROR_MESSAGES.SERVER)
     } finally {
       setSubmitting(false)
     }
@@ -385,82 +266,37 @@ export default function SwapRequestDetail() {
         const targetUserId = request.target_user_id
 
         // Find all 4 shift records
-        const { data: reqOnReqDate } = await supabase
-          .from('shifts')
-          .select('*')
-          .eq('user_id', requesterId)
-          .eq('date', requesterDate)
-          .single()
+        const reqOnReqDateShifts = await shiftsService.getShifts(requesterDate, requesterDate)
+        const reqOnReqDate = reqOnReqDateShifts.find(s => s.user_id === requesterId)
 
-        const { data: reqOnTgtDate } = await supabase
-          .from('shifts')
-          .select('*')
-          .eq('user_id', requesterId)
-          .eq('date', targetDate)
-          .single()
+        const reqOnTgtDateShifts = await shiftsService.getShifts(targetDate, targetDate)
+        const reqOnTgtDate = reqOnTgtDateShifts.find(s => s.user_id === requesterId)
 
-        const { data: tgtOnReqDate } = await supabase
-          .from('shifts')
-          .select('*')
-          .eq('user_id', targetUserId)
-          .eq('date', requesterDate)
-          .single()
+        const tgtOnReqDateShifts = await shiftsService.getShifts(requesterDate, requesterDate)
+        const tgtOnReqDate = tgtOnReqDateShifts.find(s => s.user_id === targetUserId)
 
-        const { data: tgtOnTgtDate } = await supabase
-          .from('shifts')
-          .select('*')
-          .eq('user_id', targetUserId)
-          .eq('date', targetDate)
-          .single()
+        const tgtOnTgtDateShifts = await shiftsService.getShifts(targetDate, targetDate)
+        const tgtOnTgtDate = tgtOnTgtDateShifts.find(s => s.user_id === targetUserId)
 
         // Restore all 4 shifts to their original shift_types
-        // 1. Requester on requester_date -> requester_original_shift_type
         if (reqOnReqDate && request.requester_original_shift_type) {
-          const { error } = await supabase
-            .from('shifts')
-            .update({ shift_type: request.requester_original_shift_type })
-            .eq('id', reqOnReqDate.id)
-          if (error) throw error
+          await shiftsService.updateShift(reqOnReqDate.id, { shift_type: request.requester_original_shift_type })
         }
 
-        // 2. Requester on target_date -> requester_original_shift_type_on_target_date
         if (reqOnTgtDate && request.requester_original_shift_type_on_target_date) {
-          const { error } = await supabase
-            .from('shifts')
-            .update({ shift_type: request.requester_original_shift_type_on_target_date })
-            .eq('id', reqOnTgtDate.id)
-          if (error) throw error
+          await shiftsService.updateShift(reqOnTgtDate.id, { shift_type: request.requester_original_shift_type_on_target_date })
         }
 
-        // 3. Target on requester_date -> target_original_shift_type_on_requester_date
         if (tgtOnReqDate && request.target_original_shift_type_on_requester_date) {
-          const { error } = await supabase
-            .from('shifts')
-            .update({ shift_type: request.target_original_shift_type_on_requester_date })
-            .eq('id', tgtOnReqDate.id)
-          if (error) throw error
+          await shiftsService.updateShift(tgtOnReqDate.id, { shift_type: request.target_original_shift_type_on_requester_date })
         }
 
-        // 4. Target on target_date -> target_original_shift_type
         if (tgtOnTgtDate && request.target_original_shift_type) {
-          const { error } = await supabase
-            .from('shifts')
-            .update({ shift_type: request.target_original_shift_type })
-            .eq('id', tgtOnTgtDate.id)
-          if (error) throw error
+          await shiftsService.updateShift(tgtOnTgtDate.id, { shift_type: request.target_original_shift_type })
         }
       }
 
-      const { error: updateError } = await supabase
-        .from('swap_requests')
-        .update({
-          status: 'pending_tl',
-          tl_approved_at: null,
-          wfm_approved_at: null
-        })
-        .eq('id', id)
-
-      if (updateError) throw updateError
+      await swapRequestsService.updateSwapRequestStatus(id!, 'pending_tl')
 
       // Create system comment
       await createSystemComment(
@@ -470,7 +306,7 @@ export default function SwapRequestDetail() {
       await fetchRequestDetails()
     } catch (error) {
       console.error('Error revoking decision:', error)
-      setError('Failed to revoke decision')
+      setError(ERROR_MESSAGES.SERVER)
     } finally {
       setSubmitting(false)
     }
@@ -482,21 +318,18 @@ export default function SwapRequestDetail() {
 
     setSubmitting(true)
     try {
-      const { error: commentError } = await supabase.from('comments').insert({
+      await commentsService.createComment({
         request_id: id,
         request_type: 'swap',
         user_id: user.id,
-        content: newComment.trim(),
-        is_system: false
+        content: newComment.trim()
       })
-
-      if (commentError) throw commentError
 
       setNewComment('')
       await fetchRequestDetails()
     } catch (error) {
       console.error('Error adding comment:', error)
-      setError('Failed to add comment')
+      setError(ERROR_MESSAGES.SERVER)
     } finally {
       setSubmitting(false)
     }
@@ -583,7 +416,7 @@ export default function SwapRequestDetail() {
             {/* Date 1: requester_original_date */}
             {request.requester_original_date && (
               <div className="mb-3">
-                <p className="font-medium">{format(new Date(request.requester_original_date), 'MMM d, yyyy')}</p>
+                <p className="font-medium">{formatDate(request.requester_original_date)}</p>
                 <span className="inline-block mt-1 px-2 py-1 bg-blue-100 text-blue-800 rounded text-sm">
                   {request.requester_original_shift_type ? SHIFT_DESCRIPTIONS[request.requester_original_shift_type as ShiftType] : 'Unknown'}
                 </span>
@@ -593,7 +426,7 @@ export default function SwapRequestDetail() {
             {/* Date 2: target_original_date */}
             {request.target_original_date && (
               <div>
-                <p className="font-medium">{format(new Date(request.target_original_date), 'MMM d, yyyy')}</p>
+                <p className="font-medium">{formatDate(request.target_original_date)}</p>
                 <span className="inline-block mt-1 px-2 py-1 bg-blue-100 text-blue-800 rounded text-sm">
                   {request.requester_original_shift_type_on_target_date ? SHIFT_DESCRIPTIONS[request.requester_original_shift_type_on_target_date as ShiftType] : 'Unknown'}
                 </span>
@@ -609,7 +442,7 @@ export default function SwapRequestDetail() {
             {/* Date 1: requester_original_date */}
             {request.requester_original_date && (
               <div className="mb-3">
-                <p className="font-medium">{format(new Date(request.requester_original_date), 'MMM d, yyyy')}</p>
+                <p className="font-medium">{formatDate(request.requester_original_date)}</p>
                 <span className="inline-block mt-1 px-2 py-1 bg-purple-100 text-purple-800 rounded text-sm">
                   {request.target_original_shift_type_on_requester_date ? SHIFT_DESCRIPTIONS[request.target_original_shift_type_on_requester_date as ShiftType] : 'Unknown'}
                 </span>
@@ -619,7 +452,7 @@ export default function SwapRequestDetail() {
             {/* Date 2: target_original_date */}
             {request.target_original_date && (
               <div>
-                <p className="font-medium">{format(new Date(request.target_original_date), 'MMM d, yyyy')}</p>
+                <p className="font-medium">{formatDate(request.target_original_date)}</p>
                 <span className="inline-block mt-1 px-2 py-1 bg-purple-100 text-purple-800 rounded text-sm">
                   {request.target_original_shift_type ? SHIFT_DESCRIPTIONS[request.target_original_shift_type as ShiftType] : 'Unknown'}
                 </span>
@@ -628,7 +461,7 @@ export default function SwapRequestDetail() {
           </div>
         </div>
         <p className="text-sm text-gray-500 mt-4">
-          Created on {format(new Date(request.created_at), 'MMM d, yyyy h:mm a')}
+          Created on {formatDateTime(request.created_at)}
         </p>
       </div>
 
@@ -646,7 +479,7 @@ export default function SwapRequestDetail() {
             <div>
               <p className="font-medium text-gray-900">Created</p>
               <p className="text-sm text-gray-500">
-                Created on {format(new Date(request.created_at), 'MMM d, yyyy h:mm a')}
+                Created on {formatDateTime(request.created_at)}
               </p>
             </div>
           </div>
@@ -708,7 +541,7 @@ export default function SwapRequestDetail() {
               <p className="font-medium text-gray-900">Team Lead Approval</p>
               {request.tl_approved_at ? (
                 <p className="text-sm text-gray-500">
-                  Approved on {format(new Date(request.tl_approved_at), 'MMM d, yyyy h:mm a')}
+                  Approved on {formatDateTime(request.tl_approved_at)}
                 </p>
               ) : request.status === 'pending_tl' ? (
                 <p className="text-sm text-yellow-600">Awaiting approval</p>
@@ -746,7 +579,7 @@ export default function SwapRequestDetail() {
               <p className="font-medium text-gray-900">WFM Approval</p>
               {request.wfm_approved_at ? (
                 <p className="text-sm text-gray-500">
-                  Approved on {format(new Date(request.wfm_approved_at), 'MMM d, yyyy h:mm a')}
+                  Approved on {formatDateTime(request.wfm_approved_at)}
                 </p>
               ) : request.status === 'pending_wfm' ? (
                 <p className="text-sm text-yellow-600">Awaiting approval</p>
@@ -830,7 +663,7 @@ export default function SwapRequestDetail() {
                     {comment.is_system ? 'System' : comment.user?.name || 'Unknown User'}
                   </span>
                   <span className="text-xs text-gray-500">
-                    {format(new Date(comment.created_at), 'MMM d, yyyy h:mm a')}
+                    {formatDateTime(comment.created_at)}
                   </span>
                 </div>
                 <p className="text-sm text-gray-800">

@@ -4,6 +4,8 @@ import { useAuth } from '../hooks/useAuth'
 import { User, Shift, ShiftType, LeaveType, LeaveTypeConfig, LeaveRequest } from '../types'
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, addMonths, subMonths, isWithinInterval, parseISO } from 'date-fns'
 import { SHIFT_COLORS, SHIFT_LABELS, SHIFT_DESCRIPTIONS, LEAVE_COLORS, LEAVE_LABELS } from '../lib/designSystem'
+import { shiftsService, leaveRequestsService } from '../services'
+import { formatDateISO } from '../utils'
 
 
 // Mapping from display labels to database enum values
@@ -113,9 +115,9 @@ export default function Schedule() {
 
       setUsers(usersData || [])
 
-      // Fetch shifts for the month
-      const startDate = format(monthStart, 'yyyy-MM-dd')
-      const endDate = format(monthEnd, 'yyyy-MM-dd')
+      // Fetch shifts for the month using formatDateISO
+      const startDate = formatDateISO(monthStart)
+      const endDate = formatDateISO(monthEnd)
 
       let shiftsQuery = supabase
         .from('shifts')
@@ -205,7 +207,7 @@ export default function Schedule() {
   }
 
   function getShiftForUserAndDate(userId: string, date: Date): ShiftWithSwap | undefined {
-    const dateStr = format(date, 'yyyy-MM-dd')
+    const dateStr = formatDateISO(date)
     return shifts.find(s => s.user_id === userId && s.date === dateStr)
   }
 
@@ -221,7 +223,7 @@ export default function Schedule() {
   function handleShiftClick(userId: string, date: Date) {
     if (!canEdit) return
     
-    const dateStr = format(date, 'yyyy-MM-dd')
+    const dateStr = formatDateISO(date)
     const existingShift = getShiftForUserAndDate(userId, date)
     const existingLeave = getLeaveForUserAndDate(userId, date)
     
@@ -247,20 +249,12 @@ export default function Schedule() {
       if (!selectedLeaveType && !selectedShiftType) {
         // Delete existing leave if any
         if (editingShift.existingLeave) {
-          const { error } = await supabase
-            .from('leave_requests')
-            .delete()
-            .eq('id', editingShift.existingLeave.id)
-          if (error) throw error
+          await leaveRequestsService.deleteLeaveRequest(editingShift.existingLeave.id)
         }
 
         // Delete existing shift if any
         if (editingShift.shiftId) {
-          const { error } = await supabase
-            .from('shifts')
-            .delete()
-            .eq('id', editingShift.shiftId)
-          if (error) throw error
+          await shiftsService.deleteShift(editingShift.shiftId)
         }
 
         await fetchScheduleData()
@@ -306,43 +300,26 @@ export default function Schedule() {
 
         // Remove any existing shift for this day (leave takes precedence)
         if (editingShift.shiftId) {
-          await supabase
-            .from('shifts')
-            .delete()
-            .eq('id', editingShift.shiftId)
+          await shiftsService.deleteShift(editingShift.shiftId)
         }
       }
       // CASE 3: Assign/update shift (no leave selected)
       else if (selectedShiftType) {
         // First, remove any existing leave for this day
         if (editingShift.existingLeave) {
-          const { error: deleteLeaveError } = await supabase
-            .from('leave_requests')
-            .delete()
-            .eq('id', editingShift.existingLeave.id)
-
-          if (deleteLeaveError) throw deleteLeaveError
+          await leaveRequestsService.deleteLeaveRequest(editingShift.existingLeave.id)
         }
 
         if (editingShift.shiftId) {
           // Update existing shift
-          const { error } = await supabase
-            .from('shifts')
-            .update({ shift_type: selectedShiftType })
-            .eq('id', editingShift.shiftId)
-
-          if (error) throw error
+          await shiftsService.updateShift(editingShift.shiftId, { shift_type: selectedShiftType })
         } else {
           // Create new shift
-          const { error } = await supabase
-            .from('shifts')
-            .insert({
-              user_id: editingShift.userId,
-              date: editingShift.date,
-              shift_type: selectedShiftType
-            })
-
-          if (error) throw error
+          await shiftsService.createShift({
+            user_id: editingShift.userId,
+            date: editingShift.date,
+            shift_type: selectedShiftType
+          })
         }
       }
 
@@ -363,20 +340,12 @@ export default function Schedule() {
     try {
       // Delete existing leave if any
       if (editingShift.existingLeave) {
-        const { error } = await supabase
-          .from('leave_requests')
-          .delete()
-          .eq('id', editingShift.existingLeave.id)
-        if (error) throw error
+        await leaveRequestsService.deleteLeaveRequest(editingShift.existingLeave.id)
       }
 
       // Delete existing shift if any
       if (editingShift.shiftId) {
-        const { error } = await supabase
-          .from('shifts')
-          .delete()
-          .eq('id', editingShift.shiftId)
-        if (error) throw error
+        await shiftsService.deleteShift(editingShift.shiftId)
       }
 
       await fetchScheduleData()

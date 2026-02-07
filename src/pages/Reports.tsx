@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
-import { format, startOfMonth, endOfMonth, subMonths, parseISO } from 'date-fns'
+import { format, startOfMonth, endOfMonth, subMonths } from 'date-fns'
 import { SEMANTIC_COLORS } from '../lib/designSystem'
 import type { User, ShiftType, LeaveType } from '../types'
+import { getDaysBetween, downloadCSV } from '../utils'
 
 interface ReportMetrics {
   totalSwapRequests: number
@@ -104,9 +105,7 @@ export default function Reports() {
       const totalLeaveDays = leaveRequests
         .filter(leave => leave.status === 'approved')
         .reduce((sum, leave) => {
-          const start = parseISO(leave.start_date)
-          const end = parseISO(leave.end_date)
-          const days = Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)) + 1
+          const days = getDaysBetween(leave.start_date, leave.end_date)
           return sum + days
         }, 0)
 
@@ -134,38 +133,37 @@ export default function Reports() {
   async function exportToCSV() {
     if (!metrics) return
 
-    const csvData = [
-      ['WFM Report'],
-      ['Period', `${startDate} to ${endDate}`],
-      [''],
-      ['Swap Requests Summary'],
-      ['Total', metrics.totalSwapRequests],
-      ['Approved', metrics.approvedSwaps],
-      ['Rejected', metrics.rejectedSwaps],
-      ['Pending', metrics.pendingSwaps],
-      [''],
-      ['Leave Requests Summary'],
-      ['Total', metrics.totalLeaveRequests],
-      ['Approved', metrics.approvedLeaves],
-      ['Rejected', metrics.rejectedLeaves],
-      ['Pending', metrics.pendingLeaves],
-      ['Total Leave Days', metrics.totalLeaveDays],
-      [''],
-      ['Swaps by User'],
-      ...Object.entries(metrics.swapsByUser).map(([user, count]) => [user, count]),
-      [''],
-      ['Leaves by Type'],
-      ...Object.entries(metrics.leavesByType).map(([type, count]) => [type, count]),
-    ]
+    try {
+      const csvData = [
+        ['WFM Report'],
+        ['Period', `${startDate} to ${endDate}`],
+        [''],
+        ['Swap Requests Summary'],
+        ['Total', metrics.totalSwapRequests.toString()],
+        ['Approved', metrics.approvedSwaps.toString()],
+        ['Rejected', metrics.rejectedSwaps.toString()],
+        ['Pending', metrics.pendingSwaps.toString()],
+        [''],
+        ['Leave Requests Summary'],
+        ['Total', metrics.totalLeaveRequests.toString()],
+        ['Approved', metrics.approvedLeaves.toString()],
+        ['Rejected', metrics.rejectedLeaves.toString()],
+        ['Pending', metrics.pendingLeaves.toString()],
+        ['Total Leave Days', metrics.totalLeaveDays.toString()],
+        [''],
+        ['Swaps by User'],
+        ...Object.entries(metrics.swapsByUser).map(([user, count]) => [user, count.toString()]),
+        [''],
+        ['Leaves by Type'],
+        ...Object.entries(metrics.leavesByType).map(([type, count]) => [type, count.toString()]),
+      ]
 
-    const csv = csvData.map(row => row.join(',')).join('\n')
-    const blob = new Blob([csv], { type: 'text/csv' })
-    const url = window.URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = url
-    a.download = `wfm-report-${startDate}-to-${endDate}.csv`
-    a.click()
-    window.URL.revokeObjectURL(url)
+      const csvContent = csvData.map(row => row.join(',')).join('\n')
+      const filename = `wfm-report-${startDate}-to-${endDate}.csv`
+      downloadCSV(filename, csvContent)
+    } catch (err) {
+      console.error('Export error:', err)
+    }
   }
 
   if (!isManager) {

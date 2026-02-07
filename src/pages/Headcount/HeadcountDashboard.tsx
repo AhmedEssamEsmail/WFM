@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { useHeadcount } from '../../hooks/useHeadcount'
 import { useAuth } from '../../hooks/useAuth'
 import type { HeadcountMetrics } from '../../types'
+import { ROUTES } from '../../constants'
 
 export default function HeadcountDashboard() {
   const { canEditHeadcount } = useAuth()
@@ -32,7 +33,7 @@ export default function HeadcountDashboard() {
           <p className="text-sm text-gray-600">Workforce overview and analytics</p>
         </div>
         <Link
-          to="/headcount/employees"
+          to={ROUTES.HEADCOUNT_EMPLOYEES}
           className="w-full sm:w-auto bg-primary-600 text-white px-4 py-2 rounded-lg hover:bg-primary-700 transition-colors text-center text-sm"
         >
           View All Employees

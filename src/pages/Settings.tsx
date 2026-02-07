@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { supabase } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
 import { useToast } from '../lib/ToastContext'
+import { settingsService } from '../services'
+import { ROUTES, SUCCESS_MESSAGES, ERROR_MESSAGES } from '../constants'
 
 export default function Settings() {
   const navigate = useNavigate()
@@ -16,7 +17,7 @@ export default function Settings() {
   useEffect(() => {
     // Redirect if not WFM
     if (user && user.role !== 'wfm') {
-      navigate('/dashboard')
+      navigate(ROUTES.DASHBOARD)
       return
     }
     fetchSettings()
@@ -24,24 +25,12 @@ export default function Settings() {
 
   async function fetchSettings() {
     try {
-      // Fetch all settings at once
-      const { data, error } = await supabase
-        .from('settings')
-        .select('key, value')
-        .in('key', ['wfm_auto_approve', 'allow_leave_exceptions'])
-
-      if (error && error.code !== 'PGRST116') {
-        throw error
-      }
-
-      // Set values from fetched data
-      if (data) {
-        const autoApproveData = data.find(d => d.key === 'wfm_auto_approve')
-        const exceptionsData = data.find(d => d.key === 'allow_leave_exceptions')
-        
-        setAutoApprove(autoApproveData?.value === 'true')
-        setAllowLeaveExceptions(exceptionsData?.value !== 'false') // Default to true
-      }
+      // Use service to fetch settings
+      const autoApproveValue = await settingsService.getAutoApproveSetting()
+      const exceptionsValue = await settingsService.getAllowLeaveExceptionsSetting()
+      
+      setAutoApprove(autoApproveValue)
+      setAllowLeaveExceptions(exceptionsValue)
     } catch (err) {
       console.error('Error fetching settings:', err)
     } finally {
@@ -54,24 +43,13 @@ export default function Settings() {
 
     try {
       const newValue = !autoApprove
-
-      const { error } = await supabase
-        .from('settings')
-        .upsert({
-          key: 'wfm_auto_approve',
-          value: newValue.toString(),
-          updated_at: new Date().toISOString()
-        }, {
-          onConflict: 'key'
-        })
-
-      if (error) throw error
-
+      await settingsService.updateSetting('wfm_auto_approve', newValue.toString())
+      
       setAutoApprove(newValue)
-      success('Auto-approve setting updated successfully!')
+      success(SUCCESS_MESSAGES.SAVE)
     } catch (err) {
       console.error('Error saving settings:', err)
-      showError('Failed to save settings. Please try again.')
+      showError(ERROR_MESSAGES.SERVER)
     } finally {
       setSaving(false)
     }
@@ -82,24 +60,13 @@ export default function Settings() {
 
     try {
       const newValue = !allowLeaveExceptions
-
-      const { error } = await supabase
-        .from('settings')
-        .upsert({
-          key: 'allow_leave_exceptions',
-          value: newValue.toString(),
-          updated_at: new Date().toISOString()
-        }, {
-          onConflict: 'key'
-        })
-
-      if (error) throw error
-
+      await settingsService.updateSetting('allow_leave_exceptions', newValue.toString())
+      
       setAllowLeaveExceptions(newValue)
-      success('Leave exceptions setting updated successfully!')
+      success(SUCCESS_MESSAGES.SAVE)
     } catch (err) {
       console.error('Error saving settings:', err)
-      showError('Failed to save settings. Please try again.')
+      showError(ERROR_MESSAGES.SERVER)
     } finally {
       setSaving(false)
     }

@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { supabase } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
 import { LeaveRequest, User } from '../types'
 import { LEAVE_DESCRIPTIONS, getStatusColor, getStatusLabel } from '../lib/designSystem'
+import { leaveRequestsService } from '../services'
+import { formatDate } from '../utils'
+import { ROUTES } from '../constants'
 
 interface LeaveRequestWithUser extends LeaveRequest {
   user: User
@@ -31,36 +33,33 @@ export default function LeaveRequests() {
     setLoading(true)
 
     try {
-      let query = supabase
-        .from('leave_requests')
-        .select(`
-          *,
-          user:users!leave_requests_user_id_fkey(*)
-        `)
-        .order('created_at', { ascending: false })
-
-      if (!isManager) {
-        query = query.eq('user_id', user.id)
+      // Use service for basic fetching, then apply filters
+      let requests: LeaveRequestWithUser[]
+      
+      if (isManager) {
+        // Managers see all requests
+        requests = await leaveRequestsService.getLeaveRequests() as LeaveRequestWithUser[]
+      } else {
+        // Agents see only their own requests
+        requests = await leaveRequestsService.getUserLeaveRequests(user.id) as LeaveRequestWithUser[]
       }
 
+      // Apply filters
+      let filteredRequests = requests
+      
       if (startDate) {
-        query = query.gte('start_date', startDate)
+        filteredRequests = filteredRequests.filter(r => r.start_date >= startDate)
       }
       if (endDate) {
-        query = query.lte('end_date', endDate)
+        filteredRequests = filteredRequests.filter(r => r.end_date <= endDate)
       }
       if (leaveType !== 'all') {
-        query = query.eq('leave_type', leaveType)
+        filteredRequests = filteredRequests.filter(r => r.leave_type === leaveType)
       }
 
-      const { data, error } = await query
-
-      if (error) throw error
-
       // For managers, sort with pending approvals first
-      let sortedData = data || []
       if (isManager) {
-        sortedData = [...sortedData].sort((a, b) => {
+        filteredRequests = [...filteredRequests].sort((a, b) => {
           const aPending = a.status.startsWith('pending')
           const bPending = b.status.startsWith('pending')
           if (aPending && !bPending) return -1
@@ -69,7 +68,7 @@ export default function LeaveRequests() {
         })
       }
 
-      setRequests(sortedData as LeaveRequestWithUser[])
+      setRequests(filteredRequests)
     } catch (error) {
       console.error('Error fetching leave requests:', error)
     } finally {
@@ -81,14 +80,6 @@ export default function LeaveRequests() {
     setStartDate('')
     setEndDate('')
     setLeaveType('all')
-  }
-
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric'
-    })
   }
 
   return (
@@ -166,7 +157,7 @@ export default function LeaveRequests() {
             {requests.map((request) => (
               <div
                 key={request.id}
-                onClick={() => navigate(`/leave-requests/${request.id}`)}
+                onClick={() => navigate(`${ROUTES.LEAVE_REQUESTS}/${request.id}`)}
                 className="p-4 hover:bg-gray-50 cursor-pointer"
               >
                 <div className="flex items-start justify-between mb-3">

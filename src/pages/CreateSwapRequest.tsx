@@ -3,6 +3,10 @@ import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
 import { supabase } from '../lib/supabase'
 import type { User, Shift, ShiftType } from '../types'
+import { shiftsService } from '../services'
+import { formatDate } from '../utils'
+import { swapRequestSchema } from '../utils/validators'
+import { ROUTES, ERROR_MESSAGES } from '../constants'
 
 const SHIFT_TYPE_LABELS: Record<ShiftType, string> = {
   AM: 'AM Shift',
@@ -109,16 +113,8 @@ export default function CreateSwapRequest() {
     try {
       const effectiveRequesterId = canSubmitOnBehalf ? requesterUserId : user!.id
       const today = new Date().toISOString().split('T')[0]
-      const { data, error } = await supabase
-        .from('shifts')
-        .select('*')
-        .eq('user_id', effectiveRequesterId)
-        .gte('date', today)
-        .order('date')
-        .limit(30)
-
-      if (error) throw error
-      setMyShifts(data || [])
+      const data = await shiftsService.getUserShifts(effectiveRequesterId, today)
+      setMyShifts(data.slice(0, 30)) // Limit to 30 shifts
       setMyShiftId('')
     } catch (err) {
       console.error('Error fetching requester shifts:', err)
@@ -129,16 +125,8 @@ export default function CreateSwapRequest() {
     setLoadingShifts(true)
     try {
       const today = new Date().toISOString().split('T')[0]
-      const { data, error } = await supabase
-        .from('shifts')
-        .select('*')
-        .eq('user_id', targetUserId)
-        .gte('date', today)
-        .order('date')
-        .limit(30)
-
-      if (error) throw error
-      setTargetShifts(data || [])
+      const data = await shiftsService.getUserShifts(targetUserId, today)
+      setTargetShifts(data.slice(0, 30)) // Limit to 30 shifts
       setTargetShiftId('')
     } catch (err) {
       console.error('Error fetching target shifts:', err)
@@ -151,18 +139,20 @@ export default function CreateSwapRequest() {
     e.preventDefault()
     setError('')
 
-    if (!targetUserId) {
-      setError('Please select an agent to swap with')
-      return
-    }
-
-    if (!myShiftId || !targetShiftId) {
-      setError('Please select both shifts to swap')
-      return
-    }
-
     // Use selected requester ID (for WFM/TL submitting on behalf) or current user ID
     const effectiveRequesterId = canSubmitOnBehalf ? requesterUserId : user!.id
+
+    // Validate with Zod
+    const result = swapRequestSchema.safeParse({
+      target_user_id: targetUserId,
+      requester_shift_id: myShiftId,
+      target_shift_id: targetShiftId,
+    })
+
+    if (!result.success) {
+      setError(result.error.issues[0].message)
+      return
+    }
 
     setLoading(true)
     try {
@@ -186,22 +176,17 @@ export default function CreateSwapRequest() {
 
       if (insertError) throw insertError
 
-      navigate('/dashboard')
+      navigate(ROUTES.DASHBOARD)
     } catch (err) {
       console.error('Error creating swap request:', err)
-      setError('Failed to create swap request. Please try again.')
+      setError(ERROR_MESSAGES.SERVER)
     } finally {
       setLoading(false)
     }
   }
 
   const formatShiftOption = (shift: Shift) => {
-    const date = new Date(shift.date).toLocaleDateString('en-US', {
-      weekday: 'short',
-      month: 'short',
-      day: 'numeric'
-    })
-    return `${date} - ${SHIFT_TYPE_LABELS[shift.shift_type]}`
+    return `${formatDate(shift.date)} - ${SHIFT_TYPE_LABELS[shift.shift_type]}`
   }
 
   // Get the name of the selected requester for display
@@ -325,7 +310,7 @@ export default function CreateSwapRequest() {
           <div className="flex justify-end space-x-3">
             <button
               type="button"
-              onClick={() => navigate('/dashboard')}
+              onClick={() => navigate(ROUTES.DASHBOARD)}
               className="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
             >
               Cancel

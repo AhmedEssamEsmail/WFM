@@ -3,6 +3,10 @@ import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
 import { supabase } from '../lib/supabase'
 import type { LeaveType, User } from '../types'
+import { leaveBalancesService } from '../services'
+import { getDaysBetween, isValidDateRange } from '../utils'
+import { leaveRequestSchema } from '../utils/validators'
+import { ROUTES, ERROR_MESSAGES } from '../constants'
 
 const LEAVE_TYPES: { value: LeaveType; label: string }[] = [
   { value: 'sick', label: 'Sick' },
@@ -73,18 +77,8 @@ export default function CreateLeaveRequest() {
   const fetchLeaveBalance = async (userId: string, type: LeaveType) => {
     setLoadingBalance(true)
     try {
-      const { data, error } = await supabase
-        .from('leave_balances')
-        .select('balance')
-        .eq('user_id', userId)
-        .eq('leave_type', type)
-        .single()
-
-      if (error && error.code !== 'PGRST116') {
-        throw error
-      }
-      
-      setLeaveBalance(data?.balance ?? 0)
+      const balance = await leaveBalancesService.getLeaveBalance(userId, type)
+      setLeaveBalance(balance?.balance ?? 0)
     } catch (err) {
       console.error('Error fetching leave balance:', err)
       setLeaveBalance(0)
@@ -96,11 +90,7 @@ export default function CreateLeaveRequest() {
   // Calculate number of days between dates
   const calculateDays = (start: string, end: string): number => {
     if (!start || !end) return 0
-    const startDate = new Date(start)
-    const endDate = new Date(end)
-    const diffTime = endDate.getTime() - startDate.getTime()
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1 // +1 to include both start and end days
-    return diffDays > 0 ? diffDays : 0
+    return getDaysBetween(start, end)
   }
 
   const requestedDays = calculateDays(startDate, endDate)
@@ -110,18 +100,28 @@ export default function CreateLeaveRequest() {
     e.preventDefault()
     setError('')
 
-    if (!startDate || !endDate) {
-      setError('Please select both start and end dates')
+    // Use selected user ID (for WFM/TL submitting on behalf) or current user ID
+    const targetUserId = canSubmitOnBehalf ? selectedUserId : user!.id
+
+    // Validate with Zod
+    const result = leaveRequestSchema.safeParse({
+      user_id: targetUserId,
+      leave_type: leaveType,
+      start_date: startDate,
+      end_date: endDate,
+      notes: notes || null,
+    })
+
+    if (!result.success) {
+      setError(result.error.issues[0].message)
       return
     }
 
-    if (new Date(endDate) < new Date(startDate)) {
+    // Additional validation for date range
+    if (!isValidDateRange(startDate, endDate)) {
       setError('End date cannot be before start date')
       return
     }
-
-    // Use selected user ID (for WFM/TL submitting on behalf) or current user ID
-    const targetUserId = canSubmitOnBehalf ? selectedUserId : user!.id
 
     setLoading(true)
     try {
@@ -129,6 +129,7 @@ export default function CreateLeaveRequest() {
       // If requested days exceed available balance, auto-deny the request
       const status = exceedsBalance ? 'denied' : 'pending_tl'
 
+      // Use Supabase directly for insert to set custom status
       const { error: insertError } = await supabase
         .from('leave_requests')
         .insert({
@@ -142,10 +143,10 @@ export default function CreateLeaveRequest() {
 
       if (insertError) throw insertError
 
-      navigate('/leave-requests')
+      navigate(ROUTES.LEAVE_REQUESTS)
     } catch (err) {
       console.error('Error creating leave request:', err)
-      setError('Failed to create leave request. Please try again.')
+      setError(ERROR_MESSAGES.SERVER)
     } finally {
       setLoading(false)
     }
@@ -266,7 +267,7 @@ export default function CreateLeaveRequest() {
         <div className="flex gap-4">
           <button
             type="button"
-            onClick={() => navigate('/leave-requests')}
+            onClick={() => navigate(ROUTES.LEAVE_REQUESTS)}
             className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors"
           >
             Cancel

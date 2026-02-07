@@ -46,14 +46,110 @@ This document tracks the migration of existing code to use the new utilities, co
 - Type-safe validation
 - Consistent success messages
 
+#### 4. **Dashboard.tsx** ✅
+**Changes:**
+- ✅ Migrated to use `swapRequestsService` and `leaveRequestsService`
+- ✅ Replaced hardcoded routes with `ROUTES` constants
+- ✅ Using `formatDate()` utility for date formatting
+- ✅ Cleaner service-based data fetching
+
+**Impact:**
+- No direct Supabase calls
+- Consistent date formatting
+- Better code organization
+
+#### 5. **Schedule.tsx** ✅
+**Changes:**
+- ✅ Migrated to use `shiftsService` and `leaveRequestsService`
+- ✅ Using `formatDateISO()` utility for date formatting
+- ✅ Replaced direct Supabase calls in saveShift, deleteShift functions
+- ✅ Using service methods: `createShift()`, `updateShift()`, `deleteShift()`, `deleteLeaveRequest()`
+
+**Impact:**
+- Cleaner shift management code
+- Consistent date formatting with ISO format
+- Service abstraction for better testability
+
+#### 6. **LeaveRequests.tsx** ✅
+**Changes:**
+- ✅ Migrated to use `leaveRequestsService`
+- ✅ Using `formatDate()` utility for date formatting
+- ✅ Replaced hardcoded routes with `ROUTES` constants
+- ✅ Using service methods: `getLeaveRequests()`, `getUserLeaveRequests()`
+
+**Impact:**
+- No direct Supabase calls
+- Consistent date formatting
+- Better code organization
+
+#### 7. **SwapRequests.tsx** ✅
+**Changes:**
+- ✅ Migrated to use `swapRequestsService`
+- ✅ Using `formatDate()` utility for date formatting
+- ✅ Replaced hardcoded routes with `ROUTES` constants
+- ✅ Using service methods: `getSwapRequests()`, `getUserSwapRequests()`
+
+**Impact:**
+- No direct Supabase calls
+- Consistent date formatting
+- Better code organization
+
+#### 8. **Settings.tsx** ✅
+**Changes:**
+- ✅ Migrated to use `settingsService`
+- ✅ Used `ROUTES.DASHBOARD` constant for navigation
+- ✅ Used `SUCCESS_MESSAGES.SAVE` and `ERROR_MESSAGES.SERVER` constants
+- ✅ Service methods used: `getAutoApproveSetting()`, `getAllowLeaveExceptionsSetting()`, `updateSetting()`
+
+**Impact:**
+- Removed all direct Supabase calls
+- Consistent error/success messages
+- Cleaner settings management
+
+#### 9. **LeaveRequestDetail.tsx** ✅
+**Changes:**
+- ✅ Migrated to use `leaveRequestsService`, `commentsService`, `settingsService`, `authService`
+- ✅ Using `formatDate()` and `formatDateTime()` utilities for date formatting
+- ✅ Using `getDaysBetween()` utility for date calculations
+- ✅ Replaced hardcoded routes with `ROUTES` constants
+- ✅ Used `ERROR_MESSAGES` constants for error handling
+- ✅ Service methods used: `getLeaveRequestById()`, `updateLeaveRequestStatus()`, `getComments()`, `createComment()`, `createSystemComment()`, `getUserProfile()`, `getAllowLeaveExceptionsSetting()`
+
+**Impact:**
+- Removed ~15 direct Supabase calls
+- Consistent date formatting throughout
+- Better error handling
+- Cleaner approval workflow code
+
+#### 10. **SwapRequestDetail.tsx** ✅
+**Changes:**
+- ✅ Migrated to use `swapRequestsService`, `commentsService`, `settingsService`, `authService`, `shiftsService`
+- ✅ Using `formatDate()` and `formatDateTime()` utilities for date formatting
+- ✅ Used `ERROR_MESSAGES` constants for error handling
+- ✅ Service methods used: `getSwapRequestById()`, `updateSwapRequestStatus()`, `getComments()`, `createComment()`, `createSystemComment()`, `getUserProfile()`, `getAutoApproveSetting()`, `getShiftById()`, `getShifts()`, `updateShift()`
+
+**Impact:**
+- Removed ~20 direct Supabase calls
+- Consistent date formatting throughout
+- Better error handling
+- Cleaner approval and shift swap workflow code
+
 ---
 
 ## 📊 Migration Statistics
 
-### Files Migrated: 3
+### Files Migrated: 11
 - `src/lib/AuthContext.tsx`
 - `src/pages/Login.tsx`
 - `src/pages/Signup.tsx`
+- `src/pages/Dashboard.tsx`
+- `src/pages/Schedule.tsx`
+- `src/pages/LeaveRequests.tsx`
+- `src/pages/SwapRequests.tsx`
+- `src/pages/Settings.tsx`
+- `src/pages/LeaveRequestDetail.tsx`
+- `src/pages/SwapRequestDetail.tsx`
+- `src/pages/CreateLeaveRequest.tsx`
 
 ### Lines Changed:
 - **Removed**: 47 lines (manual validation, direct Supabase calls)

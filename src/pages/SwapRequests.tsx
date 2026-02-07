@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { supabase } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
 import { SwapRequest, User } from '../types'
 import { getStatusColor, getStatusLabel } from '../lib/designSystem'
+import { swapRequestsService } from '../services'
+import { formatDate } from '../utils'
+import { ROUTES } from '../constants'
 
 interface SwapRequestWithUsers extends SwapRequest {
   requester: User
@@ -31,34 +33,30 @@ export default function SwapRequests() {
     setLoading(true)
 
     try {
-      let query = supabase
-        .from('swap_requests')
-        .select(`
-          *,
-          requester:users!swap_requests_requester_id_fkey(*),
-          target_user:users!swap_requests_target_user_id_fkey(*)
-        `)
-        .order('created_at', { ascending: false })
-
-      if (!isManager) {
-        query = query.or(`requester_id.eq.${user.id},target_user_id.eq.${user.id}`)
+      // Use service for basic fetching
+      let requests: SwapRequestWithUsers[]
+      
+      if (isManager) {
+        // Managers see all requests
+        requests = await swapRequestsService.getSwapRequests() as SwapRequestWithUsers[]
+      } else {
+        // Agents see only their own requests (as requester or target)
+        requests = await swapRequestsService.getUserSwapRequests(user.id) as SwapRequestWithUsers[]
       }
 
+      // Apply date filters
+      let filteredRequests = requests
+      
       if (startDate) {
-        query = query.gte('created_at', startDate)
+        filteredRequests = filteredRequests.filter(r => r.created_at >= startDate)
       }
       if (endDate) {
-        query = query.lte('created_at', endDate + 'T23:59:59')
+        filteredRequests = filteredRequests.filter(r => r.created_at <= endDate + 'T23:59:59')
       }
 
-      const { data, error } = await query
-
-      if (error) throw error
-
       // For managers, sort with pending approvals first
-      let sortedData = data || []
       if (isManager) {
-        sortedData = [...sortedData].sort((a, b) => {
+        filteredRequests = [...filteredRequests].sort((a, b) => {
           const aPending = a.status.startsWith('pending')
           const bPending = b.status.startsWith('pending')
           if (aPending && !bPending) return -1
@@ -67,7 +65,7 @@ export default function SwapRequests() {
         })
       }
 
-      setRequests(sortedData as SwapRequestWithUsers[])
+      setRequests(filteredRequests)
     } catch (error) {
       console.error('Error fetching swap requests:', error)
     } finally {
@@ -78,14 +76,6 @@ export default function SwapRequests() {
   const clearFilters = () => {
     setStartDate('')
     setEndDate('')
-  }
-
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric'
-    })
   }
 
   return (
@@ -147,7 +137,7 @@ export default function SwapRequests() {
             {requests.map((request) => (
               <div
                 key={request.id}
-                onClick={() => navigate(`/swap-requests/${request.id}`)}
+                onClick={() => navigate(`${ROUTES.SWAP_REQUESTS}/${request.id}`)}
                 className="p-4 hover:bg-gray-50 cursor-pointer"
               >
                 <div className="flex items-start justify-between mb-3">

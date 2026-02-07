@@ -2,8 +2,11 @@ import { useState, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
-import { ShiftType, LeaveType } from '../types'
+import { ShiftType, LeaveType, Shift } from '../types'
 import { format, eachDayOfInterval } from 'date-fns'
+import { shiftsService } from '../services'
+import { downloadCSV, arrayToCSV } from '../utils'
+import { ROUTES, ERROR_MESSAGES } from '../constants'
 
 interface ParsedRow {
   email: string
@@ -196,24 +199,13 @@ export default function ScheduleUpload() {
 
         for (const shift of row.shifts) {
           try {
-            // Upsert: insert or update if exists
-            const { error: upsertError } = await supabase
-              .from('shifts')
-              .upsert(
-                {
-                  user_id: row.userId,
-                  date: shift.date,
-                  shift_type: shift.shiftType
-                },
-                { onConflict: 'user_id,date' }
-              )
-
-            if (upsertError) {
-              console.error('Upsert error:', upsertError)
-              failedCount++
-            } else {
-              successCount++
-            }
+            // Use shiftsService for bulk upsert
+            await shiftsService.bulkUpsertShifts([{
+              user_id: row.userId,
+              date: shift.date,
+              shift_type: shift.shiftType
+            }])
+            successCount++
           } catch (err) {
             console.error('Shift insert error:', err)
             failedCount++
@@ -223,7 +215,7 @@ export default function ScheduleUpload() {
 
       setUploadResult({ success: successCount, failed: failedCount })
     } catch (err) {
-      setError('Failed to upload schedule')
+      setError(ERROR_MESSAGES.SERVER)
       console.error(err)
     } finally {
       setUploading(false)
@@ -256,14 +248,8 @@ export default function ScheduleUpload() {
 
       if (usersError) throw usersError
 
-      // Get all shifts in date range
-      const { data: shifts, error: shiftsError } = await supabase
-        .from('shifts')
-        .select('*')
-        .gte('date', exportStartDate)
-        .lte('date', exportEndDate)
-
-      if (shiftsError) throw shiftsError
+      // Get all shifts in date range using service
+      const shifts = await shiftsService.getShifts(exportStartDate, exportEndDate)
 
       // Get all approved leaves in date range
       const { data: leaves, error: leavesError } = await supabase
@@ -278,14 +264,11 @@ export default function ScheduleUpload() {
       // Generate date range
       const dateRange = eachDayOfInterval({ start: startDate, end: endDate })
       
-      // Create CSV headers: email, date1, date2, date3...
-      const headers = ['email', ...dateRange.map(d => format(d, 'yyyy-MM-dd'))]
-      
       // Build data rows
-      const rows: string[][] = []
+      const csvData: Record<string, string>[] = []
       
       for (const user of users || []) {
-        const row: string[] = [user.email]
+        const row: Record<string, string> = { email: user.email }
         
         for (const date of dateRange) {
           const dateStr = format(date, 'yyyy-MM-dd')
@@ -306,51 +289,39 @@ export default function ScheduleUpload() {
           if (leave) {
             // Add leave type as uppercase label
             const leaveTypeLabel = leaveTypeShortLabels[leave.leave_type as LeaveType]
-            row.push(leaveTypeLabel || leave.leave_type.toUpperCase())
+            row[dateStr] = leaveTypeLabel || leave.leave_type.toUpperCase()
           } else {
             // Check for shift
             const shift = (shifts || []).find(s => s.user_id === user.id && s.date === dateStr)
             
             if (shift) {
-              // Check if it's a swapped shift
-              if (shift.swapped_with_user_id) {
-                row.push(`${shift.shift_type}-SWAP`)
+              // Check if it's a swapped shift (property may not exist in type but exists in DB)
+              const shiftWithSwap = shift as Shift & { swapped_with_user_id?: string }
+              if (shiftWithSwap.swapped_with_user_id) {
+                row[dateStr] = `${shift.shift_type}-SWAP`
               } else {
-                row.push(shift.shift_type)
+                row[dateStr] = shift.shift_type
               }
             } else {
-              row.push('') // Empty cell
+              row[dateStr] = '' // Empty cell
             }
           }
         }
         
-        rows.push(row)
+        csvData.push(row)
       }
       
-      // Convert to CSV
-      const csvContent = [
-        headers.join(','),
-        ...rows.map(row => row.join(','))
-      ].join('\n')
-      
-      // Download file
-      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
-      const link = document.createElement('a')
-      const url = URL.createObjectURL(blob)
-      
-      link.setAttribute('href', url)
-      link.setAttribute('download', `schedule_${exportStartDate}_to_${exportEndDate}.csv`)
-      link.style.visibility = 'hidden'
-      document.body.appendChild(link)
-      link.click()
-      document.body.removeChild(link)
+      // Convert to CSV and download
+      const csvContent = arrayToCSV(csvData)
+      const filename = `schedule_${exportStartDate}_to_${exportEndDate}.csv`
+      downloadCSV(filename, csvContent)
       
       setShowExportModal(false)
       setExportStartDate('')
       setExportEndDate('')
     } catch (err) {
       console.error('Export error:', err)
-      setError('Failed to export schedule')
+      setError(ERROR_MESSAGES.SERVER)
     } finally {
       setExporting(false)
     }
@@ -535,7 +506,7 @@ email,1,2,3,4,5{String.fromCharCode(10)}agent@example.com,AM,PM,AM,OFF,BET{Strin
                   Upload Another
                 </button>
                 <button
-                  onClick={() => navigate('/schedule')}
+                  onClick={() => navigate(ROUTES.SCHEDULE)}
                   className="px-4 py-2 text-sm bg-primary-600 text-white rounded-lg hover:bg-primary-700"
                 >
                   View Schedule

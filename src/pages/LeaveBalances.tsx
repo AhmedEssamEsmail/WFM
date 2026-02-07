@@ -2,6 +2,9 @@ import { useState, useEffect, useRef } from 'react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
 import { User, LeaveType } from '../types'
+import { leaveBalancesService } from '../services'
+import { downloadCSV, parseCSV, arrayToCSV } from '../utils'
+import { ERROR_MESSAGES } from '../constants'
 
 interface UserWithBalances extends User {
   balances: Record<LeaveType, number>
@@ -60,7 +63,7 @@ export default function LeaveBalances() {
       const { data: usersData, error: usersError } = await usersQuery.order('name')
       if (usersError) throw usersError
 
-      // Fetch leave balances
+      // Fetch leave balances - use Supabase directly since service doesn't have getAllLeaveBalances
       let balancesQuery = supabase.from('leave_balances').select('*')
       
       if (user.role === 'agent') {
@@ -73,11 +76,11 @@ export default function LeaveBalances() {
       // Combine users with their balances
       const balanceMap = new Map<string, Record<LeaveType, number>>()
       
-      balancesData?.forEach(b => {
+      balancesData?.forEach((b: { user_id: string; leave_type: LeaveType; balance: string | number }) => {
         if (!balanceMap.has(b.user_id)) {
           balanceMap.set(b.user_id, {} as Record<LeaveType, number>)
         }
-        balanceMap.get(b.user_id)![b.leave_type as LeaveType] = parseFloat(b.balance)
+        balanceMap.get(b.user_id)![b.leave_type as LeaveType] = parseFloat(String(b.balance))
       })
 
       const combined: UserWithBalances[] = (usersData || []).map(u => ({
@@ -88,7 +91,7 @@ export default function LeaveBalances() {
       setUsersWithBalances(combined)
     } catch (error) {
       console.error('Error fetching leave balances:', error)
-      setError('Failed to load leave balances')
+      setError(ERROR_MESSAGES.SERVER)
     } finally {
       setLoading(false)
     }
@@ -123,17 +126,12 @@ export default function LeaveBalances() {
       const userBalances = usersWithBalances.find(u => u.id === editingCell.userId)?.balances
       const currentBalance = userBalances?.[editingCell.leaveType] || 0
 
-      // Update the balance
-      const { error: updateError } = await supabase
-        .from('leave_balances')
-        .upsert({
-          user_id: editingCell.userId,
-          leave_type: editingCell.leaveType,
-          balance: newBalance,
-          updated_at: new Date().toISOString()
-        }, { onConflict: 'user_id,leave_type' })
-
-      if (updateError) throw updateError
+      // Update the balance using service
+      await leaveBalancesService.updateLeaveBalance(
+        editingCell.userId,
+        editingCell.leaveType,
+        newBalance
+      )
 
       // Record in history (optional - won't fail if table doesn't exist)
       try {
@@ -169,7 +167,7 @@ export default function LeaveBalances() {
       setEditValue('')
     } catch (error) {
       console.error('Error updating balance:', error)
-      setError('Failed to update balance')
+      setError(ERROR_MESSAGES.SERVER)
     } finally {
       setSaving(false)
     }
@@ -186,87 +184,79 @@ export default function LeaveBalances() {
   // Export functionality
   async function handleExport() {
     try {
-      // Create CSV headers
-      const headers = ['email', 'name', ...leaveTypeOrder.map(lt => leaveTypeLabels[lt])]
+      // Create CSV data
+      const csvData = usersWithBalances.map(user => ({
+        email: user.email,
+        name: user.name,
+        ...Object.fromEntries(
+          leaveTypeOrder.map(lt => [leaveTypeLabels[lt], (user.balances[lt] || 0).toFixed(2)])
+        )
+      }))
       
-      // Create rows
-      const rows = usersWithBalances.map(user => [
-        user.email,
-        user.name,
-        ...leaveTypeOrder.map(lt => (user.balances[lt] || 0).toFixed(2))
-      ])
-      
-      // Convert to CSV
-      const csvContent = [
-        headers.join(','),
-        ...rows.map(row => row.join(','))
-      ].join('\n')
-      
-      // Download file
-      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
-      const link = document.createElement('a')
-      const url = URL.createObjectURL(blob)
-      
-      link.setAttribute('href', url)
-      link.setAttribute('download', `leave_balances_${new Date().toISOString().split('T')[0]}.csv`)
-      link.style.visibility = 'hidden'
-      document.body.appendChild(link)
-      link.click()
-      document.body.removeChild(link)
+      // Convert to CSV and download
+      const csvContent = arrayToCSV(csvData)
+      const filename = `leave_balances_${new Date().toISOString().split('T')[0]}.csv`
+      downloadCSV(filename, csvContent)
     } catch (err) {
       console.error('Export error:', err)
-      setError('Failed to export leave balances')
+      setError(ERROR_MESSAGES.SERVER)
     }
   }
 
   // Import functionality
   function parseImportCSV(content: string): ParsedBalanceRow[] {
-    const lines = content.trim().split('\n')
     const rows: ParsedBalanceRow[] = []
     
-    if (lines.length < 2) return rows
-    
-    const headers = lines[0].split(',').map(h => h.trim().toLowerCase())
-    const emailIndex = headers.indexOf('email')
-    
-    if (emailIndex === -1) {
-      setError('CSV must have an "email" column')
-      return []
-    }
-    
-    // Map headers to leave types
-    const leaveTypeIndices: { index: number; type: LeaveType }[] = []
-    leaveTypeOrder.forEach(lt => {
-      const label = leaveTypeLabels[lt].toLowerCase()
-      const index = headers.indexOf(label)
-      if (index !== -1) {
-        leaveTypeIndices.push({ index, type: lt })
+    try {
+      // Use CSV helper to parse
+      const parsed = parseCSV<Record<string, string>>(content)
+      
+      if (parsed.length < 1) return rows
+      
+      // Get headers from first row keys
+      const firstRow = parsed[0]
+      const headers = Object.keys(firstRow).map(h => h.trim().toLowerCase())
+      const emailIndex = headers.indexOf('email')
+      
+      if (emailIndex === -1) {
+        setError('CSV must have an "email" column')
+        return []
       }
-    })
-    
-    // Parse data rows
-    for (let i = 1; i < lines.length; i++) {
-      const line = lines[i].trim()
-      if (!line) continue
       
-      const cells = line.split(',').map(c => c.trim())
-      const email = cells[emailIndex]
-      
-      if (!email || !email.includes('@')) continue
-      
-      const balances: Partial<Record<LeaveType, number>> = {}
-      
-      leaveTypeIndices.forEach(({ index, type }) => {
-        const value = parseFloat(cells[index])
-        if (!isNaN(value) && value >= 0) {
-          balances[type] = value
+      // Map headers to leave types
+      const leaveTypeMap: Record<string, LeaveType> = {}
+      leaveTypeOrder.forEach(lt => {
+        const label = leaveTypeLabels[lt].toLowerCase()
+        const headerKey = Object.keys(firstRow).find(k => k.trim().toLowerCase() === label)
+        if (headerKey) {
+          leaveTypeMap[headerKey] = lt
         }
       })
       
-      rows.push({ email, balances })
+      // Parse data rows
+      for (const row of parsed) {
+        const email = row[Object.keys(firstRow)[emailIndex]]?.trim()
+        
+        if (!email || !email.includes('@')) continue
+        
+        const balances: Partial<Record<LeaveType, number>> = {}
+        
+        Object.entries(leaveTypeMap).forEach(([headerKey, leaveType]) => {
+          const value = parseFloat(row[headerKey])
+          if (!isNaN(value) && value >= 0) {
+            balances[leaveType] = value
+          }
+        })
+        
+        rows.push({ email, balances })
+      }
+      
+      return rows
+    } catch (err) {
+      console.error('CSV parse error:', err)
+      setError('Failed to parse CSV file')
+      return []
     }
-    
-    return rows
   }
 
   async function handleImportFileChange(e: React.ChangeEvent<HTMLInputElement>) {
@@ -308,7 +298,7 @@ export default function LeaveBalances() {
       setParsedImport(parsed)
     } catch (err) {
       console.error('Parse error:', err)
-      setError('Failed to parse CSV file')
+      setError(ERROR_MESSAGES.SERVER)
     }
   }
 
@@ -335,17 +325,12 @@ export default function LeaveBalances() {
           try {
             const currentBalance = currentUser?.balances[leaveType as LeaveType] || 0
             
-            // Update balance
-            const { error: upsertError } = await supabase
-              .from('leave_balances')
-              .upsert({
-                user_id: row.userId,
-                leave_type: leaveType,
-                balance: newBalance,
-                updated_at: new Date().toISOString()
-              }, { onConflict: 'user_id,leave_type' })
-            
-            if (upsertError) throw upsertError
+            // Update balance using service
+            await leaveBalancesService.updateLeaveBalance(
+              row.userId,
+              leaveType as LeaveType,
+              newBalance
+            )
             
             // Record in history (optional)
             try {
@@ -375,7 +360,7 @@ export default function LeaveBalances() {
       await fetchLeaveBalances() // Refresh data
     } catch (err) {
       console.error('Import error:', err)
-      setError('Failed to import leave balances')
+      setError(ERROR_MESSAGES.SERVER)
     } finally {
       setImporting(false)
     }
