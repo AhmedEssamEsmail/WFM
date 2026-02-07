@@ -220,8 +220,6 @@ export default function EmployeeDirectory() {
         return employee
       })
 
-      console.log('Importing employees:', employeesToImport)
-
       const results = await bulkImportEmployees(employeesToImport)
       setImportResults(results)
       

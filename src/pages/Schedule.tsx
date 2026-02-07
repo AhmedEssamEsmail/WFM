@@ -188,7 +188,6 @@ export default function Schedule() {
 
       if (error) {
         // If table doesn't exist, use defaults
-        console.log('Leave types table not found, using defaults')
         setLeaveTypes(defaultLeaveTypes.map((lt, i) => ({ 
           id: `default-${i}`, 
           label: lt.label, 
