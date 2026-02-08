@@ -36,12 +36,19 @@ export default function LeaveBalances() {
   const [editValue, setEditValue] = useState('')
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
+  const [searchQuery, setSearchQuery] = useState('')
 
   // Import/Export state
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [parsedImport, setParsedImport] = useState<ParsedBalanceRow[] | null>(null)
   const [importing, setImporting] = useState(false)
   const [importResult, setImportResult] = useState<{ success: number; failed: number } | null>(null)
+
+  // Filter users based on search query
+  const filteredUsers = usersWithBalances.filter(u => 
+    u.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    u.email.toLowerCase().includes(searchQuery.toLowerCase())
+  )
 
   useEffect(() => {
     fetchLeaveBalances()
@@ -427,6 +434,48 @@ export default function LeaveBalances() {
         )}
       </div>
 
+      {/* Search Filter - Show for TL and WFM */}
+      {(user?.role === 'tl' || user?.role === 'wfm') && (
+        <div className="bg-white rounded-lg shadow p-4">
+          <label htmlFor="search-agent" className="block text-sm font-medium text-gray-700 mb-2">
+            Search by Name or Email
+          </label>
+          <div className="relative">
+            <input
+              id="search-agent"
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Type to filter users..."
+              className="block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 text-sm pl-10"
+            />
+            <svg 
+              className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" 
+              fill="none" 
+              stroke="currentColor" 
+              viewBox="0 0 24 24"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+            {searchQuery && (
+              <button
+                onClick={() => setSearchQuery('')}
+                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            )}
+          </div>
+          {searchQuery && (
+            <p className="mt-2 text-xs text-gray-500">
+              Showing {filteredUsers.length} of {usersWithBalances.length} users
+            </p>
+          )}
+        </div>
+      )}
+
       {/* Import Preview/Results */}
       {parsedImport && (
         <div className="bg-white rounded-lg shadow p-4 space-y-3">
@@ -526,7 +575,7 @@ export default function LeaveBalances() {
 
       {/* Balances Cards - Mobile Friendly */}
       <div className="space-y-3">
-        {usersWithBalances.map(u => {
+        {filteredUsers.map(u => {
           const total = leaveTypeOrder.reduce((acc, lt) => acc + (u.balances[lt] || 0), 0)
           
           return (
@@ -617,9 +666,11 @@ export default function LeaveBalances() {
         })}
       </div>
 
-      {usersWithBalances.length === 0 && (
+      {filteredUsers.length === 0 && !loading && (
         <div className="text-center py-12 bg-white rounded-lg shadow">
-          <p className="text-gray-500 text-sm">No users found</p>
+          <p className="text-gray-500 text-sm">
+            {searchQuery ? 'No users match your search' : 'No users found'}
+          </p>
         </div>
       )}
 

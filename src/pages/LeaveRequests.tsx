@@ -165,15 +165,13 @@ export default function LeaveRequests() {
                     <p className="text-sm font-medium text-gray-900 mb-1">
                       {(request as any).users?.name || 'Unknown'}
                     </p>
-                    <div className="flex items-center gap-2">
-                      <span className="inline-flex px-2 py-0.5 text-xs font-medium rounded bg-gray-100 text-gray-800">
-                        {LEAVE_DESCRIPTIONS[request.leave_type]}
-                      </span>
-                      <span className={`inline-flex px-2 py-0.5 text-xs font-semibold rounded ${getStatusColor(request.status)}`}>
-                        {getStatusLabel(request.status)}
-                      </span>
-                    </div>
+                    <span className="inline-flex px-2 py-0.5 text-xs font-medium rounded bg-gray-100 text-gray-800">
+                      {LEAVE_DESCRIPTIONS[request.leave_type]}
+                    </span>
                   </div>
+                  <span className={`inline-flex px-2 py-0.5 text-xs font-semibold rounded ${getStatusColor(request.status)}`}>
+                    {getStatusLabel(request.status)}
+                  </span>
                 </div>
                 <div className="text-xs text-gray-500 space-y-1">
                   <p className="font-medium text-gray-700">
