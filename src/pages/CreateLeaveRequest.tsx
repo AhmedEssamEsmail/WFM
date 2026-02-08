@@ -7,6 +7,7 @@ import { leaveBalancesService } from '../services'
 import { getDaysBetween, isValidDateRange } from '../utils'
 import { leaveRequestSchema } from '../utils/validators'
 import { ROUTES, ERROR_MESSAGES } from '../constants'
+import { InsufficientLeaveBalanceError } from '../types/errors'
 
 const LEAVE_TYPES: { value: LeaveType; label: string }[] = [
   { value: 'sick', label: 'Sick' },
@@ -145,8 +146,12 @@ export default function CreateLeaveRequest() {
 
       navigate(ROUTES.LEAVE_REQUESTS)
     } catch (err) {
-      console.error('Error creating leave request:', err)
-      setError(ERROR_MESSAGES.SERVER)
+      if (err instanceof InsufficientLeaveBalanceError) {
+        setError(`Insufficient leave balance. You have ${err.available} days available, but requested ${err.requested} days.`)
+      } else {
+        console.error('Error creating leave request:', err)
+        setError(ERROR_MESSAGES.SERVER)
+      }
     } finally {
       setLoading(false)
     }

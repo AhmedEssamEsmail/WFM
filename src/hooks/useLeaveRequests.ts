@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '../lib/supabase'
 import type { LeaveRequest } from '../types'
 import { useToast } from '../lib/ToastContext'
+import { STALE_TIMES, QUERY_KEYS } from '../constants/cache'
 
 export function useLeaveRequests() {
   const queryClient = useQueryClient()
@@ -9,7 +10,7 @@ export function useLeaveRequests() {
 
   // Fetch all leave requests
   const { data: leaveRequests, isLoading, error } = useQuery({
-    queryKey: ['leaveRequests'],
+    queryKey: [QUERY_KEYS.LEAVE_REQUESTS],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('leave_requests')
@@ -22,12 +23,13 @@ export function useLeaveRequests() {
       if (error) throw error
       return data
     },
+    staleTime: STALE_TIMES.LEAVE_REQUESTS, // 1 minute - frequent updates
   })
 
   // Fetch single leave request
   const useLeaveRequest = (id: string) => {
     return useQuery({
-      queryKey: ['leaveRequest', id],
+      queryKey: [QUERY_KEYS.LEAVE_REQUESTS, id],
       queryFn: async () => {
         const { data, error } = await supabase
           .from('leave_requests')
@@ -42,6 +44,7 @@ export function useLeaveRequests() {
         return data
       },
       enabled: !!id,
+      staleTime: STALE_TIMES.LEAVE_REQUESTS, // 1 minute - frequent updates
     })
   }
 
@@ -58,8 +61,8 @@ export function useLeaveRequests() {
       return data
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['leaveRequests'] })
-      queryClient.invalidateQueries({ queryKey: ['leaveBalances'] })
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.LEAVE_REQUESTS] })
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.LEAVE_BALANCES] })
       success('Leave request created successfully!')
     },
     onError: (error: Error) => {
@@ -81,9 +84,9 @@ export function useLeaveRequests() {
       return data
     },
     onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: ['leaveRequests'] })
-      queryClient.invalidateQueries({ queryKey: ['leaveRequest', variables.id] })
-      queryClient.invalidateQueries({ queryKey: ['leaveBalances'] })
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.LEAVE_REQUESTS] })
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.LEAVE_REQUESTS, variables.id] })
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.LEAVE_BALANCES] })
       success('Leave request updated successfully!')
     },
     onError: (error: Error) => {
@@ -102,7 +105,7 @@ export function useLeaveRequests() {
       if (error) throw error
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['leaveRequests'] })
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.LEAVE_REQUESTS] })
       success('Leave request deleted successfully!')
     },
     onError: (error: Error) => {

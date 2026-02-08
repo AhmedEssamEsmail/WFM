@@ -65,14 +65,17 @@ export default defineConfig({
       output: {
         manualChunks: {
           'react-vendor': ['react', 'react-dom', 'react-router-dom'],
+          'react-vendor-2': ['react/jsx-runtime'],
           'supabase': ['@supabase/supabase-js'],
           'react-query': ['@tanstack/react-query', '@tanstack/react-query-devtools'],
           'date-utils': ['date-fns']
         }
       }
     },
+    // Bundle size warning limit (KB) - alerts if chunks exceed this size
     chunkSizeWarningLimit: 600,
-    sourcemap: false,
+    // Enable sourcemaps for production error tracking (Sentry integration)
+    sourcemap: true,
     minify: 'terser',
     terserOptions: {
       compress: {

@@ -3,6 +3,8 @@
  * Integrates with ToastContext for user notifications and provides structured error logging
  */
 
+import { SystemCommentProtectedError } from '../types/errors'
+
 interface ErrorOptions {
   userMessage?: string
   logToConsole?: boolean
@@ -58,7 +60,11 @@ class ErrorHandler {
     let errorMessage = userMessage
     let stack: string | undefined
 
-    if (error instanceof Error) {
+    // Handle SystemCommentProtectedError specifically
+    if (error instanceof SystemCommentProtectedError) {
+      errorMessage = error.message
+      stack = error.stack
+    } else if (error instanceof Error) {
       errorMessage = error.message || userMessage
       stack = error.stack
     } else if (typeof error === 'string') {
@@ -95,7 +101,7 @@ class ErrorHandler {
 
     // Show toast notification
     if (showToast && this.toastFunction) {
-      this.toastFunction(userMessage, 'error')
+      this.toastFunction(errorMessage, 'error')
     }
 
     // In production, send to error tracking service (e.g., Sentry)
@@ -193,6 +199,22 @@ class ErrorHandler {
       context: { type: 'permission' }
     })
   }
+
+  /**
+   * Handle system comment protection errors
+   */
+  handleSystemCommentProtectedError(error: unknown): string {
+    if (error instanceof SystemCommentProtectedError) {
+      return this.handle(error, {
+        userMessage: error.message,
+        context: { type: 'system_comment_protected', operation: error.operation }
+      })
+    }
+    return this.handle(error, {
+      userMessage: 'System-generated comments cannot be modified.',
+      context: { type: 'system_comment_protected' }
+    })
+  }
 }
 
 export const errorHandler = ErrorHandler.getInstance()
@@ -239,6 +261,13 @@ export function handleDatabaseError(error: unknown, operation?: string): string 
  */
 export function handlePermissionError(error: unknown): string {
   return errorHandler.handlePermissionError(error)
+}
+
+/**
+ * Handle system comment protection errors
+ */
+export function handleSystemCommentProtectedError(error: unknown): string {
+  return errorHandler.handleSystemCommentProtectedError(error)
 }
 
 /**

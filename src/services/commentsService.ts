@@ -3,6 +3,7 @@
 import { supabase } from '../lib/supabase'
 import type { Comment, RequestType } from '../types'
 import { API_ENDPOINTS } from '../constants'
+import { SystemCommentProtectedError } from '../types/errors'
 
 export const commentsService = {
   /**
@@ -56,8 +57,23 @@ export const commentsService = {
 
   /**
    * Delete a comment
+   * Throws SystemCommentProtectedError if attempting to delete a system comment
    */
   async deleteComment(commentId: string): Promise<void> {
+    // First fetch the comment to check if it's a system comment
+    const { data: comment, error: fetchError } = await supabase
+      .from(API_ENDPOINTS.COMMENTS)
+      .select('is_system')
+      .eq('id', commentId)
+      .single()
+    
+    if (fetchError) throw fetchError
+    
+    // Prevent deletion of system comments
+    if (comment?.is_system === true) {
+      throw new SystemCommentProtectedError('delete')
+    }
+    
     const { error } = await supabase
       .from(API_ENDPOINTS.COMMENTS)
       .delete()
@@ -68,8 +84,23 @@ export const commentsService = {
 
   /**
    * Update a comment
+   * Throws SystemCommentProtectedError if attempting to update a system comment
    */
   async updateComment(commentId: string, content: string): Promise<Comment> {
+    // First fetch the comment to check if it's a system comment
+    const { data: comment, error: fetchError } = await supabase
+      .from(API_ENDPOINTS.COMMENTS)
+      .select('is_system')
+      .eq('id', commentId)
+      .single()
+    
+    if (fetchError) throw fetchError
+    
+    // Prevent modification of system comments
+    if (comment?.is_system === true) {
+      throw new SystemCommentProtectedError('update')
+    }
+    
     const { data, error } = await supabase
       .from(API_ENDPOINTS.COMMENTS)
       .update({ content })

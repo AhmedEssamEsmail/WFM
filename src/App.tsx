@@ -6,16 +6,16 @@ import { queryClient } from './lib/queryClient'
 import { AuthProvider } from './lib/AuthContext'
 import { ToastProvider, useToast } from './lib/ToastContext'
 import { initializeErrorHandler } from './lib/errorHandler'
-import { useAuth } from './hooks/useAuth'
-import Layout from './components/Layout'
+import ProtectedRoute from './components/ProtectedRoute'
+import PublicRoute from './components/PublicRoute'
 
-// Eager load critical pages
+// Eager load critical pages (only Login for immediate access)
 import Login from './pages/Login'
-import Signup from './pages/Signup'
-import Dashboard from './pages/Dashboard'
-import Unauthorized from './pages/Unauthorized'
 
-// Lazy load heavy pages for code splitting
+// Lazy load all other pages for optimal code splitting
+const Signup = lazy(() => import('./pages/Signup'))
+const Dashboard = lazy(() => import('./pages/Dashboard'))
+const Unauthorized = lazy(() => import('./pages/Unauthorized'))
 const LeaveRequests = lazy(() => import('./pages/LeaveRequests'))
 const SwapRequests = lazy(() => import('./pages/SwapRequests'))
 const CreateLeaveRequest = lazy(() => import('./pages/CreateLeaveRequest'))
@@ -56,103 +56,6 @@ function ErrorHandlerInitializer() {
   return null
 }
 
-function ProtectedRoute({ children }: { children: React.ReactNode }) {
-  const { user, loading, signOut } = useAuth()
-  
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
-      </div>
-    )
-  }
-  
-  if (!user) {
-    return <Navigate to="/login" replace />
-  }
-  
-  // Check if user email is from allowed domain
-  if (user.email && !user.email.endsWith('@dabdoob.com')) {
-    signOut()
-    return <Navigate to="/unauthorized" replace />
-  }
-  
-  return <Layout>{children}</Layout>
-}
-
-function PublicRoute({ children }: { children: React.ReactNode }) {
-  const { user, loading } = useAuth()
-  
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
-      </div>
-    )
-  }
-  
-  if (user) {
-    return <Navigate to="/dashboard" replace />
-  }
-  
-  return <>{children}</>
-}
-
-function WFMOnlyRoute({ children }: { children: React.ReactNode }) {
-  const { user, loading, signOut } = useAuth()
-  
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
-      </div>
-    )
-  }
-  
-  if (!user) {
-    return <Navigate to="/login" replace />
-  }
-  
-  if (user.email && !user.email.endsWith('@dabdoob.com')) {
-    signOut()
-    return <Navigate to="/unauthorized" replace />
-  }
-  
-  if (user.role !== 'wfm') {
-    return <Navigate to="/dashboard" replace />
-  }
-  
-  return <Layout>{children}</Layout>
-}
-
-// NEW: TL and WFM can view headcount, only WFM can edit
-function HeadcountRoute({ children }: { children: React.ReactNode }) {
-  const { user, loading, signOut, canViewHeadcount } = useAuth()
-  
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
-      </div>
-    )
-  }
-  
-  if (!user) {
-    return <Navigate to="/login" replace />
-  }
-  
-  if (user.email && !user.email.endsWith('@dabdoob.com')) {
-    signOut()
-    return <Navigate to="/unauthorized" replace />
-  }
-  
-  if (!canViewHeadcount()) {
-    return <Navigate to="/dashboard" replace />
-  }
-  
-  return <Layout>{children}</Layout>
-}
-
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
@@ -167,7 +70,7 @@ function App() {
                 <Route path="/signup" element={<PublicRoute><Signup /></PublicRoute>} />
                 <Route path="/unauthorized" element={<Unauthorized />} />
                 
-                {/* Protected routes */}
+                {/* Protected routes - Employee accessible */}
                 <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
                 <Route path="/schedule" element={<ProtectedRoute><Schedule /></ProtectedRoute>} />
                 <Route path="/swap-requests" element={<ProtectedRoute><SwapRequests /></ProtectedRoute>} />
@@ -179,15 +82,15 @@ function App() {
                 <Route path="/leave-requests/new" element={<ProtectedRoute><CreateLeaveRequest /></ProtectedRoute>} />
                 <Route path="/leave-requests/:id" element={<ProtectedRoute><LeaveRequestDetail /></ProtectedRoute>} />
                 <Route path="/leave-balances" element={<ProtectedRoute><LeaveBalances /></ProtectedRoute>} />
-                <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
                 
-                {/* WFM only routes */}
-                <Route path="/schedule/upload" element={<WFMOnlyRoute><ScheduleUpload /></WFMOnlyRoute>} />
+                {/* WFM only routes - Admin access */}
+                <Route path="/settings" element={<ProtectedRoute requiredRoles={['wfm']}><Settings /></ProtectedRoute>} />
+                <Route path="/schedule/upload" element={<ProtectedRoute requiredRoles={['wfm']}><ScheduleUpload /></ProtectedRoute>} />
                 
-                {/* TL and WFM routes */}
-                <Route path="/reports" element={<HeadcountRoute><Reports /></HeadcountRoute>} />
-                <Route path="/headcount/employees" element={<HeadcountRoute><EmployeeDirectory /></HeadcountRoute>} />
-                <Route path="/headcount/employees/:id" element={<HeadcountRoute><EmployeeDetail /></HeadcountRoute>} />
+                {/* TL and WFM routes - Manager access */}
+                <Route path="/reports" element={<ProtectedRoute requiredRoles={['tl', 'wfm']}><Reports /></ProtectedRoute>} />
+                <Route path="/headcount/employees" element={<ProtectedRoute requiredRoles={['tl', 'wfm']}><EmployeeDirectory /></ProtectedRoute>} />
+                <Route path="/headcount/employees/:id" element={<ProtectedRoute requiredRoles={['tl', 'wfm']}><EmployeeDetail /></ProtectedRoute>} />
                 
                 {/* Redirect root to dashboard */}
                 <Route path="/" element={<Navigate to="/dashboard" replace />} />

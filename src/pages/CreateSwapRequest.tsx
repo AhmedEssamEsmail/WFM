@@ -7,6 +7,7 @@ import { shiftsService } from '../services'
 import { formatDate } from '../utils'
 import { swapRequestSchema } from '../utils/validators'
 import { ROUTES, ERROR_MESSAGES } from '../constants'
+import { ValidationError } from '../types/errors'
 
 const SHIFT_TYPE_LABELS: Record<ShiftType, string> = {
   AM: 'AM Shift',
@@ -178,8 +179,12 @@ export default function CreateSwapRequest() {
 
       navigate(ROUTES.DASHBOARD)
     } catch (err) {
-      console.error('Error creating swap request:', err)
-      setError(ERROR_MESSAGES.SERVER)
+      if (err instanceof ValidationError) {
+        setError(err.message)
+      } else {
+        console.error('Error creating swap request:', err)
+        setError(ERROR_MESSAGES.SERVER)
+      }
     } finally {
       setLoading(false)
     }

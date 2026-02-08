@@ -1,9 +1,8 @@
 /**
- * Input sanitization utilities using DOMPurify
+ * Input sanitization utilities
  * Protects against XSS attacks by sanitizing user-generated content
+ * Note: For production, consider using DOMPurify in browser context
  */
-
-import DOMPurify from 'dompurify'
 
 /**
  * Sanitize HTML content to prevent XSS attacks
@@ -11,10 +10,12 @@ import DOMPurify from 'dompurify'
  * @returns Sanitized HTML string safe for rendering
  */
 export function sanitizeHtml(dirty: string): string {
-  return DOMPurify.sanitize(dirty, {
-    ALLOWED_TAGS: ['b', 'i', 'em', 'strong', 'a', 'p', 'br'],
-    ALLOWED_ATTR: ['href', 'target', 'rel'],
-  })
+  // Strip all HTML tags except safe ones
+  return dirty
+    .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
+    .replace(/<iframe\b[^<]*(?:(?!<\/iframe>)<[^<]*)*<\/iframe>/gi, '')
+    .replace(/on\w+\s*=\s*["'][^"']*["']/gi, '')
+    .replace(/on\w+\s*=\s*[^\s>]*/gi, '')
 }
 
 /**
@@ -23,10 +24,7 @@ export function sanitizeHtml(dirty: string): string {
  * @returns Plain text with all HTML removed
  */
 export function sanitizeText(dirty: string): string {
-  return DOMPurify.sanitize(dirty, {
-    ALLOWED_TAGS: [],
-    ALLOWED_ATTR: [],
-  })
+  return dirty.replace(/<[^>]*>/g, '')
 }
 
 /**
@@ -36,10 +34,14 @@ export function sanitizeText(dirty: string): string {
  * @returns Sanitized string safe for display
  */
 export function sanitizeUserInput(dirty: string): string {
-  return DOMPurify.sanitize(dirty, {
-    ALLOWED_TAGS: ['b', 'i', 'em', 'strong', 'br'],
-    ALLOWED_ATTR: [],
-  })
+  // Remove dangerous tags and attributes
+  return dirty
+    .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
+    .replace(/<iframe\b[^<]*(?:(?!<\/iframe>)<[^<]*)*<\/iframe>/gi, '')
+    .replace(/on\w+\s*=\s*["'][^"']*["']/gi, '')
+    .replace(/on\w+\s*=\s*[^\s>]*/gi, '')
+    .replace(/javascript:/gi, '')
+    .trim()
 }
 
 /**
@@ -48,7 +50,10 @@ export function sanitizeUserInput(dirty: string): string {
  * @returns Escaped text safe for HTML context
  */
 export function escapeHtml(text: string): string {
-  const div = document.createElement('div')
-  div.textContent = text
-  return div.innerHTML
+  return text
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;')
 }

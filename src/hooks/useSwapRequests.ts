@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '../lib/supabase'
 import type { SwapRequest } from '../types'
 import { useToast } from '../lib/ToastContext'
+import { STALE_TIMES, QUERY_KEYS } from '../constants/cache'
 
 export function useSwapRequests() {
   const queryClient = useQueryClient()
@@ -9,7 +10,7 @@ export function useSwapRequests() {
 
   // Fetch all swap requests
   const { data: swapRequests, isLoading, error } = useQuery({
-    queryKey: ['swapRequests'],
+    queryKey: [QUERY_KEYS.SWAP_REQUESTS],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('swap_requests')
@@ -25,12 +26,13 @@ export function useSwapRequests() {
       if (error) throw error
       return data
     },
+    staleTime: STALE_TIMES.SWAP_REQUESTS, // 1 minute - frequent updates
   })
 
   // Fetch single swap request
   const useSwapRequest = (id: string) => {
     return useQuery({
-      queryKey: ['swapRequest', id],
+      queryKey: [QUERY_KEYS.SWAP_REQUESTS, id],
       queryFn: async () => {
         const { data, error } = await supabase
           .from('swap_requests')
@@ -48,6 +50,7 @@ export function useSwapRequests() {
         return data
       },
       enabled: !!id,
+      staleTime: STALE_TIMES.SWAP_REQUESTS, // 1 minute - frequent updates
     })
   }
 
@@ -64,7 +67,7 @@ export function useSwapRequests() {
       return data
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['swapRequests'] })
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.SWAP_REQUESTS] })
       success('Swap request created successfully!')
     },
     onError: (error: Error) => {
@@ -86,8 +89,8 @@ export function useSwapRequests() {
       return data
     },
     onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: ['swapRequests'] })
-      queryClient.invalidateQueries({ queryKey: ['swapRequest', variables.id] })
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.SWAP_REQUESTS] })
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.SWAP_REQUESTS, variables.id] })
       success('Swap request updated successfully!')
     },
     onError: (error: Error) => {
@@ -106,7 +109,7 @@ export function useSwapRequests() {
       if (error) throw error
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['swapRequests'] })
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.SWAP_REQUESTS] })
       success('Swap request deleted successfully!')
     },
     onError: (error: Error) => {

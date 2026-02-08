@@ -10,6 +10,9 @@ export type LeaveType = 'sick' | 'annual' | 'casual' | 'public_holiday' | 'berea
 
 export type RequestType = 'swap' | 'leave'
 
+// Export error types
+export * from './errors'
+
 export interface User {
   id: string
   email: string
@@ -83,6 +86,28 @@ export interface LeaveTypeConfig {
   label: string
   is_active: boolean
   created_at: string
+}
+
+// Swap execution result types
+export interface SwapExecutionShiftUpdate {
+  id: string
+  user_id: string
+  date: string
+  old_shift_type: ShiftType
+  new_shift_type: ShiftType
+}
+
+export interface SwapExecutionResult {
+  success: boolean
+  message: string
+  updated_shifts?: {
+    requester_on_requester_date: SwapExecutionShiftUpdate
+    target_on_requester_date: SwapExecutionShiftUpdate
+    requester_on_target_date: SwapExecutionShiftUpdate
+    target_on_target_date: SwapExecutionShiftUpdate
+  }
+  error?: string
+  error_code?: string
 }
 // ADD THESE TYPES TO YOUR EXISTING types/index.ts FILE
 

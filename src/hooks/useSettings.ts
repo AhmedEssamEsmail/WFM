@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '../lib/supabase'
 import { useToast } from '../lib/ToastContext'
+import { STALE_TIMES, QUERY_KEYS } from '../constants/cache'
 
 interface Setting {
   key: string
@@ -13,7 +14,7 @@ export function useSettings() {
 
   // Fetch all settings
   const { data: settings, isLoading, error } = useQuery({
-    queryKey: ['settings'],
+    queryKey: [QUERY_KEYS.SETTINGS],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('settings')
@@ -29,6 +30,7 @@ export function useSettings() {
       
       return settingsObj
     },
+    staleTime: STALE_TIMES.SETTINGS, // 10 minutes - settings rarely change
   })
 
   // Get specific setting
@@ -55,7 +57,7 @@ export function useSettings() {
       return data
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['settings'] })
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.SETTINGS] })
       success('Setting updated successfully!')
     },
     onError: (error: Error) => {

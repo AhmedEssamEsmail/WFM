@@ -7,6 +7,7 @@ import { swapRequestsService, commentsService, settingsService, authService, shi
 import { formatDate, formatDateTime } from '../utils'
 import { ERROR_MESSAGES } from '../constants'
 import { handleDatabaseError } from '../lib/errorHandler'
+import { ConcurrencyError, SwapExecutionError } from '../types/errors'
 
 interface ShiftWithUser extends Shift {
   user?: User
@@ -33,6 +34,7 @@ export default function SwapRequestDetail() {
   const [loading, setLoading] = useState(true)
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState('')
+  const [showRefreshButton, setShowRefreshButton] = useState(false)
 
   useEffect(() => {
     if (id) {
@@ -88,10 +90,11 @@ export default function SwapRequestDetail() {
 
     setSubmitting(true)
     setError('')
+    setShowRefreshButton(false)
 
     try {
       const oldStatus = request.status
-      await swapRequestsService.updateSwapRequestStatus(id!, 'pending_tl')
+      await swapRequestsService.updateSwapRequestStatus(id!, 'pending_tl', undefined, oldStatus)
 
       // Create system comment
       await createSystemComment(
@@ -100,8 +103,13 @@ export default function SwapRequestDetail() {
 
       await fetchRequestDetails()
     } catch (error) {
-      handleDatabaseError(error, 'accept request')
-      setError(ERROR_MESSAGES.SERVER)
+      if (error instanceof ConcurrencyError) {
+        setError('This request was modified by someone else. Please refresh to see the latest version.')
+        setShowRefreshButton(true)
+      } else {
+        handleDatabaseError(error, 'accept request')
+        setError(ERROR_MESSAGES.SERVER)
+      }
     } finally {
       setSubmitting(false)
     }
@@ -112,10 +120,11 @@ export default function SwapRequestDetail() {
 
     setSubmitting(true)
     setError('')
+    setShowRefreshButton(false)
 
     try {
       const oldStatus = request.status
-      await swapRequestsService.updateSwapRequestStatus(id!, 'rejected')
+      await swapRequestsService.updateSwapRequestStatus(id!, 'rejected', undefined, oldStatus)
 
       // Create system comment
       await createSystemComment(
@@ -124,8 +133,13 @@ export default function SwapRequestDetail() {
 
       await fetchRequestDetails()
     } catch (error) {
-      handleDatabaseError(error, 'decline request')
-      setError(ERROR_MESSAGES.SERVER)
+      if (error instanceof ConcurrencyError) {
+        setError('This request was modified by someone else. Please refresh to see the latest version.')
+        setShowRefreshButton(true)
+      } else {
+        handleDatabaseError(error, 'decline request')
+        setError(ERROR_MESSAGES.SERVER)
+      }
     } finally {
       setSubmitting(false)
     }
@@ -136,6 +150,7 @@ export default function SwapRequestDetail() {
 
     setSubmitting(true)
     setError('')
+    setShowRefreshButton(false)
 
     try {
       const oldStatus = request.status
@@ -162,47 +177,18 @@ export default function SwapRequestDetail() {
         throw new Error('Cannot approve this request')
       }
 
-      await swapRequestsService.updateSwapRequestStatus(id!, newStatus, approvalField)
+      await swapRequestsService.updateSwapRequestStatus(id!, newStatus, approvalField, oldStatus)
 
-      // If fully approved, execute the swap across ALL 4 shift records
+      // If fully approved, execute the swap using the stored procedure
       if (newStatus === 'approved' && requesterShift && targetShift && request) {
-        const requesterDate = requesterShift.date
-        const targetDate = targetShift.date
-        const requesterId = request.requester_id
-        const targetUserId = request.target_user_id
-
-        // Get Agent Y's shift on requester's date (2-Feb)
-        const targetOnRequesterDateShifts = await shiftsService.getShifts(requesterDate, requesterDate)
-        const targetOnRequesterDate = targetOnRequesterDateShifts.find(s => s.user_id === targetUserId)
-
-        // Get Agent X's shift on target's date (7-Feb)
-        const requesterOnTargetDateShifts = await shiftsService.getShifts(targetDate, targetDate)
-        const requesterOnTargetDate = requesterOnTargetDateShifts.find(s => s.user_id === requesterId)
-
-        // Store original shift types
-        const requesterShiftTypeOnReqDate = requesterShift.shift_type
-        const targetShiftTypeOnTgtDate = targetShift.shift_type
-        const targetShiftTypeOnReqDate = targetOnRequesterDate?.shift_type
-        const requesterShiftTypeOnTgtDate = requesterOnTargetDate?.shift_type
-
-        // Update 1: Agent X on requester date gets Agent Y's shift type from that date
-        if (targetShiftTypeOnReqDate) {
-          await shiftsService.updateShift(requesterShift.id, { shift_type: targetShiftTypeOnReqDate })
-        }
-
-        // Update 2: Agent Y on requester date gets Agent X's shift type from that date
-        if (targetOnRequesterDate) {
-          await shiftsService.updateShift(targetOnRequesterDate.id, { shift_type: requesterShiftTypeOnReqDate })
-        }
-
-        // Update 3: Agent X on target date gets Agent Y's shift type from that date
-        if (requesterOnTargetDate && targetShiftTypeOnTgtDate) {
-          await shiftsService.updateShift(requesterOnTargetDate.id, { shift_type: targetShiftTypeOnTgtDate })
-        }
-
-        // Update 4: Agent Y on target date gets Agent X's shift type from that date
-        if (requesterShiftTypeOnTgtDate) {
-          await shiftsService.updateShift(targetShift.id, { shift_type: requesterShiftTypeOnTgtDate })
+        try {
+          await swapRequestsService.executeSwap(request)
+        } catch (swapError) {
+          if (swapError instanceof SwapExecutionError) {
+            setError(`Failed to execute swap: ${swapError.message}`)
+          } else {
+            throw swapError
+          }
         }
       }
 
@@ -219,8 +205,13 @@ export default function SwapRequestDetail() {
 
       await fetchRequestDetails()
     } catch (error) {
-      handleDatabaseError(error, 'approve request')
-      setError(ERROR_MESSAGES.SERVER)
+      if (error instanceof ConcurrencyError) {
+        setError('This request was modified by someone else. Please refresh to see the latest version.')
+        setShowRefreshButton(true)
+      } else {
+        handleDatabaseError(error, 'approve request')
+        setError(ERROR_MESSAGES.SERVER)
+      }
     } finally {
       setSubmitting(false)
     }
@@ -231,10 +222,11 @@ export default function SwapRequestDetail() {
 
     setSubmitting(true)
     setError('')
+    setShowRefreshButton(false)
 
     try {
       const oldStatus = request.status
-      await swapRequestsService.updateSwapRequestStatus(id!, 'rejected')
+      await swapRequestsService.updateSwapRequestStatus(id!, 'rejected', undefined, oldStatus)
 
       // Create system comment
       await createSystemComment(
@@ -243,8 +235,13 @@ export default function SwapRequestDetail() {
 
       await fetchRequestDetails()
     } catch (error) {
-      handleDatabaseError(error, 'reject request')
-      setError(ERROR_MESSAGES.SERVER)
+      if (error instanceof ConcurrencyError) {
+        setError('This request was modified by someone else. Please refresh to see the latest version.')
+        setShowRefreshButton(true)
+      } else {
+        handleDatabaseError(error, 'reject request')
+        setError(ERROR_MESSAGES.SERVER)
+      }
     } finally {
       setSubmitting(false)
     }
@@ -255,6 +252,7 @@ export default function SwapRequestDetail() {
 
     setSubmitting(true)
     setError('')
+    setShowRefreshButton(false)
 
     try {
       const oldStatus = request.status
@@ -297,7 +295,7 @@ export default function SwapRequestDetail() {
         }
       }
 
-      await swapRequestsService.updateSwapRequestStatus(id!, 'pending_tl')
+      await swapRequestsService.updateSwapRequestStatus(id!, 'pending_tl', undefined, oldStatus)
 
       // Create system comment
       await createSystemComment(
@@ -306,8 +304,13 @@ export default function SwapRequestDetail() {
 
       await fetchRequestDetails()
     } catch (error) {
-      handleDatabaseError(error, 'revoke decision')
-      setError(ERROR_MESSAGES.SERVER)
+      if (error instanceof ConcurrencyError) {
+        setError('This request was modified by someone else. Please refresh to see the latest version.')
+        setShowRefreshButton(true)
+      } else {
+        handleDatabaseError(error, 'revoke decision')
+        setError(ERROR_MESSAGES.SERVER)
+      }
     } finally {
       setSubmitting(false)
     }
@@ -459,8 +462,16 @@ export default function SwapRequestDetail() {
       </div>
 
       {error && (
-        <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-red-700">
-          {error}
+        <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+          <p className="text-red-700">{error}</p>
+          {showRefreshButton && (
+            <button
+              onClick={() => window.location.reload()}
+              className="mt-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
+            >
+              Refresh Page
+            </button>
+          )}
         </div>
       )}
 

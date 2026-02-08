@@ -7,6 +7,7 @@ import { leaveRequestsService, commentsService, settingsService, authService } f
 import { formatDate, formatDateTime, getDaysBetween } from '../utils'
 import { ROUTES, ERROR_MESSAGES } from '../constants'
 import { handleDatabaseError } from '../lib/errorHandler'
+import { ConcurrencyError } from '../types/errors'
 
 interface CommentWithSystem extends Comment {
   is_system?: boolean
@@ -26,6 +27,7 @@ export default function LeaveRequestDetail() {
   const [error, setError] = useState('')
   const [allowExceptions, setAllowExceptions] = useState(false)
   const [requestingException, setRequestingException] = useState(false)
+  const [showRefreshButton, setShowRefreshButton] = useState(false)
 
   useEffect(() => {
     if (id) {
@@ -76,6 +78,7 @@ export default function LeaveRequestDetail() {
     if (!request || !user) return
     setSubmitting(true)
     setError('')
+    setShowRefreshButton(false)
 
     try {
       let newStatus: LeaveRequestStatus = request.status
@@ -89,7 +92,7 @@ export default function LeaveRequestDetail() {
         approvalField = 'wfm_approved_at'
       }
 
-      await leaveRequestsService.updateLeaveRequestStatus(id!, newStatus, approvalField)
+      await leaveRequestsService.updateLeaveRequestStatus(id!, newStatus, approvalField, request.status)
 
       // Add system comment
       await addSystemComment(`Request approved by ${user.name} (${user.role.toUpperCase()})`)
@@ -97,8 +100,13 @@ export default function LeaveRequestDetail() {
       // Refresh the request
       await fetchRequestDetails()
     } catch (err) {
-      handleDatabaseError(err, 'approve request')
-      setError(ERROR_MESSAGES.SERVER)
+      if (err instanceof ConcurrencyError) {
+        setError('This request was modified by someone else. Please refresh to see the latest version.')
+        setShowRefreshButton(true)
+      } else {
+        handleDatabaseError(err, 'approve request')
+        setError(ERROR_MESSAGES.SERVER)
+      }
     } finally {
       setSubmitting(false)
     }
@@ -108,9 +116,10 @@ export default function LeaveRequestDetail() {
     if (!request || !user) return
     setSubmitting(true)
     setError('')
+    setShowRefreshButton(false)
 
     try {
-      await leaveRequestsService.updateLeaveRequestStatus(id!, 'rejected')
+      await leaveRequestsService.updateLeaveRequestStatus(id!, 'rejected', undefined, request.status)
 
       // Add system comment
       await addSystemComment(`Request rejected by ${user.name} (${user.role.toUpperCase()})`)
@@ -118,8 +127,13 @@ export default function LeaveRequestDetail() {
       // Refresh the request
       await fetchRequestDetails()
     } catch (err) {
-      handleDatabaseError(err, 'reject request')
-      setError(ERROR_MESSAGES.SERVER)
+      if (err instanceof ConcurrencyError) {
+        setError('This request was modified by someone else. Please refresh to see the latest version.')
+        setShowRefreshButton(true)
+      } else {
+        handleDatabaseError(err, 'reject request')
+        setError(ERROR_MESSAGES.SERVER)
+      }
     } finally {
       setSubmitting(false)
     }
@@ -129,9 +143,10 @@ export default function LeaveRequestDetail() {
     if (!request || !user) return
     setRequestingException(true)
     setError('')
+    setShowRefreshButton(false)
 
     try {
-      await leaveRequestsService.updateLeaveRequestStatus(id!, 'pending_tl')
+      await leaveRequestsService.updateLeaveRequestStatus(id!, 'pending_tl', undefined, request.status)
 
       // Add system comment
       await addSystemComment('Exception requested - sent for TL approval')
@@ -139,8 +154,13 @@ export default function LeaveRequestDetail() {
       // Refresh the request
       await fetchRequestDetails()
     } catch (err) {
-      handleDatabaseError(err, 'request exception')
-      setError(ERROR_MESSAGES.SERVER)
+      if (err instanceof ConcurrencyError) {
+        setError('This request was modified by someone else. Please refresh to see the latest version.')
+        setShowRefreshButton(true)
+      } else {
+        handleDatabaseError(err, 'request exception')
+        setError(ERROR_MESSAGES.SERVER)
+      }
     } finally {
       setRequestingException(false)
     }
@@ -301,8 +321,16 @@ export default function LeaveRequestDetail() {
       </div>
 
       {error && (
-        <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-red-700">
-          {error}
+        <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+          <p className="text-red-700">{error}</p>
+          {showRefreshButton && (
+            <button
+              onClick={() => window.location.reload()}
+              className="mt-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
+            >
+              Refresh Page
+            </button>
+          )}
         </div>
       )}
 

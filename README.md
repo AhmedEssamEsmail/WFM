@@ -510,8 +510,26 @@ Configured for **Vercel** with SPA rewrite rules and security headers (`X-Frame-
 |----------|-------------|----------|
 | `VITE_SUPABASE_URL` | Your Supabase project URL | Yes |
 | `VITE_SUPABASE_ANON_KEY` | Your Supabase anonymous/public API key | Yes |
+| `VITE_SENTRY_DSN` | Sentry Data Source Name for error tracking | No |
+| `VITE_SENTRY_ENVIRONMENT` | Environment name (development, staging, production) | No |
 
-Get these values from your Supabase project dashboard under Settings → API.
+Get Supabase values from your Supabase project dashboard under Settings → API.
+
+### Optional: Sentry Error Tracking
+
+To enable production error tracking with Sentry:
+
+1. Create a free account at [sentry.io](https://sentry.io)
+2. Create a new project and select "React" as the platform
+3. Copy the DSN from your project settings
+4. Add the DSN to your `.env` file:
+   ```
+   VITE_SENTRY_DSN=https://your-dsn@sentry.io/your-project-id
+   VITE_SENTRY_ENVIRONMENT=production
+   ```
+5. Sentry will automatically capture errors, performance metrics, and sourcemaps
+
+Leave `VITE_SENTRY_DSN` empty to disable Sentry integration.
 
 ---
 
