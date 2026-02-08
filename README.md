@@ -107,13 +107,26 @@ A comprehensive Workforce Management system for shift scheduling, swap requests,
   - Status badges repositioned for consistency across Leave and Swap request pages
   - Agent name filter added to Leave Balances page for TL/WFM users
   - Updated Reports navigation icon for better visual distinction
+- **Critical Data Integrity Fixes**:
+  - **Atomic Swap Execution** (Migration 008): Implemented PostgreSQL stored procedure to ensure all 4 shift updates in a swap succeed or fail together, preventing partial swap states
+  - Service-level leave balance validation to prevent API bypass
+  - Comprehensive input validation (UUIDs, enums, string lengths, dates)
+  - Optimistic locking to prevent race conditions in concurrent approvals
+- **Security & Access Control**:
+  - **System Comment Protection** (Migration 009): RLS policies prevent modification of system-generated audit trail comments
+  - Route-level authentication and authorization with ProtectedRoute component
+  - Role-based access control enforced at routing layer
+  - Domain validation for all authenticated users
+- **Performance & Scalability**:
+  - **Database Indexes** (Migration 010): Strategic composite indexes on frequently queried columns (user_id + date, status + created_at, etc.)
+  - Cursor-based pagination for all list endpoints (50 records per page)
+  - Sentry integration for production error tracking and performance monitoring
+  - React Query cache optimization with differentiated stale times per data type
+  - Enhanced code splitting and lazy loading for faster initial page loads
 - **Database Optimization**:
-  - Removed FTE (Full-Time Equivalent) tracking from all employee pages and database
+  - Removed FTE (Full-Time Equivalent) tracking from all employee pages and database (Migration 011)
   - Simplified headcount metrics and department summaries
   - Updated database views to exclude FTE calculations
-- **Performance Indexes**: Added database indexes for frequently queried fields
-- **System Comment Protection**: Enhanced RLS policies to prevent unauthorized comment modifications
-- **Atomic Swap Execution**: Improved swap request approval with transaction safety
 
 #### Accessibility Features
 - **ARIA labels** for screen readers
