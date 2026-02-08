@@ -101,6 +101,20 @@ A comprehensive Workforce Management system for shift scheduling, swap requests,
 - Reduced API calls and improved response times
 - Better offline experience with cached data
 
+### Recent Improvements (February 2026)
+- **Chunk Loading Error Handling**: Automatic page reload on deployment-related chunk errors with service worker cleanup
+- **Enhanced UI/UX**:
+  - Status badges repositioned for consistency across Leave and Swap request pages
+  - Agent name filter added to Leave Balances page for TL/WFM users
+  - Updated Reports navigation icon for better visual distinction
+- **Database Optimization**:
+  - Removed FTE (Full-Time Equivalent) tracking from all employee pages and database
+  - Simplified headcount metrics and department summaries
+  - Updated database views to exclude FTE calculations
+- **Performance Indexes**: Added database indexes for frequently queried fields
+- **System Comment Protection**: Enhanced RLS policies to prevent unauthorized comment modifications
+- **Atomic Swap Execution**: Improved swap request approval with transaction safety
+
 #### Accessibility Features
 - **ARIA labels** for screen readers
 - **Keyboard navigation** support (Enter/Space keys)
@@ -137,7 +151,7 @@ A comprehensive Workforce Management system for shift scheduling, swap requests,
   - Job title, level, and employment type
   - Location, timezone, and contact information
   - Skills, certifications, and qualifications
-  - FTE percentage and working hours
+  - Working hours and availability
   - Cost center and budget codes
   - Manager assignments
 - Protected edit functionality (WFM only, TL view-only)
@@ -348,7 +362,7 @@ WFM/
 
 | Table | Purpose | Key Fields |
 |-------|---------|------------|
-| **users** | User profiles linked to Supabase Auth with headcount fields | id, email, name, role, employee_id, status, department, hire_date, manager_id, fte_percentage |
+| **users** | User profiles linked to Supabase Auth with headcount fields | id, email, name, role, employee_id, status, department, hire_date, manager_id |
 | **shifts** | Daily shift assignments | id, user_id, date, shift_type (AM/PM/BET/OFF) |
 | **swap_requests** | Shift swap requests with multi-level approval | id, requester_id, target_user_id, status, original shift tracking fields |
 | **leave_requests** | Leave/time-off requests with type and approval status | id, user_id, leave_type, start_date, end_date, status, notes |
@@ -370,9 +384,9 @@ WFM/
 
 | View | Purpose |
 |------|---------|
-| **v_headcount_active** | Joined view of users + headcount_profiles with manager info |
-| **v_department_summary** | Department-level metrics (headcount, FTE, role distribution) |
-| **v_management_chain** | Hierarchical management structure with reporting paths |
+| **v_headcount_active** | Joined view of users + headcount_profiles with manager info (excludes terminated employees) |
+| **v_department_summary** | Department-level metrics (headcount, active/on_leave counts, role distribution) |
+| **v_management_chain** | Hierarchical management structure with reporting paths and levels |
 
 ### Enums
 
@@ -474,6 +488,10 @@ Configured for **Vercel** with SPA rewrite rules and security headers (`X-Frame-
      - `supabase/migrations/006_swap_requests_original_shift_info.sql`
      - `supabase/migrations/007_add_denied_status_to_leave_requests.sql`
      - `supabase/migrations/007_swap_requests_additional_original_shift_types.sql`
+     - `supabase/migrations/008_atomic_swap_execution.sql`
+     - `supabase/migrations/009_system_comment_protection.sql`
+     - `supabase/migrations/010_performance_indexes.sql`
+     - `supabase/migrations/011_remove_fte_percentage.sql`
    - Copy your project URL and anon key from Settings → API
 
 4. **Configure environment variables**
