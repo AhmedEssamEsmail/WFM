@@ -40,8 +40,8 @@ export default function HeadcountDashboard() {
         </Link>
       </div>
 
-      {/* Stats Cards - 2 columns on mobile, 4 on desktop */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+      {/* Stats Cards - 2 columns on mobile, 3 on desktop */}
+      <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
         <StatCard
           title="Total Active"
           value={metrics?.total_active || 0}
@@ -52,12 +52,6 @@ export default function HeadcountDashboard() {
           title="On Leave"
           value={metrics?.total_on_leave || 0}
           color="yellow"
-          loading={loading}
-        />
-        <StatCard
-          title="Total FTE"
-          value={metrics?.total_fte?.toFixed(1) || '0.0'}
-          color="green"
           loading={loading}
         />
         <StatCard
@@ -81,7 +75,6 @@ export default function HeadcountDashboard() {
               <tr>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Department</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Headcount</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">FTE</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Active</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">On Leave</th>
               </tr>
@@ -94,9 +87,6 @@ export default function HeadcountDashboard() {
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                     {dept.total_headcount}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {dept.total_fte}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                     {dept.active_count}
@@ -118,11 +108,7 @@ export default function HeadcountDashboard() {
                 <h3 className="font-medium text-gray-900">{dept.department}</h3>
                 <span className="text-sm text-gray-500">{dept.total_headcount} employees</span>
               </div>
-              <div className="grid grid-cols-3 gap-2 text-sm">
-                <div>
-                  <span className="text-gray-500 block text-xs">FTE</span>
-                  <span className="font-medium">{dept.total_fte}</span>
-                </div>
+              <div className="grid grid-cols-2 gap-2 text-sm">
                 <div>
                   <span className="text-gray-500 block text-xs">Active</span>
                   <span className="font-medium text-green-600">{dept.active_count}</span>

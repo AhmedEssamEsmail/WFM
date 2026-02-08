@@ -104,7 +104,6 @@ export const employeeSchema = z.object({
   department: z.string().optional().nullable(),
   hire_date: z.string().optional().nullable(),
   manager_id: z.string().uuid().optional().nullable(),
-  fte_percentage: z.number().min(0.1).max(1.0),
   job_title: z.string().optional().nullable(),
   job_level: z.enum(['intern', 'junior', 'mid', 'senior', 'lead', 'manager', 'director']).optional().nullable(),
   employment_type: z.enum(['full_time', 'part_time', 'contractor', 'intern']).optional().nullable(),

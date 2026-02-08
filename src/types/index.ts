@@ -118,7 +118,6 @@ export interface HeadcountUser extends User {
   department?: string
   hire_date?: string
   manager_id?: string
-  fte_percentage: number
   // Joined fields from headcount_profiles
   job_title?: string
   job_level?: 'intern' | 'junior' | 'mid' | 'senior' | 'lead' | 'manager' | 'director'
@@ -166,7 +165,6 @@ export interface HeadcountAuditLog {
 export interface HeadcountMetrics {
   total_active: number
   total_on_leave: number
-  total_fte: number
   by_department: Record<string, number>
   by_role: Record<UserRole, number>
 }

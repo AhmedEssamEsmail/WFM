@@ -21,13 +21,6 @@ export function formatNumber(num: number, decimals: number = 0): string {
 }
 
 /**
- * Format FTE percentage (0.8 -> "80%")
- */
-export function formatFTE(fte: number): string {
-  return `${Math.round(fte * 100)}%`
-}
-
-/**
  * Format decimal to percentage (0.75 -> "75%")
  */
 export function formatPercentage(decimal: number, decimals: number = 0): string {

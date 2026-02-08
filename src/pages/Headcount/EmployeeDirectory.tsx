@@ -64,7 +64,6 @@ export default function EmployeeDirectory() {
       'Employment Type': emp.employment_type || '',
       'Location': emp.location || '',
       'Manager': emp.manager_name || '',
-      'FTE %': (emp.fte_percentage * 100).toString(),
       'Hire Date': emp.hire_date || '',
     }))
 
@@ -86,7 +85,6 @@ export default function EmployeeDirectory() {
       'Job Level',
       'Employment Type',
       'Location',
-      'FTE %',
       'Hire Date',
     ]
 
@@ -101,7 +99,6 @@ export default function EmployeeDirectory() {
       'junior',
       'full_time',
       'Dubai Office',
-      '100',
       '2024-01-15',
     ]
 
@@ -181,9 +178,6 @@ export default function EmployeeDirectory() {
               break
             case 'location':
               employee.location = value
-              break
-            case 'fte %':
-              employee.fte_percentage = parseFloat(value) / 100
               break
             case 'hire date':
               employee.hire_date = value
@@ -409,7 +403,6 @@ export default function EmployeeDirectory() {
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Role</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Manager</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">FTE</th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
@@ -461,9 +454,6 @@ export default function EmployeeDirectory() {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                       {employee.manager_name || '-'}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {employee.fte_percentage * 100}%
                     </td>
                   </tr>
                 ))
@@ -517,10 +507,6 @@ export default function EmployeeDirectory() {
                         'text-indigo-600'
                       }`}>
                         {employee.role.toUpperCase()}
-                      </span>
-                      <span className="text-gray-300">|</span>
-                      <span className="text-gray-500">
-                        FTE: {employee.fte_percentage * 100}%
                       </span>
                     </div>
                     

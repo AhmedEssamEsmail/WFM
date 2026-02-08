@@ -40,7 +40,7 @@ export const headcountService = {
     const userUpdates: Record<string, unknown> = {}
     const profileUpdates: Record<string, unknown> = {}
     
-    const userFields = ['name', 'email', 'role', 'employee_id', 'status', 'department', 'hire_date', 'manager_id', 'fte_percentage']
+    const userFields = ['name', 'email', 'role', 'employee_id', 'status', 'department', 'hire_date', 'manager_id']
     const profileFields = ['job_title', 'job_level', 'employment_type', 'location', 'time_zone', 'phone', 'skills', 'certifications', 'max_weekly_hours', 'cost_center', 'budget_code', 'termination_date', 'onboarding_status']
     
     Object.entries(updates).forEach(([key, value]) => {

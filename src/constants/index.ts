@@ -111,19 +111,6 @@ export const VALIDATION = {
 } as const
 
 // ============================================
-// FTE (Full-Time Equivalent)
-// ============================================
-export const FTE = {
-  FULL_TIME: 1.0,
-  PART_TIME_80: 0.8,
-  PART_TIME_60: 0.6,
-  PART_TIME_50: 0.5,
-  PART_TIME_40: 0.4,
-  MIN: 0.1,
-  MAX: 1.0,
-} as const
-
-// ============================================
 // WORKING HOURS
 // ============================================
 export const WORKING_HOURS = {

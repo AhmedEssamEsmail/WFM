@@ -181,23 +181,6 @@ export default function EmployeeDetail() {
                 <p className="mt-1 text-gray-900">{employee.hire_date || 'Not set'}</p>
               )}
             </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700">FTE %</label>
-              {isEditable ? (
-                <input
-                  type="number"
-                  step="0.1"
-                  min="0.1"
-                  max="1"
-                  value={formData.fte_percentage || 1}
-                  onChange={(e) => setFormData(f => ({ ...f, fte_percentage: parseFloat(e.target.value) }))}
-                  className="mt-1 w-full border rounded-lg px-3 py-2"
-                />
-              ) : (
-                <p className="mt-1 text-gray-900">{(employee.fte_percentage * 100).toFixed(0)}%</p>
-              )}
-            </div>
           </div>
         </div>
 

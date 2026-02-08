@@ -1,7 +1,6 @@
 import { Link } from 'react-router-dom'
 import type { HeadcountUser } from '../../types'
 import { ROUTES } from '../../constants'
-import { formatFTE } from '../../utils'
 
 interface EmployeeTableProps {
   employees: HeadcountUser[]
@@ -52,7 +51,6 @@ export default function EmployeeTable({ employees, loading }: EmployeeTableProps
             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Role</th>
             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Manager</th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">FTE</th>
           </tr>
         </thead>
         <tbody className="bg-white divide-y divide-gray-200">
@@ -87,9 +85,6 @@ export default function EmployeeTable({ employees, loading }: EmployeeTableProps
               </td>
               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                 {employee.manager_name || '-'}
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                {formatFTE(employee.fte_percentage)}
               </td>
             </tr>
           ))}
