@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../hooks/useAuth'
+import { useLeaveTypes } from '../../hooks/useLeaveTypes'
 import { User, LeaveType } from '../../types'
 import { leaveBalancesService } from '../../services'
 import { downloadCSV, parseCSV, arrayToCSV } from '../../utils'
@@ -9,16 +10,6 @@ import { ERROR_MESSAGES } from '../../constants'
 interface UserWithBalances extends User {
   balances: Record<LeaveType, number>
 }
-
-const leaveTypeLabels: Record<LeaveType, string> = {
-  annual: 'Annual',
-  casual: 'Casual',
-  sick: 'Sick',
-  public_holiday: 'Public Holiday',
-  bereavement: 'Bereavement'
-}
-
-const leaveTypeOrder: LeaveType[] = ['annual', 'casual', 'sick', 'public_holiday', 'bereavement']
 
 interface ParsedBalanceRow {
   email: string
@@ -30,6 +21,7 @@ interface ParsedBalanceRow {
 
 export default function LeaveBalances() {
   const { user } = useAuth()
+  const { leaveTypes } = useLeaveTypes()
   const [usersWithBalances, setUsersWithBalances] = useState<UserWithBalances[]>([])
   const [loading, setLoading] = useState(true)
   const [editingCell, setEditingCell] = useState<{ userId: string; leaveType: LeaveType } | null>(null)
@@ -49,6 +41,15 @@ export default function LeaveBalances() {
     u.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
     u.email.toLowerCase().includes(searchQuery.toLowerCase())
   )
+
+  // Get leave type order from database
+  const leaveTypeOrder = leaveTypes.map(lt => lt.code)
+  
+  // Create label mapping from database
+  const leaveTypeLabels: Record<LeaveType, string> = leaveTypes.reduce((acc, lt) => {
+    acc[lt.code] = lt.label
+    return acc
+  }, {} as Record<LeaveType, string>)
 
   useEffect(() => {
     fetchLeaveBalances()

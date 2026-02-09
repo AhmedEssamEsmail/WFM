@@ -1,44 +1,13 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../hooks/useAuth'
-import { User, Shift, ShiftType, LeaveType, LeaveTypeConfig, LeaveRequest } from '../../types'
+import { useLeaveTypes } from '../../hooks/useLeaveTypes'
+import { User, Shift, ShiftType, LeaveType, LeaveRequest } from '../../types'
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, addMonths, subMonths, isWithinInterval, parseISO } from 'date-fns'
-import { SHIFT_COLORS, SHIFT_LABELS, SHIFT_DESCRIPTIONS, LEAVE_COLORS, LEAVE_LABELS } from '../../lib/designSystem'
+import { SHIFT_COLORS, SHIFT_LABELS, SHIFT_DESCRIPTIONS } from '../../lib/designSystem'
 import { shiftsService, leaveRequestsService } from '../../services'
 import { formatDateISO } from '../../utils'
 import { handleDatabaseError } from '../../lib/errorHandler'
-
-
-// Mapping from display labels to database enum values
-const labelToLeaveTypeEnum: Record<string, LeaveType> = {
-  // Short labels used in leaveLabels
-  'Sick': 'sick',
-  'Annual': 'annual',
-  'Casual': 'casual',
-  'Holiday': 'public_holiday',
-  'Bereav.': 'bereavement',
-  'Bereavement': 'bereavement',
-  // Full labels from database/defaults
-  'Sick Leave': 'sick',
-  'Annual Leave': 'annual',
-  'Casual Leave': 'casual',
-  'Public Holiday': 'public_holiday',
-  'Bereavement Leave': 'bereavement',
-  // Lowercase enum values (for direct matches)
-  'sick': 'sick',
-  'annual': 'annual',
-  'casual': 'casual',
-  'public_holiday': 'public_holiday',
-  'bereavement': 'bereavement',
-}
-
-const defaultLeaveTypes: { label: string }[] = [
-  { label: 'Sick Leave' },
-  { label: 'Annual Leave' },
-  { label: 'Casual Leave' },
-  { label: 'Public Holiday' },
-  { label: 'Bereavement Leave' },
-]
 
 interface ShiftWithSwap extends Shift {
   swapped_with_user_id?: string | null
@@ -48,6 +17,7 @@ interface ShiftWithSwap extends Shift {
 
 export default function Schedule() {
   const { user } = useAuth()
+  const { leaveTypes, isLoading: loadingLeaveTypes } = useLeaveTypes()
   const [currentDate, setCurrentDate] = useState(new Date())
   const [users, setUsers] = useState<User[]>([])
   const [shifts, setShifts] = useState<ShiftWithSwap[]>([])
@@ -58,12 +28,8 @@ export default function Schedule() {
   // Shift editing state
   const [editingShift, setEditingShift] = useState<{ userId: string; date: string; shiftId?: string; existingLeave?: LeaveRequest | null } | null>(null)
   const [selectedShiftType, setSelectedShiftType] = useState<ShiftType>('AM')
-  const [selectedLeaveType, setSelectedLeaveType] = useState<string | null>(null)
+  const [selectedLeaveTypeCode, setSelectedLeaveTypeCode] = useState<LeaveType | null>(null)
   const [savingShift, setSavingShift] = useState(false)
-  
-  // Leave types for shift editing modal
-  const [leaveTypes, setLeaveTypes] = useState<LeaveTypeConfig[]>([])
-  const [loadingLeaveTypes, setLoadingLeaveTypes] = useState(false)
   
   // Filter state
   const [selectedUserId, setSelectedUserId] = useState<string>('all')
@@ -78,11 +44,7 @@ export default function Schedule() {
 
   useEffect(() => {
     fetchScheduleData()
-    // Fetch leave types for shift editing modal
-    if (canEdit) {
-      fetchLeaveTypes()
-    }
-  }, [currentDate, user, canEdit])
+  }, [currentDate, user])
 
   async function fetchScheduleData() {
     if (!user) return
@@ -171,35 +133,10 @@ export default function Schedule() {
     }
   }
 
-  async function fetchLeaveTypes() {
-    setLoadingLeaveTypes(true)
-    try {
-      const { data, error } = await supabase
-        .from('leave_types')
-        .select('*')
-        .eq('is_active', true)
-        .order('display_order')
-
-      if (error) {
-        // If table doesn't exist or error, use defaults
-        setLeaveTypes(defaultLeaveTypes.map((lt, i) => ({ 
-          id: `default-${i}`, 
-          code: labelToLeaveTypeEnum[lt.label] as any,
-          label: lt.label, 
-          description: '',
-          color: '#E5E7EB',
-          display_order: i,
-          is_active: true,
-          created_at: new Date().toISOString()
-        })))
-      } else {
-        setLeaveTypes(data || [])
-      }
-    } catch (error) {
-      handleDatabaseError(error, 'fetch leave types')
-    } finally {
-      setLoadingLeaveTypes(false)
-    }
+  // Helper function to get leave type label from code
+  function getLeaveTypeLabel(leaveTypeCode: LeaveType): string {
+    const leaveType = leaveTypes.find(lt => lt.code === leaveTypeCode)
+    return leaveType?.label || leaveTypeCode
   }
 
   function getShiftForUserAndDate(userId: string, date: Date): ShiftWithSwap | undefined {
@@ -225,14 +162,11 @@ export default function Schedule() {
     
     setEditingShift({ userId, date: dateStr, shiftId: existingShift?.id, existingLeave })
     setSelectedShiftType(existingShift?.shift_type || 'AM')
-    // If there's an existing leave, pre-select that leave type; otherwise null (shift mode)
-    // Find the label for the leave type enum value
+    // If there's an existing leave, pre-select that leave type code
     if (existingLeave) {
-      // Get the display label from leave_type enum
-      const leaveLabel = LEAVE_LABELS[existingLeave.leave_type as LeaveType] || existingLeave.leave_type
-      setSelectedLeaveType(leaveLabel)
+      setSelectedLeaveTypeCode(existingLeave.leave_type as LeaveType)
     } else {
-      setSelectedLeaveType(null)
+      setSelectedLeaveTypeCode(null)
     }
   }
 
@@ -242,7 +176,7 @@ export default function Schedule() {
 
     try {
       // CASE 1: Delete only - no shift or leave selected
-      if (!selectedLeaveType && !selectedShiftType) {
+      if (!selectedLeaveTypeCode && !selectedShiftType) {
         // Delete existing leave if any
         if (editingShift.existingLeave) {
           await leaveRequestsService.deleteLeaveRequest(editingShift.existingLeave.id)
@@ -260,11 +194,9 @@ export default function Schedule() {
       }
 
       // CASE 2: Assign/update leave
-      if (selectedLeaveType) {
-        const selectedLeaveEnum = labelToLeaveTypeEnum[selectedLeaveType] || selectedLeaveType
-
+      if (selectedLeaveTypeCode) {
         // If there's an existing leave with the same type, just close
-        if (editingShift.existingLeave && editingShift.existingLeave.leave_type === selectedLeaveEnum) {
+        if (editingShift.existingLeave && editingShift.existingLeave.leave_type === selectedLeaveTypeCode) {
           setEditingShift(null)
           setSavingShift(false)
           return
@@ -274,7 +206,7 @@ export default function Schedule() {
         if (editingShift.existingLeave) {
           const { error: updateError } = await supabase
             .from('leave_requests')
-            .update({ leave_type: selectedLeaveEnum })
+            .update({ leave_type: selectedLeaveTypeCode })
             .eq('id', editingShift.existingLeave.id)
 
           if (updateError) throw updateError
@@ -284,7 +216,7 @@ export default function Schedule() {
             .from('leave_requests')
             .insert({
               user_id: editingShift.userId,
-              leave_type: selectedLeaveEnum,
+              leave_type: selectedLeaveTypeCode,
               start_date: editingShift.date,
               end_date: editingShift.date,
               notes: 'Assigned by TL/WFM from schedule',
@@ -481,8 +413,15 @@ export default function Schedule() {
                           >
                             {isOnLeave ? (
                               <div className="relative">
-                                <span className={`inline-flex items-center px-2 py-1 rounded text-xs font-medium border ${LEAVE_COLORS[leave.leave_type] || 'bg-gray-100 text-gray-800 border-gray-300'}`}>
-                                  {LEAVE_LABELS[leave.leave_type] || leave.leave_type}
+                                <span 
+                                  className="inline-flex items-center px-2 py-1 rounded text-xs font-medium border"
+                                  style={{
+                                    backgroundColor: leaveTypes.find(lt => lt.code === leave.leave_type)?.color || '#E5E7EB',
+                                    color: '#1F2937',
+                                    borderColor: leaveTypes.find(lt => lt.code === leave.leave_type)?.color || '#D1D5DB'
+                                  }}
+                                >
+                                  {getLeaveTypeLabel(leave.leave_type as LeaveType)}
                                 </span>
                               </div>
                             ) : shift ? (
@@ -534,20 +473,31 @@ export default function Schedule() {
               <div>
                 <h4 className="text-xs font-medium text-gray-500 uppercase mb-2">Leave Types</h4>
                 <div className="flex flex-wrap gap-4">
-                  {Object.entries(LEAVE_COLORS).map(([type, color]) => (
-                    <div key={type} className="flex items-center gap-2">
-                      <span className={`inline-flex items-center px-2 py-1 rounded text-xs font-medium border ${color}`}>
-                        {LEAVE_LABELS[type as LeaveType]}
-                      </span>
-                      <span className="text-sm text-gray-600">
-                        {type === 'sick' && 'Sick Leave'}
-                        {type === 'annual' && 'Annual Leave'}
-                        {type === 'casual' && 'Casual Leave'}
-                        {type === 'public_holiday' && 'Public Holiday'}
-                        {type === 'bereavement' && 'Bereavement'}
-                      </span>
-                    </div>
-                  ))}
+                  {loadingLeaveTypes ? (
+                    <div className="text-sm text-gray-500">Loading leave types...</div>
+                  ) : leaveTypes.length === 0 ? (
+                    <div className="text-sm text-gray-500">No leave types configured</div>
+                  ) : (
+                    leaveTypes.filter(lt => lt.is_active).map(leaveType => (
+                      <div key={leaveType.id} className="flex items-center gap-2">
+                        <span 
+                          className="inline-flex items-center px-2 py-1 rounded text-xs font-medium border"
+                          style={{
+                            backgroundColor: leaveType.color,
+                            color: '#1F2937',
+                            borderColor: leaveType.color
+                          }}
+                        >
+                          {leaveType.label}
+                        </span>
+                        {leaveType.description && (
+                          <span className="text-sm text-gray-600">
+                            {leaveType.description}
+                          </span>
+                        )}
+                      </div>
+                    ))
+                  )}
                 </div>
               </div>
             </div>
@@ -570,9 +520,9 @@ export default function Schedule() {
                 {(Object.keys(SHIFT_COLORS) as ShiftType[]).map(type => (
                   <button
                     key={type}
-                    onClick={() => { setSelectedShiftType(type); setSelectedLeaveType(null); }}
+                    onClick={() => { setSelectedShiftType(type); setSelectedLeaveTypeCode(null); }}
                     className={`p-3 rounded-lg border-2 transition-colors ${
-                      selectedShiftType === type && !selectedLeaveType
+                      selectedShiftType === type && !selectedLeaveTypeCode
                         ? 'border-primary-500 bg-primary-50'
                         : 'border-gray-200 hover:border-gray-300'
                     }`}
@@ -591,35 +541,40 @@ export default function Schedule() {
               <div className="grid grid-cols-2 gap-3">
                 {loadingLeaveTypes ? (
                   <div className="col-span-2 text-center text-sm text-gray-500">Loading leave types...</div>
-                ) : leaveTypes.filter(lt => lt.is_active !== false).length === 0 ? (
+                ) : leaveTypes.filter(lt => lt.is_active).length === 0 ? (
                   <div className="col-span-2 text-center text-sm text-gray-500">No leave types available</div>
                 ) : (
-                  leaveTypes.filter(lt => lt.is_active !== false).map(leaveType => (
+                  leaveTypes.filter(lt => lt.is_active).map(leaveType => (
                     <button
                       key={leaveType.id}
                       onClick={() => {
-                        setSelectedLeaveType(leaveType.label)
+                        setSelectedLeaveTypeCode(leaveType.code)
                         setSelectedShiftType(null as any)
                       }}
                       className={`p-3 rounded-lg border-2 transition-colors ${
-                        (selectedLeaveType ? (labelToLeaveTypeEnum[selectedLeaveType] || selectedLeaveType) : null) === (labelToLeaveTypeEnum[leaveType.label] || leaveType.label)
+                        selectedLeaveTypeCode === leaveType.code
                           ? 'border-primary-500 bg-primary-50'
                           : 'border-gray-200 hover:border-gray-300'
                       }`}
                     >
-                      <span className={`inline-flex items-center px-2 py-1 rounded text-xs font-medium ${
-                        LEAVE_COLORS[labelToLeaveTypeEnum[leaveType.label] as LeaveType] || 'bg-gray-100 text-gray-800'
-                      }`}>
+                      <span 
+                        className="inline-flex items-center px-2 py-1 rounded text-xs font-medium border"
+                        style={{
+                          backgroundColor: leaveType.color,
+                          color: '#1F2937',
+                          borderColor: leaveType.color
+                        }}
+                      >
                         {leaveType.label}
                       </span>
                     </button>
                   ))
                 )}
               </div>
-              {selectedLeaveType && (
+              {selectedLeaveTypeCode && (
                 <button
                   onClick={() => {
-                    setSelectedLeaveType(null)
+                    setSelectedLeaveTypeCode(null)
                     setSelectedShiftType('AM')
                   }}
                   className="text-sm text-gray-500 hover:text-gray-700 underline"

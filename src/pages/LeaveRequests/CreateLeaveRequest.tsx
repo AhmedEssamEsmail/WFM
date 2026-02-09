@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../hooks/useAuth'
+import { useLeaveTypes } from '../../hooks/useLeaveTypes'
 import { supabase } from '../../lib/supabase'
 import type { LeaveType, User } from '../../types'
 import { leaveBalancesService } from '../../services'
@@ -9,17 +10,10 @@ import { leaveRequestSchema } from '../../utils/validators'
 import { ROUTES, ERROR_MESSAGES } from '../../constants'
 import { InsufficientLeaveBalanceError } from '../../types/errors'
 
-const LEAVE_TYPES: { value: LeaveType; label: string }[] = [
-  { value: 'sick', label: 'Sick' },
-  { value: 'annual', label: 'Annual' },
-  { value: 'casual', label: 'Casual' },
-  { value: 'public_holiday', label: 'Public Holiday' },
-  { value: 'bereavement', label: 'Bereavement' }
-]
-
 export default function CreateLeaveRequest() {
   const { user } = useAuth()
   const navigate = useNavigate()
+  const { leaveTypes, isLoading: loadingLeaveTypes } = useLeaveTypes()
   const [leaveType, setLeaveType] = useState<LeaveType>('annual')
   const [startDate, setStartDate] = useState('')
   const [endDate, setEndDate] = useState('')
@@ -38,6 +32,13 @@ export default function CreateLeaveRequest() {
 
   // Check if current user can submit on behalf of others (WFM or TL roles)
   const canSubmitOnBehalf = user?.role === 'wfm' || user?.role === 'tl'
+
+  // Set default leave type when leave types are loaded
+  useEffect(() => {
+    if (leaveTypes.length > 0 && !leaveType) {
+      setLeaveType(leaveTypes[0].code)
+    }
+  }, [leaveTypes, leaveType])
 
   // Fetch agents if user has WFM or TL role
   useEffect(() => {
@@ -197,17 +198,21 @@ export default function CreateLeaveRequest() {
           <label className="block text-sm font-medium text-gray-700 mb-2">
             Leave Type
           </label>
-          <select
-            value={leaveType}
-            onChange={(e) => setLeaveType(e.target.value as LeaveType)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
-          >
-            {LEAVE_TYPES.map((type) => (
-              <option key={type.value} value={type.value}>
-                {type.label}
-              </option>
-            ))}
-          </select>
+          {loadingLeaveTypes ? (
+            <div className="text-sm text-gray-500">Loading leave types...</div>
+          ) : (
+            <select
+              value={leaveType}
+              onChange={(e) => setLeaveType(e.target.value as LeaveType)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            >
+              {leaveTypes.filter(lt => lt.is_active).map((type) => (
+                <option key={type.id} value={type.code}>
+                  {type.label}
+                </option>
+              ))}
+            </select>
+          )}
           {!loadingBalance && leaveBalance !== null && (
             <p className="mt-1 text-sm text-gray-500">
               Available balance: {leaveBalance} days

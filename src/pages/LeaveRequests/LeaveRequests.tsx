@@ -1,8 +1,9 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../hooks/useAuth'
+import { useLeaveTypes } from '../../hooks/useLeaveTypes'
 import { LeaveRequest, User } from '../../types'
-import { LEAVE_DESCRIPTIONS, getStatusColor, getStatusLabel } from '../../lib/designSystem'
+import { getStatusColor, getStatusLabel } from '../../lib/designSystem'
 import { leaveRequestsService } from '../../services'
 import { formatDate } from '../../utils'
 import { ROUTES } from '../../constants'
@@ -14,6 +15,7 @@ interface LeaveRequestWithUser extends LeaveRequest {
 export default function LeaveRequests() {
   const { user } = useAuth()
   const navigate = useNavigate()
+  const { leaveTypes, isLoading: loadingLeaveTypes } = useLeaveTypes()
   const [requests, setRequests] = useState<LeaveRequestWithUser[]>([])
   const [loading, setLoading] = useState(true)
   const [startDate, setStartDate] = useState('')
@@ -21,6 +23,12 @@ export default function LeaveRequests() {
   const [leaveType, setLeaveType] = useState<string>('all')
 
   const isManager = user?.role === 'tl' || user?.role === 'wfm'
+
+  // Helper function to get leave type label
+  function getLeaveTypeLabel(code: string): string {
+    const leaveTypeConfig = leaveTypes.find(lt => lt.code === code)
+    return leaveTypeConfig?.label || code
+  }
 
   const fetchRequests = useCallback(async () => {
     if (!user) return
@@ -120,17 +128,21 @@ export default function LeaveRequests() {
           <label htmlFor="leave-type" className="block text-sm font-medium text-gray-700 mb-1">
             Leave Type
           </label>
-          <select
-            id="leave-type"
-            value={leaveType}
-            onChange={(e) => setLeaveType(e.target.value)}
-            className="block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 text-sm"
-          >
-            <option value="all">All Types</option>
-            {Object.entries(LEAVE_DESCRIPTIONS).map(([value, label]) => (
-              <option key={value} value={value}>{label}</option>
-            ))}
-          </select>
+          {loadingLeaveTypes ? (
+            <div className="text-sm text-gray-500">Loading...</div>
+          ) : (
+            <select
+              id="leave-type"
+              value={leaveType}
+              onChange={(e) => setLeaveType(e.target.value)}
+              className="block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 text-sm"
+            >
+              <option value="all">All Types</option>
+              {leaveTypes.filter(lt => lt.is_active).map((lt) => (
+                <option key={lt.id} value={lt.code}>{lt.label}</option>
+              ))}
+            </select>
+          )}
         </div>
         {(startDate || endDate || leaveType !== 'all') && (
           <button
@@ -166,7 +178,7 @@ export default function LeaveRequests() {
                       {(request as any).users?.name || 'Unknown'}
                     </p>
                     <span className="inline-flex px-2 py-0.5 text-xs font-medium rounded bg-gray-100 text-gray-800">
-                      {LEAVE_DESCRIPTIONS[request.leave_type]}
+                      {getLeaveTypeLabel(request.leave_type)}
                     </span>
                   </div>
                   <span className={`inline-flex px-2 py-0.5 text-xs font-semibold rounded ${getStatusColor(request.status)}`}>
