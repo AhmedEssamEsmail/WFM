@@ -179,6 +179,21 @@ export default function SwapRequestDetail() {
 
       await swapRequestsService.updateSwapRequestStatus(id!, newStatus, approvalField, oldStatus)
 
+      // Create system comment with appropriate message
+      if (user.role === 'tl' && newStatus === 'approved') {
+        await createSystemComment(
+          `${user.name} approved (auto-approved by system). Status changed from ${getStatusLabel(oldStatus)} to ${getStatusLabel(newStatus)}`
+        )
+      } else if (user.role === 'wfm' && newStatus === 'approved') {
+        await createSystemComment(
+          `${user.name} approved. Status changed from ${getStatusLabel(oldStatus)} to ${getStatusLabel(newStatus)}`
+        )
+      } else if (user.role === 'tl' && newStatus === 'pending_wfm') {
+        await createSystemComment(
+          `${user.name} approved. Status changed from ${getStatusLabel(oldStatus)} to ${getStatusLabel(newStatus)}`
+        )
+      }
+
       // If fully approved, execute the swap using the stored procedure
       if (newStatus === 'approved' && requesterShift && targetShift && request) {
         try {
@@ -190,17 +205,6 @@ export default function SwapRequestDetail() {
             throw swapError
           }
         }
-      }
-
-      // Create system comment with appropriate message
-      if (user.role === 'tl' && newStatus === 'approved') {
-        await createSystemComment(
-          `${user.name} approved (auto-approved by system). Status changed from ${getStatusLabel(oldStatus)} to ${getStatusLabel(newStatus)}`
-        )
-      } else {
-        await createSystemComment(
-          `${user.name} approved. Status changed from ${getStatusLabel(oldStatus)} to ${getStatusLabel(newStatus)}`
-        )
       }
 
       await fetchRequestDetails()
@@ -295,11 +299,21 @@ export default function SwapRequestDetail() {
         }
       }
 
-      await swapRequestsService.updateSwapRequestStatus(id!, 'pending_tl', undefined, oldStatus)
+      // Reset status based on current status
+      let newStatus: SwapRequestStatus = 'pending_tl'
+      if (oldStatus === 'pending_wfm') {
+        newStatus = 'pending_tl'
+      } else if (oldStatus === 'approved') {
+        newStatus = 'pending_tl'
+      } else if (oldStatus === 'rejected') {
+        newStatus = 'pending_tl'
+      }
+
+      await swapRequestsService.updateSwapRequestStatus(id!, newStatus, undefined, oldStatus)
 
       // Create system comment
       await createSystemComment(
-        `${user.name} revoked decision. Status reset from ${getStatusLabel(oldStatus)} to Pending TL Approval. All 4 shifts restored to original values.`
+        `${user.name} revoked decision. Status reset from ${getStatusLabel(oldStatus)} to ${getStatusLabel(newStatus)}. All 4 shifts restored to original values.`
       )
 
       await fetchRequestDetails()
@@ -533,8 +547,8 @@ export default function SwapRequestDetail() {
               </div>
             )}
             
-            {/* Date 2: target_original_date */}
-            {request.target_original_date && (
+            {/* Date 2: target_original_date - only show if different from requester_original_date */}
+            {request.target_original_date && request.target_original_date !== request.requester_original_date && (
               <div>
                 <p className="font-medium">{formatDate(request.target_original_date)}</p>
                 <span className="inline-block mt-1 px-2 py-1 bg-blue-100 text-blue-800 rounded text-sm">
@@ -559,8 +573,8 @@ export default function SwapRequestDetail() {
               </div>
             )}
             
-            {/* Date 2: target_original_date */}
-            {request.target_original_date && (
+            {/* Date 2: target_original_date - only show if different from requester_original_date */}
+            {request.target_original_date && request.target_original_date !== request.requester_original_date && (
               <div>
                 <p className="font-medium">{formatDate(request.target_original_date)}</p>
                 <span className="inline-block mt-1 px-2 py-1 bg-purple-100 text-purple-800 rounded text-sm">

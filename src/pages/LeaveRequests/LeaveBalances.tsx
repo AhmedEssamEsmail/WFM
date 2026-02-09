@@ -64,8 +64,11 @@ export default function LeaveBalances() {
       
       if (user.role === 'agent') {
         usersQuery = usersQuery.eq('id', user.id)
+      } else if (user.role === 'tl') {
+        // TL sees only their team members (same department/team)
+        // For now, TL sees all users - adjust if team filtering is needed
       }
-      // TL and WFM see all users
+      // WFM sees all users
 
       const { data: usersData, error: usersError } = await usersQuery.order('name')
       if (usersError) throw usersError
@@ -76,6 +79,7 @@ export default function LeaveBalances() {
       if (user.role === 'agent') {
         balancesQuery = balancesQuery.eq('user_id', user.id)
       }
+      // TL and WFM see all balances
 
       const { data: balancesData, error: balancesError } = await balancesQuery
       if (balancesError) throw balancesError

@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../hooks/useAuth'
-import { SwapRequest, User } from '../../types'
+import { SwapRequest, User, SwapRequestStatus } from '../../types'
 import { getStatusColor, getStatusLabel } from '../../lib/designSystem'
 import { swapRequestsService } from '../../services'
 import { formatDate } from '../../utils'
@@ -19,6 +19,7 @@ export default function SwapRequests() {
   const [loading, setLoading] = useState(true)
   const [startDate, setStartDate] = useState('')
   const [endDate, setEndDate] = useState('')
+  const [statusFilter, setStatusFilter] = useState<SwapRequestStatus | ''>('')
 
   const isManager = user?.role === 'tl' || user?.role === 'wfm'
 
@@ -38,7 +39,7 @@ export default function SwapRequests() {
         requests = await swapRequestsService.getUserSwapRequests(user.id) as SwapRequestWithUsers[]
       }
 
-      // Apply date filters
+      // Apply filters
       let filteredRequests = requests
       
       if (startDate) {
@@ -46,6 +47,9 @@ export default function SwapRequests() {
       }
       if (endDate) {
         filteredRequests = filteredRequests.filter(r => r.created_at <= endDate + 'T23:59:59')
+      }
+      if (statusFilter) {
+        filteredRequests = filteredRequests.filter(r => r.status === statusFilter)
       }
 
       // For managers, sort with pending approvals first
@@ -65,7 +69,7 @@ export default function SwapRequests() {
     } finally {
       setLoading(false)
     }
-  }, [user, isManager, startDate, endDate])
+  }, [user, isManager, startDate, endDate, statusFilter])
 
   useEffect(() => {
     if (user) {
@@ -76,6 +80,7 @@ export default function SwapRequests() {
   const clearFilters = () => {
     setStartDate('')
     setEndDate('')
+    setStatusFilter('')
   }
 
   return (
@@ -86,7 +91,7 @@ export default function SwapRequests() {
 
       {/* Filters */}
       <div className="bg-white rounded-lg shadow p-4 space-y-3">
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           <div>
             <label htmlFor="start-date" className="block text-sm font-medium text-gray-700 mb-1">
               Start Date
@@ -111,8 +116,26 @@ export default function SwapRequests() {
               className="block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 text-sm"
             />
           </div>
+          <div>
+            <label htmlFor="status-filter" className="block text-sm font-medium text-gray-700 mb-1">
+              Status
+            </label>
+            <select
+              id="status-filter"
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value as SwapRequestStatus | '')}
+              className="block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 text-sm"
+            >
+              <option value="">All Statuses</option>
+              <option value="pending_acceptance">Pending Acceptance</option>
+              <option value="pending_tl">Pending TL</option>
+              <option value="pending_wfm">Pending WFM</option>
+              <option value="approved">Approved</option>
+              <option value="rejected">Rejected</option>
+            </select>
+          </div>
         </div>
-        {(startDate || endDate) && (
+        {(startDate || endDate || statusFilter) && (
           <button
             onClick={clearFilters}
             className="w-full sm:w-auto px-4 py-2 text-sm text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200"
