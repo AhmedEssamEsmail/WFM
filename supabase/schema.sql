@@ -607,6 +607,19 @@ CREATE POLICY "Users can update own leave balances"
     TO public
     USING ((user_id = auth.uid()) AND ((auth.jwt() ->> 'email'::text) ~~ '%@dabdoob.com'::text));
 
+CREATE POLICY "TL can view all agent leave balances"
+    ON leave_balances FOR SELECT
+    TO authenticated
+    USING (
+        (user_id = auth.uid()) OR 
+        (EXISTS (
+            SELECT 1 FROM users 
+            WHERE users.id = auth.uid() 
+            AND users.role = 'tl'::user_role 
+            AND (SELECT role FROM users WHERE id = leave_balances.user_id) = 'agent'::user_role
+        ))
+    );
+
 CREATE POLICY "WFM can manage leave balances"
     ON leave_balances FOR ALL
     TO authenticated

@@ -190,6 +190,23 @@ export const swapRequestsService = {
   },
 
   /**
+   * Clear approval timestamps (used when revoking)
+   */
+  async clearApprovalTimestamps(id: string): Promise<void> {
+    validateUUID(id, 'id')
+
+    const { error } = await supabase
+      .from(API_ENDPOINTS.SWAP_REQUESTS)
+      .update({
+        tl_approved_at: null,
+        wfm_approved_at: null,
+      })
+      .eq('id', id)
+
+    if (error) throw error
+  },
+
+  /**
    * Update swap request status with optimistic locking
    */
   async updateSwapRequestStatus(

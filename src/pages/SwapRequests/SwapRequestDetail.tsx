@@ -177,7 +177,7 @@ export default function SwapRequestDetail() {
         throw new Error('Cannot approve this request')
       }
 
-      await swapRequestsService.updateSwapRequestStatus(id!, newStatus, approvalField, oldStatus)
+      const updatedRequest = await swapRequestsService.updateSwapRequestStatus(id!, newStatus, approvalField, oldStatus)
 
       // Create system comment with appropriate message
       if (user.role === 'tl' && newStatus === 'approved') {
@@ -195,9 +195,9 @@ export default function SwapRequestDetail() {
       }
 
       // If fully approved, execute the swap using the stored procedure
-      if (newStatus === 'approved' && requesterShift && targetShift && request) {
+      if (newStatus === 'approved' && requesterShift && targetShift) {
         try {
-          await swapRequestsService.executeSwap(request)
+          await swapRequestsService.executeSwap(updatedRequest)
         } catch (swapError) {
           if (swapError instanceof SwapExecutionError) {
             setError(`Failed to execute swap: ${swapError.message}`)
@@ -309,6 +309,8 @@ export default function SwapRequestDetail() {
         newStatus = 'pending_tl'
       }
 
+      // Clear approval timestamps when revoking
+      await swapRequestsService.clearApprovalTimestamps(id!)
       await swapRequestsService.updateSwapRequestStatus(id!, newStatus, undefined, oldStatus)
 
       // Create system comment
