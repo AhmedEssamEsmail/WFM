@@ -159,138 +159,142 @@ export default function CreateLeaveRequest() {
   }
 
   return (
-    <div className="max-w-2xl mx-auto p-6">
-      <h1 className="text-2xl font-bold text-gray-900 mb-6">New Leave Request</h1>
-      
-      <form onSubmit={handleSubmit} className="bg-white shadow-md rounded-lg p-6 space-y-6">
-        {error && (
-          <div className="bg-red-50 text-red-700 p-4 rounded-lg">
-            {error}
-          </div>
-        )}
+    <div className="max-w-2xl mx-auto">
+      <div className="bg-white shadow rounded-lg">
+        <div className="px-6 py-4 border-b border-gray-200">
+          <h1 className="text-xl font-semibold text-gray-900">New Leave Request</h1>
+        </div>
 
-        {/* Submit on behalf of dropdown (only for WFM/TL) */}
-        {canSubmitOnBehalf && (
+        <form onSubmit={handleSubmit} className="p-6 space-y-6">
+          {error && (
+            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
+              {error}
+            </div>
+          )}
+
+          {/* Submit on behalf of dropdown (only for WFM/TL) */}
+          {canSubmitOnBehalf && (
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Submit on behalf of
+              </label>
+              <select
+                value={selectedUserId}
+                onChange={(e) => setSelectedUserId(e.target.value)}
+                disabled={loadingAgents}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+              >
+                {loadingAgents ? (
+                  <option>Loading...</option>
+                ) : (
+                  agents.map((agent) => (
+                    <option key={agent.id} value={agent.id}>
+                      {agent.name} {agent.id === user?.id ? '(Me)' : ''}
+                    </option>
+                  ))
+                )}
+              </select>
+            </div>
+          )}
+
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Submit on behalf of
+              Leave Type
             </label>
-            <select
-              value={selectedUserId}
-              onChange={(e) => setSelectedUserId(e.target.value)}
-              disabled={loadingAgents}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
-            >
-              {loadingAgents ? (
-                <option>Loading...</option>
-              ) : (
-                agents.map((agent) => (
-                  <option key={agent.id} value={agent.id}>
-                    {agent.name} {agent.id === user?.id ? '(Me)' : ''}
+            {loadingLeaveTypes ? (
+              <div className="text-sm text-gray-500">Loading leave types...</div>
+            ) : (
+              <select
+                value={leaveType}
+                onChange={(e) => setLeaveType(e.target.value as LeaveType)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+              >
+                {leaveTypes.filter(lt => lt.is_active).map((type) => (
+                  <option key={type.id} value={type.code}>
+                    {type.label}
                   </option>
-                ))
-              )}
-            </select>
-          </div>
-        )}
-
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Leave Type
-          </label>
-          {loadingLeaveTypes ? (
-            <div className="text-sm text-gray-500">Loading leave types...</div>
-          ) : (
-            <select
-              value={leaveType}
-              onChange={(e) => setLeaveType(e.target.value as LeaveType)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
-            >
-              {leaveTypes.filter(lt => lt.is_active).map((type) => (
-                <option key={type.id} value={type.code}>
-                  {type.label}
-                </option>
-              ))}
-            </select>
-          )}
-          {!loadingBalance && leaveBalance !== null && (
-            <p className="mt-1 text-sm text-gray-500">
-              Available balance: {leaveBalance} days
-            </p>
-          )}
-        </div>
-
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Start Date
-            </label>
-            <input
-              type="date"
-              value={startDate}
-              onChange={(e) => setStartDate(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
-              required
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              End Date
-            </label>
-            <input
-              type="date"
-              value={endDate}
-              onChange={(e) => setEndDate(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
-              required
-            />
-          </div>
-        </div>
-
-        {requestedDays > 0 && (
-          <div className={`p-3 rounded-md ${exceedsBalance ? 'bg-orange-50 border border-orange-200' : 'bg-gray-50'}`}>
-            <p className="text-sm text-gray-700">
-              Requested days: <span className="font-medium">{requestedDays}</span>
-            </p>
-            {exceedsBalance && (
-              <p className="text-sm text-orange-600 mt-1">
-                Warning: This exceeds your available balance ({leaveBalance} days). 
-                The request will be automatically denied.
+                ))}
+              </select>
+            )}
+            {!loadingBalance && leaveBalance !== null && (
+              <p className="mt-1 text-sm text-gray-500">
+                Available balance: {leaveBalance} days
               </p>
             )}
           </div>
-        )}
 
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Notes (Optional)
-          </label>
-          <textarea
-            value={notes}
-            onChange={(e) => setNotes(e.target.value)}
-            rows={3}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
-            placeholder="Add any additional notes..."
-          />
-        </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Start Date
+              </label>
+              <input
+                type="date"
+                value={startDate}
+                onChange={(e) => setStartDate(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                required
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                End Date
+              </label>
+              <input
+                type="date"
+                value={endDate}
+                onChange={(e) => setEndDate(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                required
+              />
+            </div>
+          </div>
 
-        <div className="flex gap-4">
-          <button
-            type="button"
-            onClick={() => navigate(ROUTES.LEAVE_REQUESTS)}
-            className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors"
-          >
-            Cancel
-          </button>
-          <button
-            type="submit"
-            disabled={loading}
-            className="flex-1 px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {loading ? 'Submitting...' : exceedsBalance ? 'Submit (Will be Denied)' : 'Submit Request'}
-          </button>
-        </div>
-      </form>
+          {requestedDays > 0 && (
+            <div className={`p-3 rounded-md ${exceedsBalance ? 'bg-orange-50 border border-orange-200' : 'bg-gray-50'}`}>
+              <p className="text-sm text-gray-700">
+                Requested days: <span className="font-medium">{requestedDays}</span>
+              </p>
+              {exceedsBalance && (
+                <p className="text-sm text-orange-600 mt-1">
+                  Warning: This exceeds your available balance ({leaveBalance} days). 
+                  The request will be automatically denied.
+                </p>
+              )}
+            </div>
+          )}
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Notes (Optional)
+            </label>
+            <textarea
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+              rows={3}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+              placeholder="Add any additional notes..."
+            />
+          </div>
+
+          <div className="flex justify-end space-x-3">
+            <button
+              type="button"
+              onClick={() => navigate(ROUTES.LEAVE_REQUESTS)}
+              className="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              disabled={loading}
+              className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50"
+            >
+              {loading ? 'Submitting...' : exceedsBalance ? 'Submit (Will be Denied)' : 'Submit Request'}
+            </button>
+          </div>
+        </form>
+      </div>
     </div>
   )
 }
