@@ -60,15 +60,27 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const isAuthenticated = !!session && !!user
 
-  const fetchUserProfile = useCallback(async (userId: string) => {
+  const fetchUserProfile = useCallback(async (userId: string, retryCount = 0) => {
     try {
+      console.log('Fetching user profile for:', userId, 'Retry:', retryCount)
       const data = await authService.getUserProfile(userId)
+      console.log('User profile fetched:', data)
       setUser(data)
-    } catch (error) {
+    } catch (error: any) {
+      console.error('Error fetching user profile:', error)
+      // If user profile doesn't exist yet (OAuth user), retry a few times
+      // The database trigger might still be creating the profile
+      if (retryCount < 3 && (error?.code === 'PGRST116' || error?.message?.includes('No rows'))) {
+        console.log('Retrying profile fetch...')
+        setTimeout(() => fetchUserProfile(userId, retryCount + 1), 500)
+        return
+      }
       handleDatabaseError(error, 'fetch user profile')
       setUser(null)
     } finally {
-      setLoading(false)
+      if (retryCount === 0) {
+        setLoading(false)
+      }
     }
   }, [])
 
@@ -80,11 +92,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       else setLoading(false)
     })
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      console.log('Auth event:', event, 'Session:', session)
       setSession(session)
       setSupabaseUser(session?.user ?? null)
-      if (session?.user) fetchUserProfile(session.user.id)
-      else {
+      if (session?.user) {
+        fetchUserProfile(session.user.id)
+      } else {
         setUser(null)
         setLoading(false)
       }
