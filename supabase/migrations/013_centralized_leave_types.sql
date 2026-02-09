@@ -32,42 +32,17 @@ BEGIN
   END IF;
 END $$;
 
--- Update existing rows with code values based on label
-UPDATE leave_types SET code = 'sick', description = 'Sick Leave', display_order = 1 
-WHERE label ILIKE '%sick%' AND code IS NULL;
+-- Delete any existing rows that we can't map (safer to start fresh)
+-- This is safe because leave_types is just configuration, not transactional data
+DELETE FROM leave_types;
 
-UPDATE leave_types SET code = 'annual', description = 'Annual Leave', display_order = 2 
-WHERE label ILIKE '%annual%' AND code IS NULL;
-
-UPDATE leave_types SET code = 'casual', description = 'Casual Leave', display_order = 3 
-WHERE label ILIKE '%casual%' AND code IS NULL;
-
-UPDATE leave_types SET code = 'public_holiday', description = 'Public Holiday', display_order = 4 
-WHERE (label ILIKE '%public%' OR label ILIKE '%holiday%') AND code IS NULL;
-
-UPDATE leave_types SET code = 'bereavement', description = 'Bereavement Leave', display_order = 5 
-WHERE label ILIKE '%bereavement%' AND code IS NULL;
-
--- Insert default leave types if they don't exist
-INSERT INTO leave_types (code, label, description, color, display_order, is_active) 
-SELECT 'sick', 'Sick', 'Sick Leave', '#FEE2E2', 1, true
-WHERE NOT EXISTS (SELECT 1 FROM leave_types WHERE code = 'sick');
-
-INSERT INTO leave_types (code, label, description, color, display_order, is_active) 
-SELECT 'annual', 'Annual', 'Annual Leave', '#D1FAE5', 2, true
-WHERE NOT EXISTS (SELECT 1 FROM leave_types WHERE code = 'annual');
-
-INSERT INTO leave_types (code, label, description, color, display_order, is_active) 
-SELECT 'casual', 'Casual', 'Casual Leave', '#FEF3C7', 3, true
-WHERE NOT EXISTS (SELECT 1 FROM leave_types WHERE code = 'casual');
-
-INSERT INTO leave_types (code, label, description, color, display_order, is_active) 
-SELECT 'public_holiday', 'Holiday', 'Public Holiday', '#E0E7FF', 4, true
-WHERE NOT EXISTS (SELECT 1 FROM leave_types WHERE code = 'public_holiday');
-
-INSERT INTO leave_types (code, label, description, color, display_order, is_active) 
-SELECT 'bereavement', 'Bereav.', 'Bereavement Leave', '#D1D5DB', 5, true
-WHERE NOT EXISTS (SELECT 1 FROM leave_types WHERE code = 'bereavement');
+-- Insert all default leave types
+INSERT INTO leave_types (code, label, description, color, display_order, is_active) VALUES
+    ('sick', 'Sick', 'Sick Leave', '#FEE2E2', 1, true),
+    ('annual', 'Annual', 'Annual Leave', '#D1FAE5', 2, true),
+    ('casual', 'Casual', 'Casual Leave', '#FEF3C7', 3, true),
+    ('public_holiday', 'Holiday', 'Public Holiday', '#E0E7FF', 4, true),
+    ('bereavement', 'Bereav.', 'Bereavement Leave', '#D1D5DB', 5, true);
 
 -- Now make code NOT NULL and UNIQUE
 ALTER TABLE leave_types ALTER COLUMN code SET NOT NULL;
