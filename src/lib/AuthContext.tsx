@@ -14,7 +14,6 @@ interface AuthContextType {
   isAuthenticated: boolean
   signUp: (email: string, password: string, name: string) => Promise<{ error: Error | null }>
   signIn: (email: string, password: string) => Promise<{ error: Error | null; session: Session | null }>
-  signInWithGoogle: () => Promise<void>
   signOut: () => Promise<void>
 }
 
@@ -60,74 +59,31 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const isAuthenticated = !!session && !!user
 
-  const fetchUserProfile = useCallback(async (userId: string, retryCount = 0) => {
+  const fetchUserProfile = useCallback(async (userId: string) => {
     try {
-      console.log('Fetching user profile for:', userId, 'Retry:', retryCount)
       const data = await authService.getUserProfile(userId)
-      console.log('User profile fetched:', data)
       setUser(data)
-    } catch (error: any) {
-      console.error('Error fetching user profile:', error)
-      // If user profile doesn't exist yet (OAuth user), retry a few times
-      // The database trigger might still be creating the profile
-      if (retryCount < 3 && (error?.code === 'PGRST116' || error?.message?.includes('No rows'))) {
-        console.log('Retrying profile fetch...')
-        setTimeout(() => fetchUserProfile(userId, retryCount + 1), 500)
-        return
-      }
+    } catch (error) {
       handleDatabaseError(error, 'fetch user profile')
       setUser(null)
     } finally {
-      if (retryCount === 0) {
-        setLoading(false)
-      }
+      setLoading(false)
     }
   }, [])
 
   useEffect(() => {
-    console.log('AuthProvider mounted')
-    alert('AuthProvider mounted - checking OAuth callback')
-    
-    // Check for error in URL hash (OAuth errors)
-    const hashParams = new URLSearchParams(window.location.hash.substring(1))
-    const error = hashParams.get('error')
-    const errorDescription = hashParams.get('error_description')
-    const accessToken = hashParams.get('access_token')
-    
-    console.log('Hash params:', { error, errorDescription, accessToken, fullHash: window.location.hash })
-    
-    if (error) {
-      console.error('OAuth error:', error, errorDescription)
-      alert(`OAuth Error: ${errorDescription || error}`)
-    }
-    
-    if (accessToken) {
-      alert('Access token found in URL! OAuth succeeded.')
-    }
-
-    console.log('Getting initial session...')
-    supabase.auth.getSession().then(({ data: { session }, error }) => {
-      console.log('Initial session:', session, 'Error:', error)
-      alert(`Session check: ${session ? 'Session exists' : 'No session'} ${error ? 'Error: ' + error.message : ''}`)
+    supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session)
       setSupabaseUser(session?.user ?? null)
-      if (session?.user) {
-        console.log('User found in session, fetching profile...')
-        fetchUserProfile(session.user.id)
-      } else {
-        console.log('No user in session')
-        setLoading(false)
-      }
+      if (session?.user) fetchUserProfile(session.user.id)
+      else setLoading(false)
     })
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      console.log('Auth event:', event, 'Session:', session)
-      alert(`Auth event: ${event}`)
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session)
       setSupabaseUser(session?.user ?? null)
-      if (session?.user) {
-        fetchUserProfile(session.user.id)
-      } else {
+      if (session?.user) fetchUserProfile(session.user.id)
+      else {
         setUser(null)
         setLoading(false)
       }
@@ -167,16 +123,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }
 
-  async function signInWithGoogle() {
-    try {
-      await authService.signInWithGoogle()
-      // OAuth will redirect, so no need to handle response here
-    } catch (error) {
-      console.error('Google sign-in error:', error)
-      throw getUserFriendlyError(error)
-    }
-  }
-
   async function signOut() {
     await authService.signOut()
     setUser(null)
@@ -185,7 +131,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   return (
-    <AuthContext.Provider value={{ user, supabaseUser, session, loading, isAuthenticated, signUp, signIn, signInWithGoogle, signOut }}>
+    <AuthContext.Provider value={{ user, supabaseUser, session, loading, isAuthenticated, signUp, signIn, signOut }}>
       {children}
     </AuthContext.Provider>
   )
