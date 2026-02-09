@@ -613,17 +613,17 @@ export default function SwapRequestDetail() {
           {/* Target Acceptance */}
           <div className="flex items-center gap-3">
             <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
-              request.status !== 'pending_acceptance' && request.status !== 'rejected' ? 'bg-green-100 text-green-600' :
-              request.status === 'rejected' ? 'bg-red-100 text-red-600' :
+              request.status === 'rejected' && !request.tl_approved_at && !request.wfm_approved_at ? 'bg-red-100 text-red-600' :
+              request.status !== 'pending_acceptance' ? 'bg-green-100 text-green-600' :
               'bg-yellow-100 text-yellow-600'
             }`}>
-              {request.status !== 'pending_acceptance' && request.status !== 'rejected' ? (
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                </svg>
-              ) : request.status === 'rejected' ? (
+              {request.status === 'rejected' && !request.tl_approved_at && !request.wfm_approved_at ? (
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              ) : request.status !== 'pending_acceptance' ? (
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                 </svg>
               ) : (
                 <span className="text-sm font-bold">...</span>
@@ -633,7 +633,7 @@ export default function SwapRequestDetail() {
               <p className="font-medium text-gray-900">Target Acceptance ({targetUser.name})</p>
               {request.status === 'pending_acceptance' ? (
                 <p className="text-sm text-yellow-600">Awaiting acceptance</p>
-              ) : request.status === 'rejected' && !request.tl_approved_at ? (
+              ) : request.status === 'rejected' && !request.tl_approved_at && !request.wfm_approved_at ? (
                 <p className="text-sm text-red-600">Declined</p>
               ) : (
                 <p className="text-sm text-green-600">Accepted</p>
@@ -644,18 +644,19 @@ export default function SwapRequestDetail() {
           {/* TL Approval */}
           <div className="flex items-center gap-3">
             <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
-              request.tl_approved_at ? 'bg-green-100 text-green-600' :
+              request.status === 'rejected' && request.tl_approved_at && !request.wfm_approved_at ? 'bg-red-100 text-red-600' :
               request.status === 'rejected' && !request.tl_approved_at ? 'bg-red-100 text-red-600' :
+              request.tl_approved_at ? 'bg-green-100 text-green-600' :
               request.status === 'pending_tl' ? 'bg-yellow-100 text-yellow-600' :
               'bg-gray-100 text-gray-400'
             }`}>
-              {request.tl_approved_at ? (
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                </svg>
-              ) : request.status === 'rejected' && !request.tl_approved_at ? (
+              {request.status === 'rejected' && (request.tl_approved_at || !request.wfm_approved_at) ? (
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              ) : request.tl_approved_at ? (
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                 </svg>
               ) : request.status === 'pending_tl' ? (
                 <span className="text-sm font-bold">...</span>
@@ -665,14 +666,14 @@ export default function SwapRequestDetail() {
             </div>
             <div>
               <p className="font-medium text-gray-900">Team Lead Approval</p>
-              {request.tl_approved_at ? (
+              {request.status === 'rejected' && (request.tl_approved_at || !request.wfm_approved_at) ? (
+                <p className="text-sm text-red-600">Rejected</p>
+              ) : request.tl_approved_at ? (
                 <p className="text-sm text-gray-500">
                   Approved on {formatDateTime(request.tl_approved_at)}
                 </p>
               ) : request.status === 'pending_tl' ? (
                 <p className="text-sm text-yellow-600">Awaiting approval</p>
-              ) : request.status === 'rejected' && !request.tl_approved_at  ? (
-                <p className="text-sm text-red-600">Rejected</p>
               ) : (
                 <p className="text-sm text-gray-500">Pending</p>
               )}
@@ -682,18 +683,18 @@ export default function SwapRequestDetail() {
           {/* WFM Approval */}
           <div className="flex items-center gap-3">
             <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
+              request.status === 'rejected' && request.wfm_approved_at ? 'bg-red-100 text-red-600' :
               request.wfm_approved_at ? 'bg-green-100 text-green-600' :
-              request.status === 'rejected' && request.tl_approved_at ? 'bg-red-100 text-red-600' :
               request.status === 'pending_wfm' ? 'bg-yellow-100 text-yellow-600' :
               'bg-gray-100 text-gray-400'
             }`}>
-              {request.wfm_approved_at ? (
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                </svg>
-              ) : request.status === 'rejected' && request.tl_approved_at ? (
+              {request.status === 'rejected' && request.wfm_approved_at ? (
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              ) : request.wfm_approved_at ? (
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                 </svg>
               ) : request.status === 'pending_wfm' ? (
                 <span className="text-sm font-bold">...</span>
@@ -703,14 +704,14 @@ export default function SwapRequestDetail() {
             </div>
             <div>
               <p className="font-medium text-gray-900">WFM Approval</p>
-              {request.wfm_approved_at ? (
+              {request.status === 'rejected' && request.wfm_approved_at ? (
+                <p className="text-sm text-red-600">Rejected</p>
+              ) : request.wfm_approved_at ? (
                 <p className="text-sm text-gray-500">
                   Approved on {formatDateTime(request.wfm_approved_at)}
                 </p>
               ) : request.status === 'pending_wfm' ? (
                 <p className="text-sm text-yellow-600">Awaiting approval</p>
-              ) : request.status === 'rejected' && request.tl_approved_at ? (
-                <p className="text-sm text-red-600">Rejected</p>
               ) : (
                 <p className="text-sm text-gray-500">Pending</p>
               )}
