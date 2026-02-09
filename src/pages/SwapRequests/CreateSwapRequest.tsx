@@ -219,7 +219,7 @@ export default function CreateSwapRequest() {
           {canSubmitOnBehalf && (
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Submit Request For (Requester)
+                Submit on behalf of
               </label>
               <select
                 value={requesterUserId}
