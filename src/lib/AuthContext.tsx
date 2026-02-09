@@ -14,6 +14,7 @@ interface AuthContextType {
   isAuthenticated: boolean
   signUp: (email: string, password: string, name: string) => Promise<{ error: Error | null }>
   signIn: (email: string, password: string) => Promise<{ error: Error | null; session: Session | null }>
+  signInWithGoogle: () => Promise<void>
   signOut: () => Promise<void>
 }
 
@@ -123,6 +124,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }
 
+  async function signInWithGoogle() {
+    try {
+      await authService.signInWithGoogle()
+      // OAuth will redirect, so no need to handle response here
+    } catch (error) {
+      console.error('Google sign-in error:', error)
+      throw getUserFriendlyError(error)
+    }
+  }
+
   async function signOut() {
     await authService.signOut()
     setUser(null)
@@ -131,7 +142,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   return (
-    <AuthContext.Provider value={{ user, supabaseUser, session, loading, isAuthenticated, signUp, signIn, signOut }}>
+    <AuthContext.Provider value={{ user, supabaseUser, session, loading, isAuthenticated, signUp, signIn, signInWithGoogle, signOut }}>
       {children}
     </AuthContext.Provider>
   )
