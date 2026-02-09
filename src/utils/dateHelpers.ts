@@ -217,7 +217,7 @@ export function isValidDateRange(startDate: string | Date, endDate: string | Dat
     if (!isValid(start) || !isValid(end)) return false
     
     return isBefore(start, end) || isSameDay(start, end)
-  } catch (error) {
+  } catch (_error) {
     return false
   }
 }
@@ -238,7 +238,7 @@ export function getRelativeTimeString(date: string | Date): string {
     if (days === -1) return 'Tomorrow'
     if (days > 0) return `${days} days ago`
     return `in ${Math.abs(days)} days`
-  } catch (error) {
+  } catch (_error) {
     return ''
   }
 }
@@ -262,7 +262,7 @@ export function getDateRange(startDate: string | Date, endDate: string | Date): 
     }
     
     return dates
-  } catch (error) {
+  } catch (_error) {
     return []
   }
 }

@@ -1,28 +1,35 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { Link } from 'react-router-dom'
 import { useHeadcount } from '../../hooks/useHeadcount'
 import { useAuth } from '../../hooks/useAuth'
 import type { HeadcountMetrics } from '../../types'
 import { ROUTES } from '../../constants'
 
+interface DepartmentSummary {
+  department: string
+  total_employees: number
+  active_employees: number
+  [key: string]: string | number
+}
+
 export default function HeadcountDashboard() {
   const { canEditHeadcount } = useAuth()
   const { getMetrics, getDepartmentSummary, loading } = useHeadcount()
   const [metrics, setMetrics] = useState<HeadcountMetrics | null>(null)
-  const [deptSummary, setDeptSummary] = useState<any[]>([])
+  const [deptSummary, setDeptSummary] = useState<DepartmentSummary[]>([])
 
-  useEffect(() => {
-    loadData()
-  }, [])
-
-  async function loadData() {
+  const loadData = useCallback(async () => {
     const [metricsData, summaryData] = await Promise.all([
       getMetrics(),
       getDepartmentSummary()
     ])
     setMetrics(metricsData)
     setDeptSummary(summaryData)
-  }
+  }, [getMetrics, getDepartmentSummary])
+
+  useEffect(() => {
+    loadData()
+  }, [loadData])
 
   return (
     <div className="space-y-6">

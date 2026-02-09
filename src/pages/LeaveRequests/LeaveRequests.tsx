@@ -10,6 +10,7 @@ import { ROUTES } from '../../constants'
 
 interface LeaveRequestWithUser extends LeaveRequest {
   user: User
+  users?: User
 }
 
 export default function LeaveRequests() {
@@ -175,7 +176,7 @@ export default function LeaveRequests() {
                 <div className="flex items-start justify-between mb-3">
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium text-gray-900 mb-1">
-                      {(request as any).users?.name || 'Unknown'}
+                      {(request as LeaveRequestWithUser).users?.name || 'Unknown'}
                     </p>
                     <span className="inline-flex px-2 py-0.5 text-xs font-medium rounded bg-gray-100 text-gray-800">
                       {getLeaveTypeLabel(request.leave_type)}

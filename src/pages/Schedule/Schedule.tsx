@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../hooks/useAuth'
 import { useLeaveTypes } from '../../hooks/useLeaveTypes'
@@ -27,7 +27,7 @@ export default function Schedule() {
   
   // Shift editing state
   const [editingShift, setEditingShift] = useState<{ userId: string; date: string; shiftId?: string; existingLeave?: LeaveRequest | null } | null>(null)
-  const [selectedShiftType, setSelectedShiftType] = useState<ShiftType>('AM')
+  const [selectedShiftType, setSelectedShiftType] = useState<ShiftType | null>('AM')
   const [selectedLeaveTypeCode, setSelectedLeaveTypeCode] = useState<LeaveType | null>(null)
   const [savingShift, setSavingShift] = useState(false)
   
@@ -42,11 +42,7 @@ export default function Schedule() {
   // Filter users based on selection
   const filteredUsers = selectedUserId === 'all' ? users : users.filter(u => u.id === selectedUserId)
 
-  useEffect(() => {
-    fetchScheduleData()
-  }, [currentDate, user])
-
-  async function fetchScheduleData() {
+  const fetchScheduleData = useCallback(async () => {
     if (!user) return
     setLoading(true)
 
@@ -131,7 +127,11 @@ export default function Schedule() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [user, monthStart, monthEnd])
+
+  useEffect(() => {
+    fetchScheduleData()
+  }, [currentDate, user, fetchScheduleData])
 
   // Helper function to get leave type label from code
   function getLeaveTypeLabel(leaveTypeCode: LeaveType): string {
@@ -549,7 +549,7 @@ export default function Schedule() {
                       key={leaveType.id}
                       onClick={() => {
                         setSelectedLeaveTypeCode(leaveType.code)
-                        setSelectedShiftType(null as any)
+                        setSelectedShiftType(null)
                       }}
                       className={`p-3 rounded-lg border-2 transition-colors ${
                         selectedLeaveTypeCode === leaveType.code

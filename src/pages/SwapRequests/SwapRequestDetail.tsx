@@ -18,6 +18,7 @@ interface ShiftWithUser extends Shift {
 interface CommentWithSystem extends Comment {
   is_system?: boolean
   user?: User
+  users?: User
 }
 
 export default function SwapRequestDetail() {
@@ -40,7 +41,7 @@ export default function SwapRequestDetail() {
     if (id) {
       fetchRequestDetails()
     }
-  }, [id])
+  }, [id]) // eslint-disable-line react-hooks/exhaustive-deps
 
   async function fetchRequestDetails() {
     try {
@@ -796,7 +797,7 @@ export default function SwapRequestDetail() {
               <div key={comment.id} className={`p-3 rounded-lg ${comment.is_system ? 'bg-gray-100' : 'bg-blue-50'}`}>
                 <div className="flex justify-between items-start mb-1">
                   <span className={`text-sm font-medium ${comment.is_system ? 'text-gray-700' : 'text-blue-800'}`}>
-                    {comment.is_system ? 'System' : (comment as any).users?.name || 'Unknown User'}
+                    {comment.is_system ? 'System' : (comment as CommentWithSystem).users?.name || 'Unknown User'}
                   </span>
                   <span className="text-xs text-gray-500">
                     {formatDateTime(comment.created_at)}

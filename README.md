@@ -495,62 +495,6 @@ WFM/
 
 ### Installation
 
-```bash
-git clone https://github.com/AhmedEssamEsmail/WFM.git
-cd WFM
-npm install
-cp .env.example .env
-# Edit .env with your Supabase credentials
-npm run dev
-```
-
----
-
-## Environment Variables
-
-| Variable | Description |
-|----------|-------------|
-| `VITE_SUPABASE_URL` | Your Supabase project URL |
-| `VITE_SUPABASE_ANON_KEY` | Your Supabase anonymous/public API key |
-
----
-
-## Available Scripts
-
-| Command | Description |
-|---------|-------------|
-| `npm run dev` | Start dev server with HMR |
-| `npm run build` | Type-check and build for production |
-| `npm run preview` | Preview production build locally |
-| `npm run lint` | Run ESLint |
-
----
-
-## Deployment
-
-Configured for **Vercel** with SPA rewrite rules and security headers (`X-Frame-Options: DENY`, `X-Content-Type-Options: nosniff`).
-
----
-
-## Security
-
-- Authentication via **Supabase Auth** (email/password)
-- **Row-Level Security** at the database level
-- Role-based route guards on the frontend
-- Security headers via Vercel
-- Only public/anon keys exposed to client
-
----
-
-## Getting Started
-
-### Prerequisites
-
-- Node.js 18+ and npm
-- A Supabase account and project
-
-### Installation
-
 1. **Clone the repository**
    ```bash
    git clone https://github.com/AhmedEssamEsmail/WFM.git

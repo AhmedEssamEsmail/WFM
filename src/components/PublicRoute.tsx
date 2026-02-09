@@ -25,7 +25,7 @@ export default function PublicRoute({ children }: PublicRouteProps) {
   // If user is authenticated, redirect to dashboard or originally requested route
   if (user) {
     // Check if there's a redirect location from ProtectedRoute
-    const from = (location.state as any)?.from?.pathname || '/dashboard'
+    const from = (location.state as { from?: { pathname: string } })?.from?.pathname || '/dashboard'
     return <Navigate to={from} replace />
   }
   

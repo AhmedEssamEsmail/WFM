@@ -46,8 +46,7 @@ CREATE TABLE users (
     status TEXT NOT NULL DEFAULT 'active', -- active, inactive, on_leave, terminated, suspended
     department TEXT,
     hire_date DATE,
-    manager_id UUID REFERENCES users(id),
-    fte_percentage NUMERIC NOT NULL DEFAULT 1.00
+    manager_id UUID REFERENCES users(id)
 );
 
 -- Shifts table
@@ -211,7 +210,6 @@ SELECT
     u.department,
     u.hire_date,
     u.manager_id,
-    u.fte_percentage,
     u.created_at,
     hp.job_title,
     hp.job_level,
@@ -235,7 +233,6 @@ CREATE OR REPLACE VIEW v_department_summary AS
 SELECT 
     u.department,
     COUNT(*) AS total_headcount,
-    SUM(u.fte_percentage) AS total_fte,
     COUNT(*) FILTER (WHERE u.status = 'active') AS active_count,
     COUNT(*) FILTER (WHERE u.status = 'on_leave') AS on_leave_count,
     COUNT(*) FILTER (WHERE u.role = 'agent') AS agents_count,

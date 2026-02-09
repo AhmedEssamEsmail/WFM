@@ -1,18 +1,7 @@
 // Leave types service - centralized leave type management
 
 import { supabase } from '../lib/supabase'
-import type { LeaveType } from '../types'
-
-export interface LeaveTypeConfig {
-  id: string
-  code: LeaveType
-  label: string
-  description: string
-  color: string
-  display_order: number
-  is_active: boolean
-  created_at: string
-}
+import type { LeaveTypeConfig, LeaveType } from '../types'
 
 export const leaveTypesService = {
   /**

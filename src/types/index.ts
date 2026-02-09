@@ -83,7 +83,11 @@ export interface LeaveBalance {
 
 export interface LeaveTypeConfig {
   id: string
+  code: LeaveType
   label: string
+  description: string
+  color: string
+  display_order: number
   is_active: boolean
   created_at: string
 }
@@ -154,8 +158,8 @@ export interface HeadcountAuditLog {
   id: string
   user_id: string
   action: string
-  previous_values?: Record<string, any>
-  new_values?: Record<string, any>
+  previous_values?: Record<string, unknown>
+  new_values?: Record<string, unknown>
   performed_by?: string
   performed_at: string
   reason?: string

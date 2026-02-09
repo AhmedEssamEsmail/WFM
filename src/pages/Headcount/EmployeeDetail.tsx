@@ -1,9 +1,9 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { useHeadcount } from '../../hooks/useHeadcount'
 import { useAuth } from '../../hooks/useAuth'
 import ProtectedEdit from '../../components/Headcount/ProtectedEdit'
-import type { HeadcountUser, Department } from '../../types'
+import type { HeadcountUser, Department, UserRole } from '../../types'
 import { ROUTES } from '../../constants'
 
 export default function EmployeeDetail() {
@@ -17,24 +17,24 @@ export default function EmployeeDetail() {
   const [saving, setSaving] = useState(false)
   const [message, setMessage] = useState('')
 
+  const loadEmployee = useCallback(async () => {
+    if (!id) return
+    const data = await getEmployee(id)
+    setEmployee(data)
+    setFormData(data || {})
+  }, [id, getEmployee])
+
+  const loadDepartments = useCallback(async () => {
+    const depts = await getDepartments()
+    setDepartments(depts)
+  }, [getDepartments])
+
   useEffect(() => {
     if (id) {
       loadEmployee()
       loadDepartments()
     }
-  }, [id])
-
-  async function loadEmployee() {
-    if (!id) return
-    const data = await getEmployee(id)
-    setEmployee(data)
-    setFormData(data || {})
-  }
-
-  async function loadDepartments() {
-    const depts = await getDepartments()
-    setDepartments(depts)
-  }
+  }, [id, loadEmployee, loadDepartments])
 
   async function handleSave() {
     if (!id || !employee) return
@@ -140,7 +140,7 @@ export default function EmployeeDetail() {
               {isEditable ? (
                 <select
                   value={formData.role || 'agent'}
-                  onChange={(e) => setFormData(f => ({ ...f, role: e.target.value as any }))}
+                  onChange={(e) => setFormData(f => ({ ...f, role: e.target.value as UserRole }))}
                   className="mt-1 w-full border rounded-lg px-3 py-2"
                 >
                   <option value="agent">Agent</option>
@@ -208,7 +208,7 @@ export default function EmployeeDetail() {
               {isEditable ? (
                 <select
                   value={formData.job_level || ''}
-                  onChange={(e) => setFormData(f => ({ ...f, job_level: e.target.value as any }))}
+                  onChange={(e) => setFormData(f => ({ ...f, job_level: e.target.value as HeadcountUser['job_level'] }))}
                   className="mt-1 w-full border rounded-lg px-3 py-2"
                 >
                   <option value="">Select Level</option>
@@ -230,7 +230,7 @@ export default function EmployeeDetail() {
               {isEditable ? (
                 <select
                   value={formData.employment_type || 'full_time'}
-                  onChange={(e) => setFormData(f => ({ ...f, employment_type: e.target.value as any }))}
+                  onChange={(e) => setFormData(f => ({ ...f, employment_type: e.target.value as HeadcountUser['employment_type'] }))}
                   className="mt-1 w-full border rounded-lg px-3 py-2"
                 >
                   <option value="full_time">Full Time</option>

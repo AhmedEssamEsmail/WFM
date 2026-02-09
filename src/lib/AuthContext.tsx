@@ -20,10 +20,10 @@ interface AuthContextType {
 export const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
 // Helper: Convert Supabase errors to the specific user messages you requested
-function getUserFriendlyError(error: any): Error {
+function getUserFriendlyError(error: unknown): Error {
   const errorMessage = typeof error === 'string' 
     ? error 
-    : (error?.message || error?.error_description || error?.msg || 'Unknown error')
+    : (error && typeof error === 'object' && 'message' in error ? (error as { message?: string; error_description?: string; msg?: string }).message || (error as { error_description?: string }).error_description || (error as { msg?: string }).msg : undefined) || 'Unknown error'
   
   const message = errorMessage.toLowerCase()
   
@@ -118,7 +118,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
 
       return { error: null, session: data.session }
-    } catch (error: any) {
+    } catch (error) {
       return { error: error instanceof Error ? error : getUserFriendlyError(error), session: null }
     }
   }

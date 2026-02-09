@@ -2,7 +2,6 @@ import { describe, it, expect } from 'vitest'
 import {
   formatCurrency,
   formatNumber,
-  formatFTE,
   formatPercentage,
   formatPhoneNumber,
   formatFileSize,
@@ -31,14 +30,6 @@ describe('formatters', () => {
     it('should format number with commas', () => {
       expect(formatNumber(1234567)).toBe('1,234,567')
       expect(formatNumber(1234.567, 2)).toBe('1,234.57')
-    })
-  })
-
-  describe('formatFTE', () => {
-    it('should format FTE as percentage', () => {
-      expect(formatFTE(1.0)).toBe('100%')
-      expect(formatFTE(0.8)).toBe('80%')
-      expect(formatFTE(0.5)).toBe('50%')
     })
   })
 

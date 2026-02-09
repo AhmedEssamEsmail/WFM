@@ -2,7 +2,7 @@ import { useEffect, useState, useCallback, useRef } from 'react'
 import { Link } from 'react-router-dom'
 import { useHeadcount } from '../../hooks/useHeadcount'
 import { useAuth } from '../../hooks/useAuth'
-import type { HeadcountUser, Department } from '../../types'
+import type { HeadcountUser, Department, UserRole } from '../../types'
 import { downloadCSV, arrayToCSV } from '../../utils'
 
 export default function EmployeeDirectory() {
@@ -24,27 +24,27 @@ export default function EmployeeDirectory() {
   } | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
+  const loadDepartments = useCallback(async () => {
+    const depts = await getDepartments()
+    setDepartments(depts)
+  }, [getDepartments])
+
+  const loadEmployees = useCallback(async () => {
+    const data = await getEmployees(filters)
+    setEmployees(data)
+  }, [getEmployees, filters])
+
   useEffect(() => {
     loadDepartments()
     loadEmployees()
-  }, [])
+  }, [loadDepartments, loadEmployees])
 
   useEffect(() => {
     const timeoutId = setTimeout(() => {
       loadEmployees()
     }, 300)
     return () => clearTimeout(timeoutId)
-  }, [filters])
-
-  async function loadDepartments() {
-    const depts = await getDepartments()
-    setDepartments(depts)
-  }
-
-  async function loadEmployees() {
-    const data = await getEmployees(filters)
-    setEmployees(data)
-  }
+  }, [filters, loadEmployees])
 
   const clearFilters = useCallback(() => {
     setFilters({ department: '', status: '', role: '', search: '' })
@@ -162,19 +162,19 @@ export default function EmployeeDirectory() {
               employee.department = value
               break
             case 'role':
-              employee.role = value as any
+              employee.role = value as UserRole
               break
             case 'status':
-              employee.status = value as any
+              employee.status = value as HeadcountUser['status']
               break
             case 'job title':
               employee.job_title = value
               break
             case 'job level':
-              employee.job_level = value as any
+              employee.job_level = value as HeadcountUser['job_level']
               break
             case 'employment type':
-              employee.employment_type = value as any
+              employee.employment_type = value as HeadcountUser['employment_type']
               break
             case 'location':
               employee.location = value
@@ -208,7 +208,7 @@ export default function EmployeeDirectory() {
         fileInputRef.current.value = ''
       }
     }
-  }, [bulkImportEmployees])
+  }, [bulkImportEmployees, loadEmployees])
 
   const hasActiveFilters = filters.department || filters.status || filters.role || filters.search
 

@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../hooks/useAuth'
 import { useLeaveTypes } from '../../hooks/useLeaveTypes'
@@ -51,11 +51,7 @@ export default function LeaveBalances() {
     return acc
   }, {} as Record<LeaveType, string>)
 
-  useEffect(() => {
-    fetchLeaveBalances()
-  }, [user])
-
-  async function fetchLeaveBalances() {
+  const fetchLeaveBalances = useCallback(async () => {
     if (!user) return
     setLoading(true)
 
@@ -107,7 +103,11 @@ export default function LeaveBalances() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [user])
+
+  useEffect(() => {
+    fetchLeaveBalances()
+  }, [user, fetchLeaveBalances])
 
   function startEditing(userId: string, leaveType: LeaveType, currentValue: number) {
     if (user?.role !== 'wfm') return

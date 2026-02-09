@@ -1,8 +1,9 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
 import { useToast } from '../lib/ToastContext'
-import { settingsService, leaveTypesService, type LeaveTypeConfig } from '../services'
+import { settingsService, leaveTypesService } from '../services'
+import type { LeaveTypeConfig, LeaveType } from '../types'
 import { ROUTES, SUCCESS_MESSAGES, ERROR_MESSAGES } from '../constants'
 import { handleDatabaseError } from '../lib/errorHandler'
 
@@ -23,6 +24,19 @@ export default function Settings() {
   const [newLeaveType, setNewLeaveType] = useState({ code: '', label: '', description: '', color: '#E5E7EB', display_order: 0, is_active: true })
   const [showAddLeaveType, setShowAddLeaveType] = useState(false)
 
+  const fetchLeaveTypes = useCallback(async () => {
+    setLoadingLeaveTypes(true)
+    try {
+      const data = await leaveTypesService.getAllLeaveTypes()
+      setLeaveTypes(data)
+    } catch (error) {
+      handleDatabaseError(error, 'fetch leave types')
+      showError('Failed to load leave types')
+    } finally {
+      setLoadingLeaveTypes(false)
+    }
+  }, [showError])
+
   useEffect(() => {
     // Redirect if not WFM
     if (user && user.role !== 'wfm') {
@@ -36,7 +50,7 @@ export default function Settings() {
     if (activeTab === 'leave-types') {
       fetchLeaveTypes()
     }
-  }, [activeTab])
+  }, [activeTab, fetchLeaveTypes])
 
   async function fetchSettings() {
     try {
@@ -50,19 +64,6 @@ export default function Settings() {
       handleDatabaseError(err, 'fetch settings')
     } finally {
       setLoading(false)
-    }
-  }
-
-  async function fetchLeaveTypes() {
-    setLoadingLeaveTypes(true)
-    try {
-      const data = await leaveTypesService.getAllLeaveTypes()
-      setLeaveTypes(data)
-    } catch (error) {
-      handleDatabaseError(error, 'fetch leave types')
-      showError('Failed to load leave types')
-    } finally {
-      setLoadingLeaveTypes(false)
     }
   }
 
@@ -129,7 +130,7 @@ export default function Settings() {
 
     try {
       await leaveTypesService.createLeaveType({
-        code: newLeaveType.code as any,
+        code: newLeaveType.code as LeaveType,
         label: newLeaveType.label,
         description: newLeaveType.description,
         color: newLeaveType.color,

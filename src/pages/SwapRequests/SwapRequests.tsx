@@ -10,6 +10,7 @@ import { ROUTES } from '../../constants'
 interface SwapRequestWithUsers extends SwapRequest {
   requester: User
   target_user: User
+  target?: User
 }
 
 export default function SwapRequests() {
@@ -167,17 +168,17 @@ export default function SwapRequests() {
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1">
                       <p className="text-sm font-medium text-gray-900">
-                        {(request as any).requester?.name || 'Unknown'}
+                        {(request as SwapRequestWithUsers).requester?.name || 'Unknown'}
                       </p>
                       <svg className="w-4 h-4 text-gray-400 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
                       </svg>
                       <p className="text-sm font-medium text-gray-900">
-                        {(request as any).target?.name || 'Unknown'}
+                        {(request as SwapRequestWithUsers).target?.name || (request as SwapRequestWithUsers).target_user?.name || 'Unknown'}
                       </p>
                     </div>
                     <p className="text-xs text-gray-500">
-                      {(request as any).requester?.email || 'N/A'}
+                      {(request as SwapRequestWithUsers).requester?.email || 'N/A'}
                     </p>
                   </div>
                   <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ml-2 whitespace-nowrap ${getStatusColor(request.status)}`}>

@@ -26,12 +26,6 @@ export default function Dashboard() {
 
   const isManager = user?.role === 'tl' || user?.role === 'wfm'
 
-  useEffect(() => {
-    if (user) {
-      fetchRequests()
-    }
-  }, [user])
-
   const fetchRequests = useCallback(async () => {
     setLoading(true)
     try {
@@ -80,6 +74,12 @@ export default function Dashboard() {
       setLoading(false)
     }
   }, [user, isManager])
+
+  useEffect(() => {
+    if (user) {
+      fetchRequests()
+    }
+  }, [user, fetchRequests])
 
   const formatDate = useCallback((dateString: string) => {
     return formatDateUtil(dateString)
@@ -169,10 +169,10 @@ export default function Dashboard() {
                   <div className="flex items-start justify-between mb-2">
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium text-gray-900 truncate">
-                        {(request as any).requester?.name || 'Unknown'}
+                        {(request as SwapRequestWithUsers).requester?.name || 'Unknown'}
                       </p>
                       <p className="text-xs text-gray-500 mt-0.5">
-                        → {(request as any).target?.name || 'Unknown'}
+                        → {(request as SwapRequestWithUsers).target_user?.name || 'Unknown'}
                       </p>
                     </div>
                     <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ml-2 ${getStatusColor(request.status)}`}>
@@ -219,7 +219,7 @@ export default function Dashboard() {
                   <div className="flex items-start justify-between mb-2">
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium text-gray-900 truncate">
-                        {(request as any).users?.name || 'Unknown'}
+                        {(request as LeaveRequestWithUser).user?.name || 'Unknown'}
                       </p>
                       <p className="text-xs text-gray-500 mt-0.5">
                         {LEAVE_LABELS[request.leave_type]}

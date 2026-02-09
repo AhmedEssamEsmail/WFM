@@ -132,20 +132,8 @@ describe('validators', () => {
         email: 'john@dabdoob.com',
         role: 'agent',
         status: 'active',
-        fte_percentage: 1.0,
       })
       expect(result.success).toBe(true)
-    })
-
-    it('should reject invalid FTE percentage', () => {
-      const result = employeeSchema.safeParse({
-        name: 'John Doe',
-        email: 'john@dabdoob.com',
-        role: 'agent',
-        status: 'active',
-        fte_percentage: 1.5,
-      })
-      expect(result.success).toBe(false)
     })
   })
 })

@@ -55,7 +55,7 @@ interface CursorData {
 export function encodeCursor(value: string, direction: 'next' | 'prev' = 'next'): string {
   const cursorData: CursorData = { value, direction }
   const jsonString = JSON.stringify(cursorData)
-  return Buffer.from(jsonString).toString('base64')
+  return btoa(jsonString)
 }
 
 /**
@@ -64,7 +64,7 @@ export function encodeCursor(value: string, direction: 'next' | 'prev' = 'next')
  */
 export function decodeCursor(cursor: string): CursorData | null {
   try {
-    const jsonString = Buffer.from(cursor, 'base64').toString('utf-8')
+    const jsonString = atob(cursor)
     const cursorData = JSON.parse(jsonString) as CursorData
     
     // Validate cursor structure
@@ -77,7 +77,7 @@ export function decodeCursor(cursor: string): CursorData | null {
     }
     
     return cursorData
-  } catch (error) {
+  } catch {
     // Invalid cursor format
     return null
   }

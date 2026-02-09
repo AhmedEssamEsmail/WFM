@@ -38,7 +38,7 @@ class ErrorHandler {
   /**
    * Set the toast notification function from ToastContext
    */
-  setToastFunction(fn: (message: string, type: 'error' | 'success' | 'warning' | 'info') => void): void {
+  setToastFunction(fn: ((message: string, type: 'error' | 'success' | 'warning' | 'info') => void) | null): void {
     this.toastFunction = fn
   }
 
@@ -62,13 +62,13 @@ class ErrorHandler {
 
     // Handle SystemCommentProtectedError specifically
     if (error instanceof SystemCommentProtectedError) {
-      errorMessage = error.message
+      errorMessage = userMessage || error.message
       stack = error.stack
     } else if (error instanceof Error) {
-      errorMessage = error.message || userMessage
+      errorMessage = userMessage || error.message
       stack = error.stack
     } else if (typeof error === 'string') {
-      errorMessage = error
+      errorMessage = userMessage || error
     }
 
     // Create error log entry
@@ -87,7 +87,7 @@ class ErrorHandler {
     }
 
     // Log to console in development
-    if (logToConsole && process.env.NODE_ENV === 'development') {
+    if (logToConsole && import.meta.env.DEV) {
       console.group('🔴 Error Handler')
       console.error('Error:', error)
       if (Object.keys(context).length > 0) {
@@ -105,7 +105,7 @@ class ErrorHandler {
     }
 
     // In production, send to error tracking service (e.g., Sentry)
-    if (process.env.NODE_ENV === 'production') {
+    if (import.meta.env.PROD) {
       this.sendToErrorTracking(errorLog)
     }
 
@@ -122,7 +122,7 @@ class ErrorHandler {
     
     // For now, we'll just store it locally
     // In production, replace this with actual error tracking integration
-    if (process.env.NODE_ENV === 'production') {
+    if (import.meta.env.PROD) {
       // Placeholder for future error tracking service integration
       void errorLog // Acknowledge the parameter is intentionally unused for now
     }

@@ -55,7 +55,7 @@ export default function CreateSwapRequest() {
       fetchAgents()
       fetchRequesterShifts()
     }
-  }, [requesterUserId])
+  }, [requesterUserId]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // Fetch target user's shifts when target changes
   useEffect(() => {
@@ -65,7 +65,7 @@ export default function CreateSwapRequest() {
       setTargetShifts([])
       setTargetShiftId('')
     }
-  }, [targetUserId])
+  }, [targetUserId]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const fetchAllUsers = async () => {
     setLoadingAllUsers(true)

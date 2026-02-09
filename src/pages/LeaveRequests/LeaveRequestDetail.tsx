@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../hooks/useAuth'
 import { LeaveRequest, User, Comment, LeaveRequestStatus } from '../../types'
@@ -12,6 +12,7 @@ import { ConcurrencyError } from '../../types/errors'
 interface CommentWithSystem extends Comment {
   is_system?: boolean
   user?: User
+  users?: User
 }
 
 export default function LeaveRequestDetail() {
@@ -29,23 +30,25 @@ export default function LeaveRequestDetail() {
   const [requestingException, setRequestingException] = useState(false)
   const [showRefreshButton, setShowRefreshButton] = useState(false)
 
-  useEffect(() => {
-    if (id) {
-      fetchRequestDetails()
-      fetchExceptionSetting()
-    }
-  }, [id])
-
-  async function fetchExceptionSetting() {
+  const fetchExceptionSetting = useCallback(async () => {
     try {
       const value = await settingsService.getAllowLeaveExceptionsSetting()
       setAllowExceptions(value)
     } catch (err) {
       handleDatabaseError(err, 'fetch exception setting')
     }
-  }
+  }, [])
 
-  async function fetchRequestDetails() {
+  const fetchComments = useCallback(async () => {
+    try {
+      const data = await commentsService.getComments(id!, 'leave')
+      setComments(data as CommentWithSystem[])
+    } catch (err) {
+      handleDatabaseError(err, 'fetch comments')
+    }
+  }, [id])
+
+  const fetchRequestDetails = useCallback(async () => {
     try {
       // Fetch leave request with user details
       const requestData = await leaveRequestsService.getLeaveRequestById(id!)
@@ -63,16 +66,14 @@ export default function LeaveRequestDetail() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [id, fetchComments])
 
-  async function fetchComments() {
-    try {
-      const data = await commentsService.getComments(id!, 'leave')
-      setComments(data as CommentWithSystem[])
-    } catch (err) {
-      handleDatabaseError(err, 'fetch comments')
+  useEffect(() => {
+    if (id) {
+      fetchRequestDetails()
+      fetchExceptionSetting()
     }
-  }
+  }, [id, fetchRequestDetails, fetchExceptionSetting])
 
   async function handleApprove() {
     if (!request || !user) return
@@ -609,7 +610,7 @@ export default function LeaveRequestDetail() {
               >
                 <div className="flex justify-between items-start mb-1">
                   <span className={`text-sm font-medium ${comment.is_system ? 'text-gray-700' : 'text-blue-800'}`}>
-                    {comment.is_system ? 'System' : (comment as any).users?.name || 'Unknown User'}
+                    {comment.is_system ? 'System' : (comment as CommentWithSystem).users?.name || 'Unknown User'}
                   </span>
                   <span className="text-xs text-gray-500">
                     {formatDateTime(comment.created_at)}

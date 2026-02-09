@@ -76,26 +76,10 @@ export function useHeadcount() {
     setError(null)
     
     try {
-      const { data: { session } } = await supabase.auth.getSession()
-      console.log('🔍 Current session:', {
-        userId: session?.user?.id,
-        email: session?.user?.email,
-        hasSession: !!session
-      })
-
-      const { data: currentUser, error: userCheckError } = await supabase
-        .from('users')
-        .select('id, email, role')
-        .eq('id', session?.user?.id)
-        .single()
+      const userUpdates: Record<string, unknown> = {}
+      const profileUpdates: Record<string, unknown> = {}
       
-      console.log('🔍 Current user from DB:', currentUser)
-      console.log('🔍 User check error:', userCheckError)
-      
-      const userUpdates: any = {}
-      const profileUpdates: any = {}
-      
-      const userFields = ['employee_id', 'status', 'department', 'hire_date', 'manager_id', 'fte_percentage', 'role']
+      const userFields = ['employee_id', 'status', 'department', 'hire_date', 'manager_id', 'role']
       const profileFields = ['job_title', 'job_level', 'employment_type', 'location', 'time_zone', 'phone', 'skills', 'certifications', 'max_weekly_hours', 'cost_center', 'budget_code']
       
       Object.entries(updates).forEach(([key, value]) => {
@@ -106,15 +90,12 @@ export function useHeadcount() {
         }
       })
 
-      console.log('🔍 Attempting to update:', { userUpdates, profileUpdates })
-
       if (Object.keys(userUpdates).length > 0) {
         const { error: userError } = await supabase
           .from('users')
           .update(userUpdates)
           .eq('id', id)
         
-        console.log('🔍 Users table update error:', userError)
         if (userError) throw userError
       }
 
@@ -124,13 +105,11 @@ export function useHeadcount() {
           .update(profileUpdates)
           .eq('user_id', id)
         
-        console.log('🔍 Profile update error:', profileError)
         if (profileError) throw profileError
       }
 
       return true
     } catch (err) {
-      console.error('🔍 Update failed:', err)
       setError(err instanceof Error ? err.message : 'Failed to update employee')
       return false
     } finally {
@@ -149,7 +128,7 @@ export function useHeadcount() {
       
       if (error) throw error
       return data || []
-    } catch (err) {
+    } catch {
       return []
     }
   }, [])
@@ -162,13 +141,20 @@ export function useHeadcount() {
       
       if (error) throw error
       
-      const metrics: any = {}
-      data?.forEach((row: any) => {
-        metrics[row.metric_name] = parseInt(row.metric_value)
+      const metrics: Partial<HeadcountMetrics> = {}
+      data?.forEach((row: { metric_name: string; metric_value: string }) => {
+        const key = row.metric_name as keyof HeadcountMetrics
+        const value = parseInt(row.metric_value)
+        if (key === 'by_department' || key === 'by_role') {
+          // These are objects, not numbers
+          (metrics as Record<string, unknown>)[key] = {}
+        } else {
+          (metrics as Record<string, number>)[key] = value
+        }
       })
       
       return metrics as HeadcountMetrics
-    } catch (err) {
+    } catch {
       return null
     }
   }, [])
@@ -183,7 +169,7 @@ export function useHeadcount() {
       
       if (error) throw error
       return data || []
-    } catch (err) {
+    } catch {
       return []
     }
   }, [])
@@ -221,10 +207,10 @@ export function useHeadcount() {
             .single()
 
           if (existingUser) {
-            const userUpdates: any = {}
-            const profileUpdates: any = {}
+            const userUpdates: Record<string, unknown> = {}
+            const profileUpdates: Record<string, unknown> = {}
             
-            const userFields = ['employee_id', 'status', 'department', 'hire_date', 'manager_id', 'fte_percentage', 'role', 'name']
+            const userFields = ['employee_id', 'status', 'department', 'hire_date', 'manager_id', 'role', 'name']
             const profileFields = ['job_title', 'job_level', 'employment_type', 'location', 'time_zone', 'phone', 'max_weekly_hours', 'cost_center', 'budget_code']
             
             Object.entries(emp).forEach(([key, value]) => {

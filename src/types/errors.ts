@@ -43,7 +43,7 @@ export class InsufficientLeaveBalanceError extends WFMError {
 export class InvalidSwapShiftsError extends WFMError {
   constructor(
     public readonly reason: string,
-    public readonly details?: Record<string, any>
+    public readonly details?: Record<string, unknown>
   ) {
     super(
       `Invalid swap request: ${reason}`,
@@ -99,7 +99,7 @@ export class ConcurrencyError extends WFMError {
 export class ValidationError extends WFMError {
   constructor(
     public readonly field: string,
-    public readonly value: any,
+    public readonly value: unknown,
     public readonly constraint: string
   ) {
     super(
@@ -166,7 +166,7 @@ export class SwapExecutionError extends WFMError {
   constructor(
     public readonly swapRequestId: string,
     public readonly reason: string,
-    public readonly details?: Record<string, any>
+    public readonly details?: Record<string, unknown>
   ) {
     super(
       `Swap execution failed for request ${swapRequestId}: ${reason}`,

@@ -1,10 +1,14 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
 import { format, startOfMonth, endOfMonth, subMonths } from 'date-fns'
 import { SEMANTIC_COLORS } from '../lib/designSystem'
-import type { User, ShiftType, LeaveType } from '../types'
+import type { User, ShiftType, LeaveType, SwapRequest } from '../types'
 import { getDaysBetween, downloadCSV } from '../utils'
+
+interface SwapRequestWithRequester extends SwapRequest {
+  requester?: User
+}
 
 interface ReportMetrics {
   totalSwapRequests: number
@@ -43,13 +47,7 @@ export default function Reports() {
     }
   }, [dateRange])
 
-  useEffect(() => {
-    if (isManager) {
-      fetchReportData()
-    }
-  }, [startDate, endDate, isManager])
-
-  async function fetchReportData() {
+  const fetchReportData = useCallback(async () => {
     setLoading(true)
     try {
       // Fetch users
@@ -87,7 +85,7 @@ export default function Reports() {
 
       const swapsByUser: Record<string, number> = {}
       swapRequests.forEach(swap => {
-        const userName = (swap.requester as any)?.name || 'Unknown'
+        const userName = (swap as SwapRequestWithRequester).requester?.name || 'Unknown'
         swapsByUser[userName] = (swapsByUser[userName] || 0) + 1
       })
 
@@ -128,7 +126,13 @@ export default function Reports() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [startDate, endDate])
+
+  useEffect(() => {
+    if (isManager) {
+      fetchReportData()
+    }
+  }, [startDate, endDate, isManager, fetchReportData])
 
   async function exportToCSV() {
     if (!metrics) return

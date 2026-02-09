@@ -7,7 +7,7 @@ import { handleError } from './errorHandler'
  * Debounce function - delays execution until after wait time has elapsed
  * since the last time it was invoked
  */
-export function debounce<T extends (...args: any[]) => any>(
+export function debounce<T extends (...args: never[]) => unknown>(
   func: T,
   wait: number
 ): (...args: Parameters<T>) => void {
@@ -29,7 +29,7 @@ export function debounce<T extends (...args: any[]) => any>(
 /**
  * Throttle function - ensures function is called at most once per specified time period
  */
-export function throttle<T extends (...args: any[]) => any>(
+export function throttle<T extends (...args: never[]) => unknown>(
   func: T,
   limit: number
 ): (...args: Parameters<T>) => void {
@@ -99,7 +99,7 @@ export function useRenderCount(componentName: string): number {
 
   useEffect(() => {
     renderCount.current += 1
-    if (process.env.NODE_ENV === 'development') {
+    if (import.meta.env.DEV) {
       // Development-only render tracking
       // In production, this would be sent to performance monitoring service
       void componentName // Acknowledge parameter usage
@@ -112,7 +112,7 @@ export function useRenderCount(componentName: string): number {
 /**
  * Memoize expensive calculations
  */
-export function memoize<T extends (...args: any[]) => any>(fn: T): T {
+export function memoize<T extends (...args: never[]) => unknown>(fn: T): T {
   const cache = new Map()
 
   return ((...args: Parameters<T>) => {
@@ -174,7 +174,7 @@ export function useLocalStorage<T>(key: string, initialValue: T): readonly [T, (
       return item ? JSON.parse(item) : initialValue
     } catch (error) {
       // Silent fail in production, log in development
-      if (process.env.NODE_ENV === 'development') {
+      if (import.meta.env.DEV) {
         handleError(error, { userMessage: 'Failed to read from localStorage', showToast: false })
       }
       return initialValue
@@ -192,7 +192,7 @@ export function useLocalStorage<T>(key: string, initialValue: T): readonly [T, (
         window.dispatchEvent(new CustomEvent('local-storage', { detail: { key, value: valueToStore } }))
       } catch (error) {
         // Silent fail in production, log in development
-        if (process.env.NODE_ENV === 'development') {
+        if (import.meta.env.DEV) {
           handleError(error, { userMessage: 'Failed to write to localStorage', showToast: false })
         }
       }
