@@ -86,20 +86,29 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     console.log('AuthProvider mounted')
+    alert('AuthProvider mounted - checking OAuth callback')
     
     // Check for error in URL hash (OAuth errors)
     const hashParams = new URLSearchParams(window.location.hash.substring(1))
     const error = hashParams.get('error')
     const errorDescription = hashParams.get('error_description')
+    const accessToken = hashParams.get('access_token')
+    
+    console.log('Hash params:', { error, errorDescription, accessToken, fullHash: window.location.hash })
     
     if (error) {
       console.error('OAuth error:', error, errorDescription)
       alert(`OAuth Error: ${errorDescription || error}`)
     }
+    
+    if (accessToken) {
+      alert('Access token found in URL! OAuth succeeded.')
+    }
 
     console.log('Getting initial session...')
     supabase.auth.getSession().then(({ data: { session }, error }) => {
       console.log('Initial session:', session, 'Error:', error)
+      alert(`Session check: ${session ? 'Session exists' : 'No session'} ${error ? 'Error: ' + error.message : ''}`)
       setSession(session)
       setSupabaseUser(session?.user ?? null)
       if (session?.user) {
@@ -113,6 +122,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       console.log('Auth event:', event, 'Session:', session)
+      alert(`Auth event: ${event}`)
       setSession(session)
       setSupabaseUser(session?.user ?? null)
       if (session?.user) {
