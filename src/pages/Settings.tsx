@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
 import { useToast } from '../lib/ToastContext'
 import { settingsService, authService } from '../services'
-import { ROUTES, SUCCESS_MESSAGES, ERROR_MESSAGES } from '../constants'
+import { SUCCESS_MESSAGES, ERROR_MESSAGES } from '../constants'
 import { handleDatabaseError } from '../lib/errorHandler'
 
 export default function Settings() {
@@ -82,7 +82,7 @@ export default function Settings() {
 
     setSaving(true)
     try {
-      await authService.unlinkIdentity(googleIdentity.id)
+      await authService.unlinkIdentity(googleIdentity)
       success('Google account unlinked successfully')
       await fetchIdentities()
     } catch (err: any) {

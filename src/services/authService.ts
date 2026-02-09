@@ -137,8 +137,8 @@ export const authService = {
   /**
    * Unlink an identity from current user
    */
-  async unlinkIdentity(identityId: string) {
-    const { data, error } = await supabase.auth.unlinkIdentity(identityId)
+  async unlinkIdentity(identity: any) {
+    const { data, error } = await supabase.auth.unlinkIdentity(identity)
     
     if (error) throw error
     return data
