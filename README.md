@@ -102,6 +102,8 @@ A comprehensive Workforce Management system for shift scheduling, swap requests,
 - Better offline experience with cached data
 
 ### Recent Improvements (February 2026)
+- **Code Organization**: Reorganized page components into logical subfolders (Auth, SwapRequests, LeaveRequests, Schedule, Headcount) for better maintainability and scalability
+- **Asset Organization**: Moved all icon files to `public/icons/` folder with updated references
 - **Chunk Loading Error Handling**: Automatic page reload on deployment-related chunk errors with service worker cleanup
 - **Enhanced UI/UX**:
   - Status badges repositioned for consistency across Leave and Swap request pages
@@ -127,6 +129,10 @@ A comprehensive Workforce Management system for shift scheduling, swap requests,
   - Removed FTE (Full-Time Equivalent) tracking from all employee pages and database (Migration 011)
   - Simplified headcount metrics and department summaries
   - Updated database views to exclude FTE calculations
+- **User Experience**:
+  - Added cancel functionality for swap and leave request submitters
+  - Target users can cancel accepted swap requests before final approval
+  - Improved request management with clear action buttons
 
 #### Accessibility Features
 - **ARIA labels** for screen readers
@@ -292,7 +298,8 @@ Agent requests swap
 
 ```
 WFM/
-├── public/                          # Static assets (favicons, manifest)
+├── public/
+│   └── icons/                       # Favicon and app icons
 ├── supabase/
 │   ├── schema.sql                   # Full database schema (tables, RLS, triggers)
 │   └── migrations/                  # Incremental SQL migrations
@@ -301,7 +308,11 @@ WFM/
 │       ├── 005_swap_requests_rls_policies.sql
 │       ├── 006_swap_requests_original_shift_info.sql
 │       ├── 007_add_denied_status_to_leave_requests.sql
-│       └── 007_swap_requests_additional_original_shift_types.sql
+│       ├── 007_swap_requests_additional_original_shift_types.sql
+│       ├── 008_atomic_swap_execution.sql
+│       ├── 009_system_comment_protection.sql
+│       ├── 010_performance_indexes.sql
+│       └── 011_remove_fte_percentage.sql
 ├── src/
 │   ├── main.tsx                     # Application entry point
 │   ├── App.tsx                      # Root component with routing & route guards
@@ -309,6 +320,9 @@ WFM/
 │   ├── components/
 │   │   ├── Layout.tsx               # App shell with sidebar navigation & RBAC
 │   │   ├── ErrorBoundary.tsx        # Error boundary for graceful error handling
+│   │   ├── ChunkErrorBoundary.tsx   # Chunk loading error handler with auto-reload
+│   │   ├── ProtectedRoute.tsx       # Route guard for authenticated users
+│   │   ├── PublicRoute.tsx          # Route guard for unauthenticated users
 │   │   ├── Toast.tsx                # Toast notification component
 │   │   ├── ToastContainer.tsx       # Toast container with positioning
 │   │   ├── Skeleton.tsx             # Loading skeleton components (7 variants)
@@ -326,34 +340,66 @@ WFM/
 │   │   ├── AuthContext.tsx          # Auth provider with session management
 │   │   ├── ToastContext.tsx         # Toast notification context
 │   │   ├── queryClient.ts           # React Query client configuration
-│   │   └── designSystem.ts          # Unified design system (colors, styles, helpers)
+│   │   ├── designSystem.ts          # Unified design system (colors, styles, helpers)
+│   │   ├── errorHandler.ts          # Centralized error handling utilities
+│   │   ├── performance.ts           # Performance utilities (debounce, throttle, etc.)
+│   │   └── securityLogger.ts        # Security event logging
 │   ├── pages/
 │   │   ├── Dashboard.tsx            # Main dashboard with pending requests
-│   │   ├── Login.tsx                # Login page with domain validation
-│   │   ├── Signup.tsx               # User registration
-│   │   ├── Schedule.tsx             # Calendar view of shifts
-│   │   ├── ScheduleUpload.tsx       # CSV bulk upload for shifts (WFM only)
-│   │   ├── SwapRequests.tsx         # List of swap requests
-│   │   ├── SwapRequestDetail.tsx    # Individual swap request details
-│   │   ├── CreateSwapRequest.tsx    # Create new swap request
-│   │   ├── LeaveRequests.tsx        # List of leave requests
-│   │   ├── LeaveRequestDetail.tsx   # Individual leave request details
-│   │   ├── CreateLeaveRequest.tsx   # Create new leave request
-│   │   ├── LeaveBalances.tsx        # Leave balance management (WFM only)
 │   │   ├── Reports.tsx              # Reports dashboard with charts (TL/WFM only)
 │   │   ├── Settings.tsx             # WFM settings configuration
-│   │   ├── Unauthorized.tsx         # Unauthorized domain access page
-│   │   └── Headcount/
-│   │       ├── HeadcountDashboard.tsx    # Headcount metrics dashboard
-│   │       ├── EmployeeDirectory.tsx     # Employee directory with filters
-│   │       └── EmployeeDetail.tsx        # Individual employee profile
+│   │   ├── Auth/                    # Authentication pages
+│   │   │   ├── Login.tsx            # Login page with domain validation
+│   │   │   ├── Signup.tsx           # User registration
+│   │   │   └── Unauthorized.tsx     # Unauthorized domain access page
+│   │   ├── Schedule/                # Schedule management pages
+│   │   │   ├── Schedule.tsx         # Calendar view of shifts
+│   │   │   └── ScheduleUpload.tsx   # CSV bulk upload for shifts (WFM only)
+│   │   ├── SwapRequests/            # Swap request pages
+│   │   │   ├── SwapRequests.tsx     # List of swap requests
+│   │   │   ├── SwapRequestDetail.tsx # Individual swap request details
+│   │   │   └── CreateSwapRequest.tsx # Create new swap request
+│   │   ├── LeaveRequests/           # Leave request pages
+│   │   │   ├── LeaveRequests.tsx    # List of leave requests
+│   │   │   ├── LeaveRequestDetail.tsx # Individual leave request details
+│   │   │   ├── CreateLeaveRequest.tsx # Create new leave request
+│   │   │   └── LeaveBalances.tsx    # Leave balance management (WFM only)
+│   │   └── Headcount/               # Headcount management pages
+│   │       ├── HeadcountDashboard.tsx # Headcount metrics dashboard
+│   │       ├── EmployeeDirectory.tsx # Employee directory with filters
+│   │       └── EmployeeDetail.tsx   # Individual employee profile
+│   ├── services/                    # API service layer
+│   │   ├── authService.ts           # Authentication services
+│   │   ├── commentsService.ts       # Comment management
+│   │   ├── headcountService.ts      # Headcount operations
+│   │   ├── leaveBalancesService.ts  # Leave balance operations
+│   │   ├── leaveRequestsService.ts  # Leave request operations
+│   │   ├── settingsService.ts       # Settings management
+│   │   ├── shiftsService.ts         # Shift operations
+│   │   ├── swapRequestsService.ts   # Swap request operations
+│   │   └── validation/              # Service-level validation
+│   │       └── leaveBalanceValidation.ts
+│   ├── utils/                       # Utility functions
+│   │   ├── csvHelpers.ts            # CSV parsing and generation
+│   │   ├── dateHelpers.ts           # Date manipulation utilities
+│   │   ├── formatters.ts            # Data formatting utilities
+│   │   ├── sanitize.ts              # Input sanitization
+│   │   ├── validation.ts            # Validation utilities
+│   │   └── validators.ts            # Zod schema validators
 │   ├── test/                        # Unit tests (36 passing tests)
 │   │   ├── setup.ts                 # Test configuration
 │   │   ├── components/              # Component tests
 │   │   ├── hooks/                   # Hook tests
-│   │   └── utils/                   # Utility tests
-│   └── types/
-│       └── index.ts                 # TypeScript type definitions
+│   │   ├── lib/                     # Library tests
+│   │   ├── utils/                   # Utility tests
+│   │   └── integration/             # Integration tests
+│   ├── types/
+│   │   ├── index.ts                 # TypeScript type definitions
+│   │   ├── errors.ts                # Custom error types
+│   │   └── pagination.ts            # Pagination types
+│   └── constants/
+│       ├── index.ts                 # Application constants
+│       └── cache.ts                 # Cache configuration constants
 ├── .env.example                     # Environment variable template
 ├── .gitignore
 ├── package.json
