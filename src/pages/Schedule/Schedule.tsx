@@ -54,7 +54,6 @@ export default function Schedule() {
   const [approvedLeaves, setApprovedLeaves] = useState<LeaveRequest[]>([])
   const [swappedUserNames, setSwappedUserNames] = useState<Record<string, string>>({})
   const [loading, setLoading] = useState(true)
-  const [activeTab, setActiveTab] = useState<'schedule' | 'leave-types'>('schedule')
   
   // Shift editing state
   const [editingShift, setEditingShift] = useState<{ userId: string; date: string; shiftId?: string; existingLeave?: LeaveRequest | null } | null>(null)
@@ -62,12 +61,9 @@ export default function Schedule() {
   const [selectedLeaveType, setSelectedLeaveType] = useState<string | null>(null)
   const [savingShift, setSavingShift] = useState(false)
   
-  // Leave types state
+  // Leave types for shift editing modal
   const [leaveTypes, setLeaveTypes] = useState<LeaveTypeConfig[]>([])
   const [loadingLeaveTypes, setLoadingLeaveTypes] = useState(false)
-  const [editingLeaveType, setEditingLeaveType] = useState<LeaveTypeConfig | null>(null)
-  const [newLeaveType, setNewLeaveType] = useState({ label: '', color: 'gray', is_active: true })
-  const [showAddLeaveType, setShowAddLeaveType] = useState(false)
   
   // Filter state
   const [selectedUserId, setSelectedUserId] = useState<string>('all')
@@ -82,17 +78,11 @@ export default function Schedule() {
 
   useEffect(() => {
     fetchScheduleData()
-    // Fetch leave types when schedule loads (needed for edit modal)
+    // Fetch leave types for shift editing modal
     if (canEdit) {
       fetchLeaveTypes()
     }
   }, [currentDate, user, canEdit])
-
-  useEffect(() => {
-    if (activeTab === 'leave-types' && canEdit) {
-      fetchLeaveTypes()
-    }
-  }, [activeTab, canEdit])
 
   async function fetchScheduleData() {
     if (!user) return
@@ -187,13 +177,18 @@ export default function Schedule() {
       const { data, error } = await supabase
         .from('leave_types')
         .select('*')
-        .order('label')
+        .eq('is_active', true)
+        .order('display_order')
 
       if (error) {
-        // If table doesn't exist, use defaults
+        // If table doesn't exist or error, use defaults
         setLeaveTypes(defaultLeaveTypes.map((lt, i) => ({ 
           id: `default-${i}`, 
+          code: labelToLeaveTypeEnum[lt.label] as any,
           label: lt.label, 
+          description: '',
+          color: '#E5E7EB',
+          display_order: i,
           is_active: true,
           created_at: new Date().toISOString()
         })))
@@ -359,72 +354,6 @@ export default function Schedule() {
     }
   }
 
-  async function saveLeaveType() {
-    if (!editingLeaveType) return
-
-    try {
-      const { error } = await supabase
-        .from('leave_types')
-        .update({ 
-          label: editingLeaveType.label,
-          is_active: editingLeaveType.is_active 
-        })
-        .eq('id', editingLeaveType.id)
-
-      if (error) throw error
-
-      await fetchLeaveTypes()
-      setEditingLeaveType(null)
-    } catch (error) {
-      handleDatabaseError(error, 'update leave type')
-      alert('Failed to update leave type')
-    }
-  }
-
-  async function addLeaveType() {
-    if (!newLeaveType.label) {
-      alert('Please fill in the label')
-      return
-    }
-
-    try {
-      const { error } = await supabase
-        .from('leave_types')
-        .insert({
-          label: newLeaveType.label,
-          color: newLeaveType.color,
-          is_active: newLeaveType.is_active
-        })
-
-      if (error) throw error
-
-      await fetchLeaveTypes()
-      setNewLeaveType({ label: '', color: 'gray', is_active: true })
-      setShowAddLeaveType(false)
-    } catch (error) {
-      handleDatabaseError(error, 'add leave type')
-      alert('Failed to add leave type')
-    }
-  }
-
-  async function deleteLeaveType(id: string) {
-    if (!confirm('Are you sure you want to delete this leave type?')) return
-
-    try {
-      const { error } = await supabase
-        .from('leave_types')
-        .delete()
-        .eq('id', id)
-
-      if (error) throw error
-
-      await fetchLeaveTypes()
-    } catch (error) {
-      handleDatabaseError(error, 'delete leave type')
-      alert('Failed to delete leave type')
-    }
-  }
-
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -462,37 +391,7 @@ export default function Schedule() {
         )}
       </div>
 
-      {/* Tabs for TL/WFM */}
-      {canEdit && (
-        <div className="border-b border-gray-200">
-          <nav className="-mb-px flex space-x-8">
-            <button
-              onClick={() => setActiveTab('schedule')}
-              className={`${
-                activeTab === 'schedule'
-                  ? 'border-primary-500 text-primary-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-              } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm`}
-            >
-              Schedule
-            </button>
-            <button
-              onClick={() => setActiveTab('leave-types')}
-              className={`${
-                activeTab === 'leave-types'
-                  ? 'border-primary-500 text-primary-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-              } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm`}
-            >
-              Leave Types
-            </button>
-          </nav>
-        </div>
-      )}
-
-      {activeTab === 'schedule' && (
-        <>
-          {/* Month navigation */}
+      {/* Month navigation */}
           <div className="flex items-center justify-between bg-white rounded-lg shadow px-4 py-3">
             <button
               onClick={() => setCurrentDate(subMonths(currentDate, 1))}
@@ -653,157 +552,6 @@ export default function Schedule() {
               </div>
             </div>
           </div>
-        </>
-      )}
-
-      {activeTab === 'leave-types' && canEdit && (
-        <div className="bg-white rounded-lg shadow">
-          <div className="px-4 py-5 sm:px-6 flex justify-between items-center border-b">
-            <div>
-              <h3 className="text-lg font-medium text-gray-900">Leave Types</h3>
-              <p className="mt-1 text-sm text-gray-500">Manage available leave types for the team</p>
-            </div>
-            <button
-              onClick={() => setShowAddLeaveType(true)}
-              className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary-600 hover:bg-primary-700"
-            >
-              Add Leave Type
-            </button>
-          </div>
-
-          {loadingLeaveTypes ? (
-            <div className="flex items-center justify-center h-32">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
-            </div>
-          ) : (
-            <ul className="divide-y divide-gray-200">
-              {leaveTypes.map(lt => (
-                <li key={lt.id} className="px-4 py-4 sm:px-6">
-                  {editingLeaveType?.id === lt.id ? (
-                    <div className="flex items-center gap-4">
-                      
-                      <input
-                        type="text"
-                        value={editingLeaveType.label}
-                        onChange={e => setEditingLeaveType({ ...editingLeaveType, label: e.target.value })}
-                        className="flex-1 rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 text-sm"
-                        placeholder="Label (e.g., Sick Leave)"
-                      />
-                      <label className="flex items-center">
-                        <input
-                          type="checkbox"
-                          checked={editingLeaveType.is_active}
-                          onChange={e => setEditingLeaveType({ ...editingLeaveType, is_active: e.target.checked })}
-                          className="rounded border-gray-300 text-primary-600 focus:ring-primary-500"
-                        />
-                        <span className="ml-2 text-sm text-gray-600">Active</span>
-                      </label>
-                      <button
-                        onClick={saveLeaveType}
-                        className="text-primary-600 hover:text-primary-900 text-sm font-medium"
-                      >
-                        Save
-                      </button>
-                      <button
-                        onClick={() => setEditingLeaveType(null)}
-                        className="text-gray-600 hover:text-gray-900 text-sm font-medium"
-                      >
-                        Cancel
-                      </button>
-                    </div>
-                  ) : (
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-sm font-medium text-gray-900">{lt.label}</p>
-                        
-                      </div>
-                      <div className="flex items-center gap-4">
-                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                          lt.is_active ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
-                        }`}>
-                          {lt.is_active ? 'Active' : 'Inactive'}
-                        </span>
-                        <button
-                          onClick={() => setEditingLeaveType(lt)}
-                          className="text-primary-600 hover:text-primary-900 text-sm font-medium"
-                        >
-                          Edit
-                        </button>
-                        <button
-                          onClick={() => deleteLeaveType(lt.id)}
-                          className="text-red-600 hover:text-red-900 text-sm font-medium"
-                        >
-                          Delete
-                        </button>
-                      </div>
-                    </div>
-                  )}
-                </li>
-              ))}
-              {leaveTypes.length === 0 && (
-                <li className="px-4 py-8 text-center text-gray-500">
-                  No leave types configured. Add one to get started.
-                </li>
-              )}
-            </ul>
-          )}
-
-          {/* Add new leave type form */}
-          {showAddLeaveType && (
-            <div className="px-4 py-4 sm:px-6 border-t bg-gray-50">
-              <h4 className="text-sm font-medium text-gray-900 mb-3">Add New Leave Type</h4>
-              <div className="flex items-center gap-4">
-                
-                <input
-                  type="text"
-                  value={newLeaveType.label}
-                  onChange={e => setNewLeaveType({ ...newLeaveType, label: e.target.value })}
-                  className="flex-1 rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 text-sm"
-                  placeholder="Label (e.g., Maternity Leave)"
-                />
-                <select
-                  value={newLeaveType.color}
-                  onChange={e => setNewLeaveType({ ...newLeaveType, color: e.target.value })}
-                  className="rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 text-sm"
-                >
-                  <option value="gray">Gray</option>
-                  <option value="red">Red</option>
-                  <option value="green">Green</option>
-                  <option value="blue">Blue</option>
-                  <option value="yellow">Yellow</option>
-                  <option value="purple">Purple</option>
-                  <option value="orange">Orange</option>
-                  <option value="indigo">Indigo</option>
-                </select>
-                <label className="flex items-center">
-                  <input
-                    type="checkbox"
-                    checked={newLeaveType.is_active}
-                    onChange={e => setNewLeaveType({ ...newLeaveType, is_active: e.target.checked })}
-                    className="rounded border-gray-300 text-primary-600 focus:ring-primary-500"
-                  />
-                  <span className="ml-2 text-sm text-gray-600">Active</span>
-                </label>
-                <button
-                  onClick={addLeaveType}
-                  className="inline-flex items-center px-3 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary-600 hover:bg-primary-700"
-                >
-                  Add
-                </button>
-                <button
-                  onClick={() => {
-                    setShowAddLeaveType(false)
-                    setNewLeaveType({ label: '', color: 'gray', is_active: true })
-                  }}
-                  className="text-gray-600 hover:text-gray-900 text-sm font-medium"
-                >
-                  Cancel
-                </button>
-              </div>
-            </div>
-          )}
-        </div>
-      )}
 
       {/* Shift edit modal */}
       {editingShift && (

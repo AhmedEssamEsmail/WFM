@@ -45,6 +45,11 @@ A comprehensive Workforce Management system for shift scheduling, swap requests,
 
 #### Leave Management
 - Submit leave requests for multiple leave types: **Sick**, **Annual**, **Casual**, **Public Holiday**, **Bereavement**
+- **Centralized Leave Type System**: Database-driven leave types managed by WFM
+  - Dynamic leave types loaded from database
+  - Custom colors and labels per organization
+  - WFM can add/edit/deactivate leave types via Settings
+  - Changes reflect immediately across all pages
 - Multi-level approval workflow (TL → WFM)
 - Automatic leave balance validation before submission
 - Auto-denial for insufficient balance with optional exception requests
@@ -102,6 +107,14 @@ A comprehensive Workforce Management system for shift scheduling, swap requests,
 - Better offline experience with cached data
 
 ### Recent Improvements (February 2026)
+- **Centralized Leave Type Management** (February 2026):
+  - Database-driven leave types with `leave_types` table
+  - WFM can manage leave types via Settings page (add/edit/deactivate)
+  - Custom labels, descriptions, colors (hex codes), and display order
+  - Service layer (`leaveTypesService`) and React hook (`useLeaveTypes`)
+  - Automatic cache invalidation and real-time updates across all pages
+  - Backward compatible with existing enum-based system
+  - See `LEAVE_TYPES_MIGRATION.md` for full documentation
 - **Code Organization**: Reorganized page components into logical subfolders (Auth, SwapRequests, LeaveRequests, Schedule, Headcount) for better maintainability and scalability
 - **Asset Organization**: Moved all icon files to `public/icons/` folder with updated references
 - **Chunk Loading Error Handling**: Automatic page reload on deployment-related chunk errors with service worker cleanup
@@ -186,6 +199,13 @@ A comprehensive Workforce Management system for shift scheduling, swap requests,
 ### WFM Settings
 - **Auto-approve toggle**: Automatically approve requests when TL approves (bypasses WFM approval)
 - **Allow leave exceptions**: Enable/disable exception requests for denied leave requests
+- **Leave Types Management**: Centralized management of leave types (WFM only)
+  - Add new leave types with custom labels, descriptions, and colors
+  - Edit existing leave types (label, description, color, display order)
+  - Activate/deactivate leave types without deletion
+  - Color customization with hex color codes
+  - Display order management for UI consistency
+  - All changes reflect immediately across the application
 - Real-time settings updates across the application
 
 ### Role-Based Access Control (RBAC)
@@ -312,7 +332,8 @@ WFM/
 │       ├── 008_atomic_swap_execution.sql
 │       ├── 009_system_comment_protection.sql
 │       ├── 010_performance_indexes.sql
-│       └── 011_remove_fte_percentage.sql
+│       ├── 011_remove_fte_percentage.sql
+│       └── 013_centralized_leave_types.sql
 ├── src/
 │   ├── main.tsx                     # Application entry point
 │   ├── App.tsx                      # Root component with routing & route guards
@@ -334,6 +355,7 @@ WFM/
 │   │   ├── useHeadcount.ts          # Headcount data fetching & mutations
 │   │   ├── useSwapRequests.ts       # Swap requests with React Query
 │   │   ├── useLeaveRequests.ts      # Leave requests with React Query
+│   │   ├── useLeaveTypes.ts         # Leave types with React Query (centralized)
 │   │   └── useSettings.ts           # Settings management with React Query
 │   ├── lib/
 │   │   ├── supabase.ts              # Supabase client initialization
@@ -345,10 +367,11 @@ WFM/
 │   │   ├── performance.ts           # Performance utilities (debounce, throttle, etc.)
 │   │   └── securityLogger.ts        # Security event logging
 │   ├── pages/
-│   │   ├── Dashboard.tsx            # Main dashboard with pending requests
-│   │   ├── Reports.tsx              # Reports dashboard with charts (TL/WFM only)
-│   │   ├── Settings.tsx             # WFM settings configuration
-│   │   ├── Auth/                    # Authentication pages
+│   │   ├── Pages/                    # Page-level documentation
+│   │   │   ├── Dashboard.tsx        # Main dashboard with pending requests
+│   │   │   ├── Reports.tsx              # Reports dashboard with charts (TL/WFM only)
+│   │   │   ├── Settings.tsx             # WFM settings configuration (includes Leave Types management)
+│   │   │   ├── Auth/                    # Authentication pages
 │   │   │   ├── Login.tsx            # Login page with domain validation
 │   │   │   ├── Signup.tsx           # User registration
 │   │   │   └── Unauthorized.tsx     # Unauthorized domain access page
@@ -374,6 +397,7 @@ WFM/
 │   │   ├── headcountService.ts      # Headcount operations
 │   │   ├── leaveBalancesService.ts  # Leave balance operations
 │   │   ├── leaveRequestsService.ts  # Leave request operations
+│   │   ├── leaveTypesService.ts     # Leave types CRUD operations (centralized)
 │   │   ├── settingsService.ts       # Settings management
 │   │   ├── shiftsService.ts         # Shift operations
 │   │   ├── swapRequestsService.ts   # Swap request operations
@@ -437,7 +461,7 @@ WFM/
 | **headcount_profiles** | Extended employee information | user_id, job_title, job_level, employment_type, location, time_zone, phone, skills, certifications, max_weekly_hours, cost_center, budget_code, onboarding_status |
 | **departments** | Department hierarchy and structure | id, name, code, parent_department_id, head_id, cost_center, active |
 | **headcount_audit_log** | Audit trail for headcount changes | id, user_id, action, previous_values, new_values, performed_by, reason, effective_date |
-| **leave_types** | Configurable leave type definitions | id, label, color, is_active |
+| **leave_types** | Configurable leave type definitions (centralized management) | id, code, label, description, color, display_order, is_active, created_at |
 
 ### Database Views
 
@@ -551,6 +575,7 @@ Configured for **Vercel** with SPA rewrite rules and security headers (`X-Frame-
      - `supabase/migrations/009_system_comment_protection.sql`
      - `supabase/migrations/010_performance_indexes.sql`
      - `supabase/migrations/011_remove_fte_percentage.sql`
+     - `supabase/migrations/013_centralized_leave_types.sql`
    - Copy your project URL and anon key from Settings → API
 
 4. **Configure environment variables**

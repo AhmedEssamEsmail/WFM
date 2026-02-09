@@ -55,6 +55,7 @@ export const QUERY_KEYS = {
   SETTINGS: 'settings',
   USER_PROFILE: 'userProfile',
   LEAVE_BALANCES: 'leaveBalances',
+  LEAVE_TYPES: 'leaveTypes',
   EMPLOYEES: 'employees',
   SHIFTS: 'shifts',
   LEAVE_REQUESTS: 'leaveRequests',
