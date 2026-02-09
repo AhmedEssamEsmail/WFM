@@ -166,6 +166,33 @@ export default function LeaveRequestDetail() {
     }
   }
 
+  async function handleCancel() {
+    if (!request || !user) return
+    setSubmitting(true)
+    setError('')
+    setShowRefreshButton(false)
+
+    try {
+      await leaveRequestsService.updateLeaveRequestStatus(id!, 'rejected', undefined, request.status)
+
+      // Add system comment
+      await addSystemComment(`Request cancelled by ${user.name}`)
+
+      // Refresh the request
+      await fetchRequestDetails()
+    } catch (err) {
+      if (err instanceof ConcurrencyError) {
+        setError('This request was modified by someone else. Please refresh to see the latest version.')
+        setShowRefreshButton(true)
+      } else {
+        handleDatabaseError(err, 'cancel request')
+        setError(ERROR_MESSAGES.SERVER)
+      }
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
   async function addSystemComment(content: string) {
     if (!user) return
 
@@ -220,6 +247,12 @@ export default function LeaveRequestDetail() {
   const canAskForException = () => {
     if (!request || !user || !allowExceptions) return false
     return request.status === 'denied'
+  }
+
+  const canCancel = () => {
+    if (!request || !user) return false
+    // Requester can cancel if they own the request and it's not yet approved/rejected/denied
+    return user.id === request.user_id && (request.status === 'pending_tl' || request.status === 'pending_wfm')
   }
 
   if (loading) {
@@ -387,7 +420,7 @@ export default function LeaveRequestDetail() {
       </div>
 
       {/* Action Buttons */}
-      {(canApprove() || canReject() || canAskForException()) && (
+      {(canApprove() || canReject() || canAskForException() || canCancel()) && (
         <div className="bg-white rounded-lg shadow-sm p-6">
           <h2 className="text-lg font-semibold text-gray-900 mb-4">Actions</h2>
           <div className="flex flex-wrap gap-3">
@@ -416,6 +449,15 @@ export default function LeaveRequestDetail() {
                 className="px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {requestingException ? 'Requesting...' : 'Ask for Exception'}
+              </button>
+            )}
+            {canCancel() && (
+              <button
+                onClick={handleCancel}
+                disabled={submitting}
+                className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {submitting ? 'Processing...' : 'Cancel Request'}
               </button>
             )}
           </div>

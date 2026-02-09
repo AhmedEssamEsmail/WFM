@@ -316,6 +316,36 @@ export default function SwapRequestDetail() {
     }
   }
 
+  async function handleCancel() {
+    if (!request || !user) return
+
+    setSubmitting(true)
+    setError('')
+    setShowRefreshButton(false)
+
+    try {
+      const oldStatus = request.status
+      await swapRequestsService.updateSwapRequestStatus(id!, 'rejected', undefined, oldStatus)
+
+      // Create system comment
+      await createSystemComment(
+        `${user.name} cancelled the swap request. Status changed from ${getStatusLabel(oldStatus)} to Rejected`
+      )
+
+      await fetchRequestDetails()
+    } catch (error) {
+      if (error instanceof ConcurrencyError) {
+        setError('This request was modified by someone else. Please refresh to see the latest version.')
+        setShowRefreshButton(true)
+      } else {
+        handleDatabaseError(error, 'cancel request')
+        setError(ERROR_MESSAGES.SERVER)
+      }
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
   async function handleAddComment(e: React.FormEvent) {
     e.preventDefault()
     if (!newComment.trim() || !user || !id) return
@@ -362,6 +392,15 @@ export default function SwapRequestDetail() {
     if (!user || !request) return false
     if (user.role !== 'wfm') return false
     if (request.status === 'approved' || request.status === 'rejected' || request.status === 'pending_wfm') return true
+    return false
+  }
+
+  function canCancel(): boolean {
+    if (!user || !request) return false
+    // Requester can cancel if not yet approved/rejected
+    if (user.id === request.requester_id && (request.status === 'pending_acceptance' || request.status === 'pending_tl' || request.status === 'pending_wfm')) return true
+    // Target user can cancel if they accepted but not yet approved
+    if (user.id === request.target_user_id && (request.status === 'pending_tl' || request.status === 'pending_wfm')) return true
     return false
   }
 
@@ -665,7 +704,7 @@ export default function SwapRequestDetail() {
       </div>
 
       {/* Action Buttons */}
-      {(canAcceptOrDecline() || canApprove() || canReject() || canRevoke()) && (
+      {(canAcceptOrDecline() || canApprove() || canReject() || canRevoke() || canCancel()) && (
         <div className="bg-white rounded-lg shadow-sm p-6">
           <h2 className="text-lg font-semibold text-gray-900 mb-4">Actions</h2>
           <div className="flex flex-wrap gap-3">
@@ -712,6 +751,15 @@ export default function SwapRequestDetail() {
                 className="px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {submitting ? 'Processing...' : 'Revoke'}
+              </button>
+            )}
+            {canCancel() && (
+              <button
+                onClick={handleCancel}
+                disabled={submitting}
+                className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {submitting ? 'Processing...' : 'Cancel Request'}
               </button>
             )}
           </div>
