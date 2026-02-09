@@ -1,11 +1,11 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { useAuth } from '../hooks/useAuth'
-import { SwapRequest, User } from '../types'
-import { getStatusColor, getStatusLabel } from '../lib/designSystem'
-import { swapRequestsService } from '../services'
-import { formatDate } from '../utils'
-import { ROUTES } from '../constants'
+import { useAuth } from '../../hooks/useAuth'
+import { SwapRequest, User } from '../../types'
+import { getStatusColor, getStatusLabel } from '../../lib/designSystem'
+import { swapRequestsService } from '../../services'
+import { formatDate } from '../../utils'
+import { ROUTES } from '../../constants'
 
 interface SwapRequestWithUsers extends SwapRequest {
   requester: User

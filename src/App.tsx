@@ -10,22 +10,22 @@ import ProtectedRoute from './components/ProtectedRoute'
 import PublicRoute from './components/PublicRoute'
 
 // Eager load critical pages (only Login for immediate access)
-import Login from './pages/Login'
+import Login from './pages/Auth/Login'
 
 // Lazy load all other pages for optimal code splitting
-const Signup = lazy(() => import('./pages/Signup'))
+const Signup = lazy(() => import('./pages/Auth/Signup'))
 const Dashboard = lazy(() => import('./pages/Dashboard'))
-const Unauthorized = lazy(() => import('./pages/Unauthorized'))
-const LeaveRequests = lazy(() => import('./pages/LeaveRequests'))
-const SwapRequests = lazy(() => import('./pages/SwapRequests'))
-const CreateLeaveRequest = lazy(() => import('./pages/CreateLeaveRequest'))
-const CreateSwapRequest = lazy(() => import('./pages/CreateSwapRequest'))
-const LeaveRequestDetail = lazy(() => import('./pages/LeaveRequestDetail'))
-const SwapRequestDetail = lazy(() => import('./pages/SwapRequestDetail'))
+const Unauthorized = lazy(() => import('./pages/Auth/Unauthorized'))
+const LeaveRequests = lazy(() => import('./pages/LeaveRequests/LeaveRequests'))
+const SwapRequests = lazy(() => import('./pages/SwapRequests/SwapRequests'))
+const CreateLeaveRequest = lazy(() => import('./pages/LeaveRequests/CreateLeaveRequest'))
+const CreateSwapRequest = lazy(() => import('./pages/SwapRequests/CreateSwapRequest'))
+const LeaveRequestDetail = lazy(() => import('./pages/LeaveRequests/LeaveRequestDetail'))
+const SwapRequestDetail = lazy(() => import('./pages/SwapRequests/SwapRequestDetail'))
 const Settings = lazy(() => import('./pages/Settings'))
-const Schedule = lazy(() => import('./pages/Schedule'))
-const ScheduleUpload = lazy(() => import('./pages/ScheduleUpload'))
-const LeaveBalances = lazy(() => import('./pages/LeaveBalances'))
+const Schedule = lazy(() => import('./pages/Schedule/Schedule'))
+const ScheduleUpload = lazy(() => import('./pages/Schedule/ScheduleUpload'))
+const LeaveBalances = lazy(() => import('./pages/LeaveRequests/LeaveBalances'))
 const Reports = lazy(() => import('./pages/Reports'))
 const EmployeeDirectory = lazy(() => import('./pages/Headcount/EmployeeDirectory'))
 const EmployeeDetail = lazy(() => import('./pages/Headcount/EmployeeDetail'))

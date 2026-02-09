@@ -1,8 +1,8 @@
 import { useState, FormEvent } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { useAuth } from '../hooks/useAuth'
-import { signupSchema } from '../utils/validators'
-import { ROUTES, SUCCESS_MESSAGES } from '../constants'
+import { useAuth } from '../../hooks/useAuth'
+import { signupSchema } from '../../utils/validators'
+import { ROUTES, SUCCESS_MESSAGES } from '../../constants'
 
 export default function Signup() {
   const [name, setName] = useState('')

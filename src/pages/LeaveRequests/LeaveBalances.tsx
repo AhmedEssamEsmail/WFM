@@ -1,10 +1,10 @@
 import { useState, useEffect, useRef } from 'react'
-import { supabase } from '../lib/supabase'
-import { useAuth } from '../hooks/useAuth'
-import { User, LeaveType } from '../types'
-import { leaveBalancesService } from '../services'
-import { downloadCSV, parseCSV, arrayToCSV } from '../utils'
-import { ERROR_MESSAGES } from '../constants'
+import { supabase } from '../../lib/supabase'
+import { useAuth } from '../../hooks/useAuth'
+import { User, LeaveType } from '../../types'
+import { leaveBalancesService } from '../../services'
+import { downloadCSV, parseCSV, arrayToCSV } from '../../utils'
+import { ERROR_MESSAGES } from '../../constants'
 
 interface UserWithBalances extends User {
   balances: Record<LeaveType, number>

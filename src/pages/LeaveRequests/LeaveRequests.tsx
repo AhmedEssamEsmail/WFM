@@ -1,11 +1,11 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { useAuth } from '../hooks/useAuth'
-import { LeaveRequest, User } from '../types'
-import { LEAVE_DESCRIPTIONS, getStatusColor, getStatusLabel } from '../lib/designSystem'
-import { leaveRequestsService } from '../services'
-import { formatDate } from '../utils'
-import { ROUTES } from '../constants'
+import { useAuth } from '../../hooks/useAuth'
+import { LeaveRequest, User } from '../../types'
+import { LEAVE_DESCRIPTIONS, getStatusColor, getStatusLabel } from '../../lib/designSystem'
+import { leaveRequestsService } from '../../services'
+import { formatDate } from '../../utils'
+import { ROUTES } from '../../constants'
 
 interface LeaveRequestWithUser extends LeaveRequest {
   user: User

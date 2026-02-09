@@ -1,13 +1,13 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { useAuth } from '../hooks/useAuth'
-import { LeaveRequest, User, Comment, LeaveRequestStatus } from '../types'
-import { LEAVE_DESCRIPTIONS, getStatusColor, getStatusLabel } from '../lib/designSystem'
-import { leaveRequestsService, commentsService, settingsService, authService } from '../services'
-import { formatDate, formatDateTime, getDaysBetween } from '../utils'
-import { ROUTES, ERROR_MESSAGES } from '../constants'
-import { handleDatabaseError } from '../lib/errorHandler'
-import { ConcurrencyError } from '../types/errors'
+import { useAuth } from '../../hooks/useAuth'
+import { LeaveRequest, User, Comment, LeaveRequestStatus } from '../../types'
+import { LEAVE_DESCRIPTIONS, getStatusColor, getStatusLabel } from '../../lib/designSystem'
+import { leaveRequestsService, commentsService, settingsService, authService } from '../../services'
+import { formatDate, formatDateTime, getDaysBetween } from '../../utils'
+import { ROUTES, ERROR_MESSAGES } from '../../constants'
+import { handleDatabaseError } from '../../lib/errorHandler'
+import { ConcurrencyError } from '../../types/errors'
 
 interface CommentWithSystem extends Comment {
   is_system?: boolean

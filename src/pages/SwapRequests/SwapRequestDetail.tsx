@@ -1,13 +1,13 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { useAuth } from '../hooks/useAuth'
-import { SwapRequest, User, Shift, Comment, SwapRequestStatus, ShiftType } from '../types'
-import { getStatusColor, getStatusLabel, SHIFT_DESCRIPTIONS } from '../lib/designSystem'
-import { swapRequestsService, commentsService, settingsService, authService, shiftsService } from '../services'
-import { formatDate, formatDateTime } from '../utils'
-import { ERROR_MESSAGES } from '../constants'
-import { handleDatabaseError } from '../lib/errorHandler'
-import { ConcurrencyError, SwapExecutionError } from '../types/errors'
+import { useAuth } from '../../hooks/useAuth'
+import { SwapRequest, User, Shift, Comment, SwapRequestStatus, ShiftType } from '../../types'
+import { getStatusColor, getStatusLabel, SHIFT_DESCRIPTIONS } from '../../lib/designSystem'
+import { swapRequestsService, commentsService, settingsService, authService, shiftsService } from '../../services'
+import { formatDate, formatDateTime } from '../../utils'
+import { ERROR_MESSAGES } from '../../constants'
+import { handleDatabaseError } from '../../lib/errorHandler'
+import { ConcurrencyError, SwapExecutionError } from '../../types/errors'
 
 interface ShiftWithUser extends Shift {
   user?: User

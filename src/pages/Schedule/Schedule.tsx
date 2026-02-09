@@ -1,12 +1,12 @@
 import { useState, useEffect } from 'react'
-import { supabase } from '../lib/supabase'
-import { useAuth } from '../hooks/useAuth'
-import { User, Shift, ShiftType, LeaveType, LeaveTypeConfig, LeaveRequest } from '../types'
+import { supabase } from '../../lib/supabase'
+import { useAuth } from '../../hooks/useAuth'
+import { User, Shift, ShiftType, LeaveType, LeaveTypeConfig, LeaveRequest } from '../../types'
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, addMonths, subMonths, isWithinInterval, parseISO } from 'date-fns'
-import { SHIFT_COLORS, SHIFT_LABELS, SHIFT_DESCRIPTIONS, LEAVE_COLORS, LEAVE_LABELS } from '../lib/designSystem'
-import { shiftsService, leaveRequestsService } from '../services'
-import { formatDateISO } from '../utils'
-import { handleDatabaseError } from '../lib/errorHandler'
+import { SHIFT_COLORS, SHIFT_LABELS, SHIFT_DESCRIPTIONS, LEAVE_COLORS, LEAVE_LABELS } from '../../lib/designSystem'
+import { shiftsService, leaveRequestsService } from '../../services'
+import { formatDateISO } from '../../utils'
+import { handleDatabaseError } from '../../lib/errorHandler'
 
 
 // Mapping from display labels to database enum values

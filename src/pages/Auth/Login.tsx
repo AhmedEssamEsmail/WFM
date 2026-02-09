@@ -1,8 +1,8 @@
 import { useState, useEffect, FormEvent } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { useAuth } from '../hooks/useAuth'
-import { loginSchema } from '../utils/validators'
-import { ROUTES } from '../constants'
+import { useAuth } from '../../hooks/useAuth'
+import { loginSchema } from '../../utils/validators'
+import { ROUTES } from '../../constants'
 
 export default function Login() {
   const [email, setEmail] = useState('')
