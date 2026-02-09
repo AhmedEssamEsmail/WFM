@@ -111,4 +111,36 @@ export const authService = {
     if (error) throw error
     return data
   },
+
+  /**
+   * Link Google identity to current user (Manual Linking)
+   */
+  async linkGoogleIdentity() {
+    const { data, error } = await supabase.auth.linkIdentity({
+      provider: 'google',
+    })
+    
+    if (error) throw error
+    return data
+  },
+
+  /**
+   * Get all identities linked to current user
+   */
+  async getUserIdentities() {
+    const { data, error } = await supabase.auth.getUserIdentities()
+    
+    if (error) throw error
+    return data
+  },
+
+  /**
+   * Unlink an identity from current user
+   */
+  async unlinkIdentity(identityId: string) {
+    const { data, error } = await supabase.auth.unlinkIdentity(identityId)
+    
+    if (error) throw error
+    return data
+  },
 }
