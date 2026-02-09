@@ -51,12 +51,13 @@ export default function Dashboard() {
       }
 
       // Map the data to match the expected interface structure
+      // Service returns 'target' but interface expects 'target_user'
       const mappedSwaps = filteredSwaps.slice(0, 5).map(swap => {
         console.log('Swap request data:', swap)
         return {
           ...swap,
           requester: (swap as any).requester,
-          target_user: (swap as any).target
+          target_user: (swap as any).target  // Map 'target' to 'target_user'
         }
       })
       setSwapRequests(mappedSwaps as SwapRequestWithUsers[])
@@ -77,11 +78,12 @@ export default function Dashboard() {
       }
 
       // Map the data to match the expected interface structure
+      // Service returns 'users' (plural) but interface expects 'user' (singular)
       const mappedLeaves = filteredLeaves.slice(0, 5).map(leave => {
         console.log('Leave request data:', leave)
         return {
           ...leave,
-          user: (leave as any).users
+          user: (leave as any).users  // Map 'users' to 'user'
         }
       })
       setLeaveRequests(mappedLeaves as LeaveRequestWithUser[])
