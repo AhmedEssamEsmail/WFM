@@ -85,6 +85,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [])
 
   useEffect(() => {
+    console.log('AuthProvider mounted')
+    
     // Check for error in URL hash (OAuth errors)
     const hashParams = new URLSearchParams(window.location.hash.substring(1))
     const error = hashParams.get('error')
@@ -95,12 +97,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       alert(`OAuth Error: ${errorDescription || error}`)
     }
 
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      console.log('Initial session:', session)
+    console.log('Getting initial session...')
+    supabase.auth.getSession().then(({ data: { session }, error }) => {
+      console.log('Initial session:', session, 'Error:', error)
       setSession(session)
       setSupabaseUser(session?.user ?? null)
-      if (session?.user) fetchUserProfile(session.user.id)
-      else setLoading(false)
+      if (session?.user) {
+        console.log('User found in session, fetching profile...')
+        fetchUserProfile(session.user.id)
+      } else {
+        console.log('No user in session')
+        setLoading(false)
+      }
     })
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
