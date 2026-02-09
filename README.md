@@ -108,13 +108,15 @@ A comprehensive Workforce Management system for shift scheduling, swap requests,
 
 ### Recent Improvements (February 2026)
 - **Centralized Leave Type Management** (February 2026):
+  - **Fully Dynamic System**: All leave type references now load from database in real-time
   - Database-driven leave types with `leave_types` table
   - WFM can manage leave types via Settings page (add/edit/deactivate)
   - Custom labels, descriptions, colors (hex codes), and display order
   - Service layer (`leaveTypesService`) and React hook (`useLeaveTypes`)
   - Automatic cache invalidation and real-time updates across all pages
-  - Backward compatible with existing enum-based system
-  - See `LEAVE_TYPES_MIGRATION.md` for full documentation
+  - **No hardcoded mappings**: Schedule, Leave Requests, and Leave Balances pages all use dynamic data
+  - Changes to leave type labels/colors reflect immediately everywhere
+  - Migration `013_centralized_leave_types.sql` sets up the system with default leave types
 - **Code Organization**: Reorganized page components into logical subfolders (Auth, SwapRequests, LeaveRequests, Schedule, Headcount) for better maintainability and scalability
 - **Asset Organization**: Moved all icon files to `public/icons/` folder with updated references
 - **Chunk Loading Error Handling**: Automatic page reload on deployment-related chunk errors with service worker cleanup
