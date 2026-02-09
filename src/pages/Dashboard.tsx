@@ -51,11 +51,14 @@ export default function Dashboard() {
       }
 
       // Map the data to match the expected interface structure
-      const mappedSwaps = filteredSwaps.slice(0, 5).map(swap => ({
-        ...swap,
-        requester: (swap as any).requester,
-        target_user: (swap as any).target
-      }))
+      const mappedSwaps = filteredSwaps.slice(0, 5).map(swap => {
+        console.log('Swap request data:', swap)
+        return {
+          ...swap,
+          requester: (swap as any).requester,
+          target_user: (swap as any).target
+        }
+      })
       setSwapRequests(mappedSwaps as SwapRequestWithUsers[])
 
       // Filter and sort leave requests
@@ -74,10 +77,13 @@ export default function Dashboard() {
       }
 
       // Map the data to match the expected interface structure
-      const mappedLeaves = filteredLeaves.slice(0, 5).map(leave => ({
-        ...leave,
-        user: (leave as any).users
-      }))
+      const mappedLeaves = filteredLeaves.slice(0, 5).map(leave => {
+        console.log('Leave request data:', leave)
+        return {
+          ...leave,
+          user: (leave as any).users
+        }
+      })
       setLeaveRequests(mappedLeaves as LeaveRequestWithUser[])
     } catch (error) {
       handleDatabaseError(error, 'fetch dashboard requests')

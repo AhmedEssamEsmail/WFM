@@ -35,15 +35,9 @@ export default function Schedule() {
   const [selectedUserId, setSelectedUserId] = useState<string>('all')
 
   const canEdit = user?.role === 'tl' || user?.role === 'wfm'
-  
-  // Memoize date calculations to prevent infinite loops
   const monthStart = startOfMonth(currentDate)
   const monthEnd = endOfMonth(currentDate)
   const daysInMonth = eachDayOfInterval({ start: monthStart, end: monthEnd })
-  
-  // Use ISO strings for stable dependency comparison
-  const startDateISO = formatDateISO(monthStart)
-  const endDateISO = formatDateISO(monthEnd)
   
   // Filter users based on selection
   const filteredUsers = selectedUserId === 'all' ? users : users.filter(u => u.id === selectedUserId)
@@ -70,9 +64,9 @@ export default function Schedule() {
 
       setUsers(usersData || [])
 
-      // Use the stable ISO date strings from the outer scope
-      const startDate = startDateISO
-      const endDate = endDateISO
+      // Calculate dates inside the callback to ensure they're fresh
+      const startDate = formatDateISO(startOfMonth(currentDate))
+      const endDate = formatDateISO(endOfMonth(currentDate))
 
       let shiftsQuery = supabase
         .from('shifts')
@@ -133,7 +127,7 @@ export default function Schedule() {
     } finally {
       setLoading(false)
     }
-  }, [user, startDateISO, endDateISO])
+  }, [user, currentDate])
 
   useEffect(() => {
     fetchScheduleData()
