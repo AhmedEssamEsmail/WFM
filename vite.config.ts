@@ -8,7 +8,7 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'favicon-16x16.png', 'favicon-32x32.png'],
+      includeAssets: ['icons/favicon.ico', 'icons/apple-touch-icon.png', 'icons/favicon-16x16.png', 'icons/favicon-32x32.png'],
       manifest: {
         name: 'WFM - Workforce Management',
         short_name: 'WFM',
@@ -18,17 +18,17 @@ export default defineConfig({
         display: 'standalone',
         icons: [
           {
-            src: 'favicon-16x16.png',
+            src: 'icons/favicon-16x16.png',
             sizes: '16x16',
             type: 'image/png'
           },
           {
-            src: 'favicon-32x32.png',
+            src: 'icons/favicon-32x32.png',
             sizes: '32x32',
             type: 'image/png'
           },
           {
-            src: 'apple-touch-icon.png',
+            src: 'icons/apple-touch-icon.png',
             sizes: '180x180',
             type: 'image/png'
           }
