@@ -85,7 +85,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [])
 
   useEffect(() => {
+    // Check for error in URL hash (OAuth errors)
+    const hashParams = new URLSearchParams(window.location.hash.substring(1))
+    const error = hashParams.get('error')
+    const errorDescription = hashParams.get('error_description')
+    
+    if (error) {
+      console.error('OAuth error:', error, errorDescription)
+      alert(`OAuth Error: ${errorDescription || error}`)
+    }
+
     supabase.auth.getSession().then(({ data: { session } }) => {
+      console.log('Initial session:', session)
       setSession(session)
       setSupabaseUser(session?.user ?? null)
       if (session?.user) fetchUserProfile(session.user.id)
