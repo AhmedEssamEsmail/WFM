@@ -50,7 +50,13 @@ export default function Dashboard() {
         })
       }
 
-      setSwapRequests(filteredSwaps.slice(0, 5) as SwapRequestWithUsers[])
+      // Map the data to match the expected interface structure
+      const mappedSwaps = filteredSwaps.slice(0, 5).map(swap => ({
+        ...swap,
+        requester: (swap as any).requester,
+        target_user: (swap as any).target
+      }))
+      setSwapRequests(mappedSwaps as SwapRequestWithUsers[])
 
       // Filter and sort leave requests
       let filteredLeaves = isManager
@@ -67,7 +73,12 @@ export default function Dashboard() {
         })
       }
 
-      setLeaveRequests(filteredLeaves.slice(0, 5) as LeaveRequestWithUser[])
+      // Map the data to match the expected interface structure
+      const mappedLeaves = filteredLeaves.slice(0, 5).map(leave => ({
+        ...leave,
+        user: (leave as any).users
+      }))
+      setLeaveRequests(mappedLeaves as LeaveRequestWithUser[])
     } catch (error) {
       handleDatabaseError(error, 'fetch dashboard requests')
     } finally {

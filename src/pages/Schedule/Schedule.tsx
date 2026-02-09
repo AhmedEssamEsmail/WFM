@@ -35,9 +35,15 @@ export default function Schedule() {
   const [selectedUserId, setSelectedUserId] = useState<string>('all')
 
   const canEdit = user?.role === 'tl' || user?.role === 'wfm'
+  
+  // Memoize date calculations to prevent infinite loops
   const monthStart = startOfMonth(currentDate)
   const monthEnd = endOfMonth(currentDate)
   const daysInMonth = eachDayOfInterval({ start: monthStart, end: monthEnd })
+  
+  // Use ISO strings for stable dependency comparison
+  const startDateISO = formatDateISO(monthStart)
+  const endDateISO = formatDateISO(monthEnd)
   
   // Filter users based on selection
   const filteredUsers = selectedUserId === 'all' ? users : users.filter(u => u.id === selectedUserId)
@@ -64,9 +70,9 @@ export default function Schedule() {
 
       setUsers(usersData || [])
 
-      // Fetch shifts for the month using formatDateISO
-      const startDate = formatDateISO(monthStart)
-      const endDate = formatDateISO(monthEnd)
+      // Use the stable ISO date strings from the outer scope
+      const startDate = startDateISO
+      const endDate = endDateISO
 
       let shiftsQuery = supabase
         .from('shifts')
@@ -127,11 +133,11 @@ export default function Schedule() {
     } finally {
       setLoading(false)
     }
-  }, [user, monthStart, monthEnd])
+  }, [user, startDateISO, endDateISO])
 
   useEffect(() => {
     fetchScheduleData()
-  }, [currentDate, user, fetchScheduleData])
+  }, [fetchScheduleData])
 
   // Helper function to get leave type label from code
   function getLeaveTypeLabel(leaveTypeCode: LeaveType): string {
