@@ -1,8 +1,9 @@
 import { useState, useEffect, useCallback } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
+import { useLeaveTypes } from '../hooks/useLeaveTypes'
 import type { SwapRequest, LeaveRequest, User } from '../types'
-import { LEAVE_LABELS, getStatusColor, getStatusLabel } from '../lib/designSystem'
+import { getStatusColor, getStatusLabel } from '../lib/designSystem'
 import { swapRequestsService, leaveRequestsService } from '../services'
 import { formatDate as formatDateUtil } from '../utils'
 import { ROUTES } from '../constants'
@@ -20,11 +21,21 @@ interface LeaveRequestWithUser extends LeaveRequest {
 export default function Dashboard() {
   const { user } = useAuth()
   const navigate = useNavigate()
+  const { leaveTypes } = useLeaveTypes()
   const [swapRequests, setSwapRequests] = useState<SwapRequestWithUsers[]>([])
   const [leaveRequests, setLeaveRequests] = useState<LeaveRequestWithUser[]>([])
   const [loading, setLoading] = useState(true)
 
   const isManager = user?.role === 'tl' || user?.role === 'wfm'
+
+  // Helper function to get leave type info with color
+  const getLeaveTypeInfo = useCallback((leaveTypeCode: string) => {
+    const leaveType = leaveTypes.find(lt => lt.code === leaveTypeCode)
+    return {
+      label: leaveType?.label || leaveTypeCode,
+      color: leaveType?.color || '#E5E7EB'
+    }
+  }, [leaveTypes])
 
   const fetchRequests = useCallback(async () => {
     setLoading(true)
@@ -240,9 +251,16 @@ export default function Dashboard() {
                       <p className="text-sm font-medium text-gray-900 truncate">
                         {(request as LeaveRequestWithUser).user?.name || 'Unknown'}
                       </p>
-                      <p className="text-xs text-gray-500 mt-0.5">
-                        {LEAVE_LABELS[request.leave_type]}
-                      </p>
+                      <span 
+                        className="inline-flex items-center px-2 py-0.5 text-xs font-medium rounded border mt-1"
+                        style={{
+                          backgroundColor: getLeaveTypeInfo(request.leave_type).color,
+                          color: '#1F2937',
+                          borderColor: getLeaveTypeInfo(request.leave_type).color
+                        }}
+                      >
+                        {getLeaveTypeInfo(request.leave_type).label}
+                      </span>
                     </div>
                     <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ml-2 ${getStatusColor(request.status)}`}>
                       {getStatusLabel(request.status)}

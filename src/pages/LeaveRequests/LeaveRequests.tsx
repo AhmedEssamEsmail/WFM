@@ -25,10 +25,13 @@ export default function LeaveRequests() {
 
   const isManager = user?.role === 'tl' || user?.role === 'wfm'
 
-  // Helper function to get leave type label
-  function getLeaveTypeLabel(code: string): string {
+  // Helper function to get leave type info with color
+  function getLeaveTypeInfo(code: string): { label: string; color: string } {
     const leaveTypeConfig = leaveTypes.find(lt => lt.code === code)
-    return leaveTypeConfig?.label || code
+    return {
+      label: leaveTypeConfig?.label || code,
+      color: leaveTypeConfig?.color || '#E5E7EB'
+    }
   }
 
   const fetchRequests = useCallback(async () => {
@@ -178,8 +181,15 @@ export default function LeaveRequests() {
                     <p className="text-sm font-medium text-gray-900 mb-1">
                       {(request as LeaveRequestWithUser).users?.name || 'Unknown'}
                     </p>
-                    <span className="inline-flex px-2 py-0.5 text-xs font-medium rounded bg-gray-100 text-gray-800">
-                      {getLeaveTypeLabel(request.leave_type)}
+                    <span 
+                      className="inline-flex px-2 py-0.5 text-xs font-medium rounded border"
+                      style={{
+                        backgroundColor: getLeaveTypeInfo(request.leave_type).color,
+                        color: '#1F2937',
+                        borderColor: getLeaveTypeInfo(request.leave_type).color
+                      }}
+                    >
+                      {getLeaveTypeInfo(request.leave_type).label}
                     </span>
                   </div>
                   <span className={`inline-flex px-2 py-0.5 text-xs font-semibold rounded ${getStatusColor(request.status)}`}>
