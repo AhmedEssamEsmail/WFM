@@ -58,10 +58,29 @@ function buildIntervalMap(
 ): Record<string, BreakType> {
   const intervals: Record<string, BreakType> = {}
 
-  // Initialize all intervals as 'IN'
-  const shiftIntervals = generateShiftIntervals(shiftType)
-  for (const interval of shiftIntervals) {
-    intervals[interval] = 'IN'
+  // Initialize all intervals from 9:00 AM to 9:00 PM as 'IN' for agents with shifts
+  if (shiftType && shiftType !== 'OFF') {
+    for (let hour = 9; hour < 21; hour++) {
+      for (let minute = 0; minute < 60; minute += 15) {
+        const timeStr = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`
+        
+        // Check if this interval is within the agent's shift hours
+        const shiftHours = SHIFT_HOURS[shiftType]
+        if (shiftHours) {
+          const [shiftStartHour, shiftStartMin] = shiftHours.start.split(':').map(Number)
+          const [shiftEndHour, shiftEndMin] = shiftHours.end.split(':').map(Number)
+          
+          const intervalMinutes = hour * 60 + minute
+          const shiftStartMinutes = shiftStartHour * 60 + shiftStartMin
+          const shiftEndMinutes = shiftEndHour * 60 + shiftEndMin
+          
+          // Only mark as 'IN' if within shift hours, otherwise leave undefined
+          if (intervalMinutes >= shiftStartMinutes && intervalMinutes < shiftEndMinutes) {
+            intervals[timeStr] = 'IN'
+          }
+        }
+      }
+    }
   }
 
   // Override with actual break schedules

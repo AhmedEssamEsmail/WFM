@@ -60,9 +60,25 @@ export function useBreakSchedules(date: string) {
     },
   })
 
+  // Generate 15-minute intervals from 9:00 AM to 9:00 PM
+  const generateIntervals = () => {
+    const intervals: string[] = []
+    const startHour = 9 // 9:00 AM
+    const endHour = 21 // 9:00 PM
+    
+    for (let hour = startHour; hour < endHour; hour++) {
+      for (let minute = 0; minute < 60; minute += 15) {
+        const timeStr = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`
+        intervals.push(timeStr)
+      }
+    }
+    
+    return intervals
+  }
+
   return {
     schedules: scheduleData?.agents || [],
-    intervals: [], // Will be generated from shift types
+    intervals: generateIntervals(),
     coverageSummary: scheduleData?.summary || {},
     warnings: warnings || [],
     isLoading,
