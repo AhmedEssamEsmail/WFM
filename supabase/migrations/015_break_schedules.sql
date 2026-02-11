@@ -12,7 +12,7 @@ CREATE TABLE break_schedules (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
   schedule_date DATE NOT NULL,
-  shift_type shift_type, -- Denormalized for quick access
+  shift_type TEXT CHECK (shift_type IN ('AM', 'PM', 'BET', 'OFF')), -- Denormalized for quick access
   interval_start TIME NOT NULL, -- e.g., '09:00:00'
   break_type TEXT NOT NULL CHECK (break_type IN ('IN', 'HB1', 'B', 'HB2')),
   created_by UUID REFERENCES users(id),
@@ -48,8 +48,8 @@ CREATE TABLE break_schedule_warnings (
   user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
   schedule_date DATE NOT NULL,
   warning_type TEXT NOT NULL CHECK (warning_type IN ('shift_changed', 'breaks_cleared', 'swap_pending')),
-  old_shift_type shift_type,
-  new_shift_type shift_type,
+  old_shift_type TEXT CHECK (old_shift_type IN ('AM', 'PM', 'BET', 'OFF')),
+  new_shift_type TEXT CHECK (new_shift_type IN ('AM', 'PM', 'BET', 'OFF')),
   is_resolved BOOLEAN DEFAULT false,
   created_at TIMESTAMPTZ DEFAULT NOW(),
   

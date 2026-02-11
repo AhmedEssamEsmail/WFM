@@ -313,11 +313,17 @@ export const breakSchedulesService = {
   },
 
   /**
-   * Auto-distribute breaks (placeholder - calls auto-distribution logic)
+   * Auto-distribute breaks
    */
-  async autoDistribute(_request: any): Promise<any> {
-    // This would call the auto-distribution logic from src/lib/autoDistribution.ts
-    // For now, return a placeholder
-    throw new Error('Auto-distribute not yet implemented')
+  async autoDistribute(request: any): Promise<any> {
+    const { generateDistributionPreview, applyDistribution } = await import('../lib/autoDistribution')
+    
+    // Generate preview
+    const preview = await generateDistributionPreview(request)
+    
+    // Apply the distribution
+    await applyDistribution(preview, request.schedule_date)
+    
+    return preview
   },
 }
