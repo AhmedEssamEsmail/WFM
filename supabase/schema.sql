@@ -669,6 +669,10 @@ CREATE POLICY "Users can insert own profile"
     ON users FOR INSERT TO public
     WITH CHECK ((auth.uid() = id) AND ((auth.jwt() ->> 'email') ~~ '%@dabdoob.com'));
 
+CREATE POLICY "Service role can insert users"
+    ON users FOR INSERT TO service_role
+    WITH CHECK (true);
+
 CREATE POLICY "WFM and users can update"
     ON users FOR UPDATE TO authenticated
     USING ((get_user_role(auth.uid()) = 'wfm') OR (auth.uid() = id))
