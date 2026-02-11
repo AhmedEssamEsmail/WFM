@@ -1,10 +1,10 @@
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../hooks/useAuth'
 import { ShiftType, LeaveType, Shift } from '../../types'
 import { format, eachDayOfInterval } from 'date-fns'
-import { shiftsService } from '../../services'
+import { shiftsService, shiftConfigurationsService } from '../../services'
 import { downloadCSV, arrayToCSV } from '../../utils'
 import { ROUTES, ERROR_MESSAGES } from '../../constants'
 import { handleDatabaseError, handleValidationError } from '../../lib/errorHandler'
@@ -22,8 +22,6 @@ interface ParseResult {
   rows: ParsedRow[]
   errors: string[]
 }
-
-const validShiftTypes: ShiftType[] = ['AM', 'PM', 'BET', 'OFF']
 
 const leaveTypeShortLabels: Record<LeaveType, string> = {
   sick: 'SICK',
@@ -43,11 +41,27 @@ export default function ScheduleUpload() {
   const [uploading, setUploading] = useState(false)
   const [uploadResult, setUploadResult] = useState<{ success: number; failed: number } | null>(null)
   const [error, setError] = useState('')
+  const [validShiftTypes, setValidShiftTypes] = useState<string[]>([])
 
   // Export state
   const [showExportModal, setShowExportModal] = useState(false)
   const [exportStartDate, setExportStartDate] = useState('')
   const [exportEndDate, setExportEndDate] = useState('')
+
+  // Load valid shift types from database
+  useEffect(() => {
+    async function loadShiftTypes() {
+      try {
+        const shifts = await shiftConfigurationsService.getActiveShiftConfigurations()
+        setValidShiftTypes(shifts.map(s => s.shift_code))
+      } catch (error) {
+        console.error('Failed to load shift types:', error)
+        // Fallback to defaults if database fails
+        setValidShiftTypes(['AM', 'PM', 'BET', 'OFF'])
+      }
+    }
+    loadShiftTypes()
+  }, [])
   const [exporting, setExporting] = useState(false)
 
   // Redirect non-WFM users
@@ -131,7 +145,7 @@ export default function ScheduleUpload() {
             shiftType: value as ShiftType
           })
         } else {
-          errors.push(`Row ${i + 1}, Column ${j + 1}: Invalid shift type "${cells[j]}". Valid values: AM, PM, BET, OFF`)
+          errors.push(`Row ${i + 1}, Column ${j + 1}: Invalid shift type "${cells[j]}". Valid values: ${validShiftTypes.join(', ')}`)
         }
       }
 
@@ -363,7 +377,12 @@ export default function ScheduleUpload() {
         <ul className="text-sm text-blue-800 space-y-1 list-disc list-inside">
           <li>First column must be <code className="bg-blue-100 px-1 rounded">email</code> (agent's email address)</li>
           <li>Subsequent columns are dates (either <code className="bg-blue-100 px-1 rounded">1, 2, 3...</code> for current month or <code className="bg-blue-100 px-1 rounded">2026-01-15</code> for specific dates)</li>
-          <li>Cell values: <code className="bg-blue-100 px-1 rounded">AM</code>, <code className="bg-blue-100 px-1 rounded">PM</code>, <code className="bg-blue-100 px-1 rounded">BET</code>, or <code className="bg-blue-100 px-1 rounded">OFF</code></li>
+          <li>Cell values: {validShiftTypes.map((type, i) => (
+            <span key={type}>
+              <code className="bg-blue-100 px-1 rounded">{type}</code>
+              {i < validShiftTypes.length - 1 ? ', ' : ''}
+            </span>
+          ))}</li>
           <li>Empty cells are skipped (existing shifts not deleted)</li>
           <li>Existing shifts for the same user/date are updated (merge mode)</li>
         </ul>

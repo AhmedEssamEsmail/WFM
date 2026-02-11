@@ -81,10 +81,10 @@ export function parseCSV(csvContent: string): BreakScheduleCSVRow[] {
 /**
  * Validate CSV format
  */
-export function validateCSVFormat(rows: BreakScheduleCSVRow[]): {
+export async function validateCSVFormat(rows: BreakScheduleCSVRow[]): Promise<{
   valid: boolean
   errors: string[]
-} {
+}> {
   const errors: string[] = []
 
   if (rows.length === 0) {
@@ -92,7 +92,16 @@ export function validateCSVFormat(rows: BreakScheduleCSVRow[]): {
     return { valid: false, errors }
   }
 
-  const validShiftTypes = ['AM', 'PM', 'BET', 'OFF']
+  // Get valid shift types from database
+  const { shiftConfigurationsService } = await import('../services/shiftConfigurationsService')
+  let validShiftTypes: string[]
+  try {
+    const shifts = await shiftConfigurationsService.getActiveShiftConfigurations()
+    validShiftTypes = shifts.map(s => s.shift_code)
+  } catch (error) {
+    // Fallback to defaults if database fails
+    validShiftTypes = ['AM', 'PM', 'BET', 'OFF']
+  }
   const dateRegex = /^\d{4}-\d{2}-\d{2}$/
   const timeRegex = /^\d{2}:\d{2}$/
 
@@ -156,12 +165,12 @@ export async function importFromCSV(file: File): Promise<ImportResult> {
     const rows = parseCSV(csvContent)
 
     // Validate format
-    const validation = validateCSVFormat(rows)
+    const validation = await validateCSVFormat(rows)
     if (!validation.valid) {
       return {
         success: false,
         imported: 0,
-        errors: validation.errors.map((error, index) => ({
+        errors: validation.errors.map((error: string, index: number) => ({
           row: index + 2,
           agent: '',
           error,

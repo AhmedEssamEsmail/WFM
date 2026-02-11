@@ -203,10 +203,6 @@ export async function validateShiftBoundary(
 
   return violations
 }
-  }
-
-  return violations
-}
 
 /**
  * Validate against a specific rule
@@ -284,12 +280,6 @@ export async function validateAgainstRules(
 
   return violations
 }
-    const ruleViolations = validateAgainstRule(request, rule, shiftType)
-    violations.push(...ruleViolations)
-  }
-
-  return violations
-}
 
 /**
  * Get rule violations with priority resolution
@@ -318,14 +308,6 @@ export async function getRuleViolations(
 
     return acc
   }, [] as ValidationViolation[])
-
-  const hasBlockingViolations = uniqueViolations.some((v) => v.severity === 'error')
-
-  return {
-    violations: uniqueViolations,
-    hasBlockingViolations,
-  }
-}
 
   const hasBlockingViolations = uniqueViolations.some((v) => v.severity === 'error')
 

@@ -156,18 +156,36 @@ export function validateLeaveType(leaveType: string): asserts leaveType is Leave
 
 /**
  * Validates that a shift type is valid
+ * Note: This is a synchronous validation for backward compatibility.
+ * For dynamic validation, use shiftConfigurationsService.getActiveShiftConfigurations()
  */
 export function validateShiftType(shiftType: string): asserts shiftType is ShiftType {
-  const validShiftTypes: ShiftType[] = ['AM', 'PM', 'BET', 'OFF']
-  if (!validShiftTypes.includes(shiftType as ShiftType)) {
+  // Basic validation - accepts any string that could be a shift code
+  // The database will be the source of truth for valid shift types
+  if (!shiftType || typeof shiftType !== 'string' || shiftType.length === 0) {
     throw new ValidationError(
       'shift_type',
       shiftType,
-      `Must be one of: ${validShiftTypes.join(', ')}`
+      'Shift type is required'
     )
   }
 }
 
+/**
+ * Validates shift type against database configurations (async)
+ */
+export async function validateShiftTypeAsync(shiftType: string): Promise<boolean> {
+  const { shiftConfigurationsService } = await import('../services/shiftConfigurationsService')
+  try {
+    const shifts = await shiftConfigurationsService.getActiveShiftConfigurations()
+    const validShiftTypes = shifts.map(s => s.shift_code)
+    return validShiftTypes.includes(shiftType)
+  } catch (error) {
+    // Fallback to defaults if database fails
+    const fallbackTypes = ['AM', 'PM', 'BET', 'OFF']
+    return fallbackTypes.includes(shiftType)
+  }
+}
 /**
  * Validates leave request data
  */

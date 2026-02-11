@@ -132,7 +132,7 @@ export const settingsSchema = z.object({
 export const csvShiftSchema = z.object({
   user_email: z.string().email(),
   date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Date must be in YYYY-MM-DD format'),
-  shift_type: z.enum(['AM', 'PM', 'BET', 'OFF']),
+  shift_type: z.string().min(1).max(10), // Flexible - database is source of truth
 })
 
 export const csvLeaveBalanceSchema = z.object({

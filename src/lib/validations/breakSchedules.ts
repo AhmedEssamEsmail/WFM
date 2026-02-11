@@ -6,7 +6,9 @@ import { z } from 'zod'
 
 export const breakTypeSchema = z.enum(['IN', 'HB1', 'B', 'HB2'])
 
-export const shiftTypeSchema = z.enum(['AM', 'PM', 'BET', 'OFF'])
+// Flexible shift type schema - accepts any string
+// Database is the source of truth for valid shift types
+export const shiftTypeSchema = z.string().min(1).max(10)
 
 export const ruleTypeSchema = z.enum(['distribution', 'ordering', 'timing', 'coverage'])
 
