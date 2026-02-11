@@ -31,26 +31,30 @@ export default function AutoDistributeModal({
   const [isLoadingPreview, setIsLoadingPreview] = useState(false)
   const [isApplying, setIsApplying] = useState(false)
 
-  // Generate preview when settings change
+  // Generate preview when settings change (with debounce)
   useEffect(() => {
-    const generatePreview = async () => {
-      setIsLoadingPreview(true)
-      try {
-        const request = {
-          strategy,
-          apply_mode: applyMode,
-          department: selectedDepartment || undefined,
+    const timeoutId = setTimeout(() => {
+      const generatePreview = async () => {
+        setIsLoadingPreview(true)
+        try {
+          const request = {
+            strategy,
+            apply_mode: applyMode,
+            department: selectedDepartment || undefined,
+          }
+          const previewData = await onPreview(request)
+          setPreview(previewData)
+        } catch (error) {
+          console.error('Failed to generate preview:', error)
+        } finally {
+          setIsLoadingPreview(false)
         }
-        const previewData = await onPreview(request)
-        setPreview(previewData)
-      } catch (error) {
-        console.error('Failed to generate preview:', error)
-      } finally {
-        setIsLoadingPreview(false)
       }
-    }
 
-    generatePreview()
+      generatePreview()
+    }, 500) // 500ms debounce
+
+    return () => clearTimeout(timeoutId)
   }, [strategy, applyMode, selectedDepartment, onPreview])
 
   const handleApply = async () => {

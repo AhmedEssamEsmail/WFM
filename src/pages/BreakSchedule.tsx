@@ -3,6 +3,7 @@ import { useAuth } from '../hooks/useAuth'
 import { useBreakSchedules } from '../hooks/useBreakSchedules'
 import { formatDateISO } from '../utils'
 import { useToast } from '../lib/ToastContext'
+import { QUERY_KEYS } from '../constants/cache'
 import DateNavigation from '../components/BreakSchedule/DateNavigation'
 import FilterBar from '../components/BreakSchedule/FilterBar'
 import BreakScheduleTable from '../components/BreakSchedule/BreakScheduleTable'
@@ -32,6 +33,7 @@ export default function BreakSchedule() {
     updateBreakSchedules,
     dismissWarning,
     autoDistribute,
+    queryClient,
   } = useBreakSchedules(dateStr)
 
   const isWFM = user?.role === 'wfm'
@@ -96,8 +98,8 @@ export default function BreakSchedule() {
       
       if (result.success) {
         success(`Successfully imported ${result.imported} break schedules!`)
-        // Refresh the schedule data
-        window.location.reload()
+        // Refresh the schedule data using React Query invalidation
+        queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.BREAK_SCHEDULES] })
       } else {
         const errorMsg = result.errors.length > 0
           ? `Import completed with ${result.errors.length} errors. Check console for details.`

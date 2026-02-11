@@ -57,11 +57,11 @@ export default function AgentRow({
               >
                 ✕
               </span>
-              <div className="pointer-events-none absolute left-0 top-full mt-2 z-50 w-80 scale-0 transition-all duration-150 group-hover:scale-100">
+              <div className="pointer-events-none absolute left-full top-1/2 -translate-y-1/2 ml-2 z-50 w-80 scale-0 transition-all duration-150 group-hover:scale-100">
                 <div className="bg-gray-900 text-white text-xs rounded-lg py-3 px-4 shadow-xl">
                   <div className="font-semibold mb-2 text-red-300">Auto-distribution failed</div>
                   <div className="whitespace-pre-wrap break-words leading-relaxed">{failureReason}</div>
-                  <div className="absolute -top-1.5 left-3 w-3 h-3 bg-gray-900 transform rotate-45"></div>
+                  <div className="absolute top-1/2 -translate-y-1/2 -left-1.5 w-3 h-3 bg-gray-900 transform rotate-45"></div>
                 </div>
               </div>
             </div>

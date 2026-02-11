@@ -86,5 +86,6 @@ export function useBreakSchedules(date: string) {
     updateBreakSchedules,
     dismissWarning,
     autoDistribute,
+    queryClient, // Expose queryClient for manual invalidation
   }
 }
