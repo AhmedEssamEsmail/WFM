@@ -1,4 +1,3 @@
-import { useState } from 'react'
 import type { AgentBreakSchedule, BreakType } from '../../types'
 import { SHIFT_COLORS, SHIFT_LABELS } from '../../lib/designSystem'
 import BreakCell from './BreakCell'
@@ -18,11 +17,14 @@ export default function AgentRow({
   selectedIntervals = new Set(),
   isEditable = false,
 }: AgentRowProps) {
-  const [showNoBreaksPopup, setShowNoBreaksPopup] = useState(false)
   const hasWarning = schedule.has_warning
   
   // Check if agent has no breaks assigned
   const hasNoBreaks = !schedule.breaks?.HB1 && !schedule.breaks?.B && !schedule.breaks?.HB2
+  
+  // Get failure reason from auto_distribution_failure field if available
+  const failureReason = schedule.auto_distribution_failure || 
+                        'No breaks assigned during auto-distribution'
 
   // Format time from HH:MM:SS to HH:MM
   const formatTime = (time: string | null) => {
@@ -48,21 +50,18 @@ export default function AgentRow({
             </span>
           )}
           {hasNoBreaks && schedule.shift_type && schedule.shift_type !== 'OFF' && (
-            <div className="relative">
+            <div className="relative group">
               <span
                 className="inline-flex items-center justify-center w-5 h-5 bg-red-100 text-red-800 rounded-full text-xs font-bold cursor-help"
-                onMouseEnter={() => setShowNoBreaksPopup(true)}
-                onMouseLeave={() => setShowNoBreaksPopup(false)}
                 aria-label="No breaks assigned"
               >
                 ✕
               </span>
-              {showNoBreaksPopup && (
-                <div className="absolute left-0 top-full mt-1 z-50 bg-gray-900 text-white text-xs rounded py-2 px-3 whitespace-nowrap shadow-lg">
-                  No breaks assigned during auto-distribution
-                  <div className="absolute -top-1 left-2 w-2 h-2 bg-gray-900 transform rotate-45"></div>
-                </div>
-              )}
+              <div className="invisible group-hover:visible absolute left-0 top-full mt-1 z-50 bg-gray-900 text-white text-xs rounded py-2 px-3 shadow-lg max-w-md w-max">
+                <div className="font-semibold mb-1">Auto-distribution failed:</div>
+                <div className="whitespace-normal">{failureReason}</div>
+                <div className="absolute -top-1 left-2 w-2 h-2 bg-gray-900 transform rotate-45"></div>
+              </div>
             </div>
           )}
         </div>

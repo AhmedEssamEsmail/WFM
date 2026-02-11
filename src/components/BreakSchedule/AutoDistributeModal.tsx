@@ -9,7 +9,7 @@ import { BUTTON_STYLES, INPUT_STYLES, SEMANTIC_COLORS } from '../../lib/designSy
 
 interface AutoDistributeModalProps {
   onClose: () => void
-  onApply: (request: Omit<AutoDistributeRequest, 'schedule_date'>) => Promise<void>
+  onApply: (request: Omit<AutoDistributeRequest, 'schedule_date'>, failedAgents: Array<{ user_id: string; name: string; reason: string; blockedBy?: string[] }>) => Promise<void>
   onPreview: (request: Omit<AutoDistributeRequest, 'schedule_date'>) => Promise<AutoDistributePreview>
   departments: string[]
   defaultStrategy?: DistributionStrategy
@@ -61,7 +61,8 @@ export default function AutoDistributeModal({
         apply_mode: applyMode,
         department: selectedDepartment || undefined,
       }
-      await onApply(request)
+      // Pass the failed agents information to the parent
+      await onApply(request, preview?.failed_agents || [])
       onClose()
     } catch (error) {
       console.error('Failed to apply distribution:', error)

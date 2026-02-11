@@ -21,6 +21,7 @@ export default function BreakSchedule() {
   const [showAutoDistribute, setShowAutoDistribute] = useState(false)
   const [selectedWarning, setSelectedWarning] = useState<string | null>(null)
   const [isImporting, setIsImporting] = useState(false)
+  const [failedAgentsMap, setFailedAgentsMap] = useState<Record<string, string>>({}) // Store failure reasons by user_id
 
   const dateStr = formatDateISO(currentDate)
   const {
@@ -45,6 +46,12 @@ export default function BreakSchedule() {
       !selectedDepartment || schedule.department === selectedDepartment
     return matchesSearch && matchesDepartment
   })
+  
+  // Merge failure reasons into schedules
+  const schedulesWithFailures = filteredSchedules.map((schedule: any) => ({
+    ...schedule,
+    auto_distribution_failure: failedAgentsMap[schedule.user_id] || undefined,
+  }))
 
   // Get unique departments
   const departments = Array.from(new Set(schedules.map((s: any) => s.department).filter(Boolean))) as string[]
@@ -55,9 +62,16 @@ export default function BreakSchedule() {
   }
 
   // Handle auto-distribute
-  const handleAutoDistribute = async (request: Omit<AutoDistributeRequest, 'schedule_date'>) => {
+  const handleAutoDistribute = async (request: Omit<AutoDistributeRequest, 'schedule_date'>, failedAgents: Array<{ user_id: string; name: string; reason: string; blockedBy?: string[] }>) => {
     const fullRequest = { ...request, schedule_date: dateStr }
     await autoDistribute.mutateAsync(fullRequest)
+    
+    // Store failed agents information
+    const failuresMap: Record<string, string> = {}
+    for (const agent of failedAgents) {
+      failuresMap[agent.user_id] = agent.reason
+    }
+    setFailedAgentsMap(failuresMap)
   }
 
   // Handle auto-distribute preview
@@ -223,7 +237,7 @@ export default function BreakSchedule() {
       />
 
       <BreakScheduleTable
-        schedules={filteredSchedules}
+        schedules={schedulesWithFailures}
         intervals={intervals}
         onUpdate={handleUpdate}
         isEditable={isEditable}

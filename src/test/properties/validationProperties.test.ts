@@ -87,9 +87,9 @@ describe('Validation Properties', () => {
           const gapBtoHB2 = breakTimes.hb2 - breakTimes.b
           
           // Check if gaps are within valid range (90-270 minutes inclusive)
-          // Note: The validation function uses < for minimum, so exactly 90 is invalid
-          const validGaps = (gapHB1toB > 90 && gapHB1toB <= 270) &&
-                           (gapBtoHB2 > 90 && gapBtoHB2 <= 270)
+          // The validation function uses < for minimum, so >= 90 is valid
+          const validGaps = (gapHB1toB >= 90 && gapHB1toB <= 270) &&
+                           (gapBtoHB2 >= 90 && gapBtoHB2 <= 270)
           
           if (validGaps) {
             expect(violations).toHaveLength(0)

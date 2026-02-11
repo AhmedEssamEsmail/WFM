@@ -236,6 +236,7 @@ export interface AgentBreakSchedule {
   department: string
   has_warning: boolean
   warning_details: BreakScheduleWarning | null
+  auto_distribution_failure?: string // Optional field for auto-distribution failure reason
   breaks: {
     HB1: string | null // Start time 'HH:MM:SS'
     B: string | null

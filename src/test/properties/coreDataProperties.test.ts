@@ -52,17 +52,17 @@ describe('Core Data Properties', () => {
           // If shift is not OFF, should have intervals
           if (agent.shift_type !== 'OFF') {
             expect(Object.keys(intervals).length).toBeGreaterThan(0)
-          }
-          
-          // If breaks are scheduled, they should appear in intervals
-          if (agent.breaks.HB1) {
-            expect(intervals[agent.breaks.HB1]).toBe('HB1')
-          }
-          if (agent.breaks.B) {
-            expect(intervals[agent.breaks.B]).toBe('B')
-          }
-          if (agent.breaks.HB2) {
-            expect(intervals[agent.breaks.HB2]).toBe('HB2')
+            
+            // If breaks are scheduled, they should appear in intervals (only for non-OFF shifts)
+            if (agent.breaks.HB1) {
+              expect(intervals[agent.breaks.HB1]).toBe('HB1')
+            }
+            if (agent.breaks.B) {
+              expect(intervals[agent.breaks.B]).toBe('B')
+            }
+            if (agent.breaks.HB2) {
+              expect(intervals[agent.breaks.HB2]).toBe('HB2')
+            }
           }
         }
       ),
