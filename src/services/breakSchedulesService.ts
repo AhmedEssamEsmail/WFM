@@ -27,29 +27,6 @@ const SHIFT_HOURS: Record<ShiftType, { start: string; end: string } | null> = {
 }
 
 /**
- * Generate all 15-minute intervals for a shift
- */
-function generateShiftIntervals(shiftType: ShiftType): string[] {
-  const hours = SHIFT_HOURS[shiftType]
-  if (!hours) return []
-
-  const intervals: string[] = []
-  const [startHour, startMin] = hours.start.split(':').map(Number)
-  const [endHour, endMin] = hours.end.split(':').map(Number)
-
-  const startMinutes = startHour * 60 + startMin
-  const endMinutes = endHour * 60 + endMin
-
-  for (let minutes = startMinutes; minutes < endMinutes; minutes += 15) {
-    const hour = Math.floor(minutes / 60)
-    const min = minutes % 60
-    intervals.push(`${hour.toString().padStart(2, '0')}:${min.toString().padStart(2, '0')}`)
-  }
-
-  return intervals
-}
-
-/**
  * Convert break schedules to interval map
  */
 function buildIntervalMap(
