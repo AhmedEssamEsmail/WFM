@@ -59,6 +59,27 @@ A comprehensive Workforce Management system for shift scheduling, swap requests,
 - Date range selection with validation
 - **Unified design system** with consistent status colors
 
+#### Break Schedule Management
+- **Comprehensive Break Planning**: Plan and manage agent break times across 15-minute intervals
+- **Role-Based Access**:
+  - Agents: View their own break schedules (read-only)
+  - Team Leads: View their team's break schedules (read-only)
+  - WFM: Full planning control with drag-and-drop break assignment
+- **Real-Time Validation**: Configurable business rules with immediate feedback
+  - Break ordering (HB1 → B → HB2)
+  - Minimum/maximum gaps between breaks (90-270 minutes)
+  - Shift boundary validation
+  - Coverage requirements
+- **Auto-Distribution**: Intelligent break placement algorithms
+  - Balanced Coverage: Minimize coverage variance across intervals
+  - Staggered Timing: Spread breaks evenly throughout shifts
+  - Preview before applying with coverage statistics
+- **CSV Import/Export**: Bulk schedule management for WFM
+- **Coverage Visualization**: Color-coded coverage indicators (green/yellow/orange/red)
+- **Shift Integration**: Automatic break clearing when shifts change with warning notifications
+- **Swap Integration**: Automatic break swapping when swap requests are approved
+- **Configurable Rules**: WFM can activate/deactivate validation rules and adjust parameters
+
 #### Reports & Analytics (TL/WFM Only)
 - **Comprehensive Reports Dashboard** with date range filtering
 - Summary cards showing key metrics:
@@ -214,9 +235,9 @@ A comprehensive Workforce Management system for shift scheduling, swap requests,
 
 | Role | Capabilities |
 |------|-------------|
-| **Agent** | View own shifts, request swaps and leaves, comment on own requests, view own leave balances |
-| **Team Lead (TL)** | All Agent permissions + approve/reject team requests, add comments on team requests, view headcount directory (read-only) |
-| **WFM** | All TL permissions + final approval authority, manage settings, schedule upload, auto-approve configuration, full headcount management (create/edit/delete), bulk imports, leave balance management |
+| **Agent** | View own shifts, request swaps and leaves, comment on own requests, view own leave balances, view own break schedule |
+| **Team Lead (TL)** | All Agent permissions + approve/reject team requests, add comments on team requests, view headcount directory (read-only), view team break schedules |
+| **WFM** | All TL permissions + final approval authority, manage settings, schedule upload, auto-approve configuration, full headcount management (create/edit/delete), bulk imports, leave balance management, full break schedule planning and management |
 
 ### Domain Restriction
 - Email domain validation (@dabdoob.com)
@@ -464,6 +485,9 @@ WFM/
 | **departments** | Department hierarchy and structure | id, name, code, parent_department_id, head_id, cost_center, active |
 | **headcount_audit_log** | Audit trail for headcount changes | id, user_id, action, previous_values, new_values, performed_by, reason, effective_date |
 | **leave_types** | Configurable leave type definitions (centralized management) | id, code, label, description, color, display_order, is_active, created_at |
+| **break_schedules** | Agent break schedules by 15-minute intervals | id, user_id, schedule_date, shift_type, interval_start, break_type, created_by |
+| **break_schedule_rules** | Configurable validation rules for break scheduling | id, rule_name, rule_type, parameters, is_active, is_blocking, priority |
+| **break_schedule_warnings** | Warnings when shifts change and breaks are cleared | id, user_id, schedule_date, warning_type, old_shift_type, new_shift_type, is_resolved |
 
 ### Database Views
 
@@ -481,6 +505,7 @@ WFM/
 - **leave_request_status**: `pending_tl`, `pending_wfm`, `approved`, `rejected`, `denied`
 - **leave_type**: `sick`, `annual`, `casual`, `public_holiday`, `bereavement`
 - **request_type**: `swap`, `leave`
+- **break_type**: `IN`, `HB1`, `B`, `HB2`
 
 *All tables are protected with Row-Level Security (RLS) policies based on user roles.*
 
@@ -522,6 +547,7 @@ WFM/
      - `supabase/migrations/010_performance_indexes.sql`
      - `supabase/migrations/011_remove_fte_percentage.sql`
      - `supabase/migrations/013_centralized_leave_types.sql`
+     - `supabase/migrations/015_break_schedules.sql`
    - Copy your project URL and anon key from Settings → API
 
 4. **Configure environment variables**

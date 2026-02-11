@@ -172,3 +172,147 @@ export interface HeadcountMetrics {
   by_department: Record<string, number>
   by_role: Record<UserRole, number>
 }
+
+// ============================================
+// Break Schedule Management Types
+// ============================================
+
+export type BreakType = 'IN' | 'HB1' | 'B' | 'HB2'
+
+export interface BreakSchedule {
+  id: string
+  user_id: string
+  schedule_date: string // ISO date string
+  shift_type: ShiftType | null
+  interval_start: string // Time string 'HH:MM:SS'
+  break_type: BreakType
+  created_by: string | null
+  created_at: string
+  updated_at: string
+}
+
+export interface BreakScheduleRule {
+  id: string
+  rule_name: string
+  rule_type: 'distribution' | 'ordering' | 'timing' | 'coverage'
+  description: string | null
+  parameters: Record<string, any>
+  is_active: boolean
+  is_blocking: boolean
+  priority: number
+  created_at: string
+  updated_at: string
+}
+
+export interface BreakScheduleWarning {
+  id: string
+  user_id: string
+  schedule_date: string
+  warning_type: 'shift_changed' | 'breaks_cleared' | 'swap_pending'
+  old_shift_type: ShiftType | null
+  new_shift_type: ShiftType | null
+  is_resolved: boolean
+  created_at: string
+}
+
+// API Response Types
+export interface AgentBreakSchedule {
+  user_id: string
+  name: string
+  shift_type: ShiftType | null
+  department: string
+  has_warning: boolean
+  warning_details: BreakScheduleWarning | null
+  breaks: {
+    HB1: string | null // Start time 'HH:MM:SS'
+    B: string | null
+    HB2: string | null
+  }
+  intervals: Record<string, BreakType> // Key: 'HH:MM', Value: BreakType
+}
+
+export interface BreakScheduleSummary {
+  [interval: string]: {
+    in: number
+    hb1: number
+    b: number
+    hb2: number
+  }
+}
+
+export interface BreakScheduleResponse {
+  agents: AgentBreakSchedule[]
+  summary: BreakScheduleSummary
+}
+
+export interface ValidationViolation {
+  rule_name: string
+  message: string
+  severity: 'error' | 'warning'
+  affected_intervals?: string[]
+}
+
+export interface BreakScheduleUpdateRequest {
+  user_id: string
+  schedule_date: string
+  intervals: Array<{
+    interval_start: string
+    break_type: BreakType
+  }>
+}
+
+export interface BreakScheduleUpdateResponse {
+  success: boolean
+  violations: ValidationViolation[]
+}
+
+// CSV Import/Export Types
+export interface BreakScheduleCSVRow {
+  agent_name: string
+  date: string
+  shift: ShiftType
+  hb1_start: string | null
+  b_start: string | null
+  hb2_start: string | null
+}
+
+export interface ImportResult {
+  success: boolean
+  imported: number
+  errors: Array<{
+    row: number
+    agent: string
+    error: string
+  }>
+}
+
+// Auto-Distribution Types
+export type DistributionStrategy = 'balanced_coverage' | 'staggered_timing'
+export type ApplyMode = 'only_unscheduled' | 'all_agents'
+
+export interface AutoDistributeRequest {
+  schedule_date: string
+  strategy: DistributionStrategy
+  apply_mode: ApplyMode
+  department?: string
+}
+
+export interface AutoDistributePreview {
+  proposed_schedules: AgentBreakSchedule[]
+  coverage_stats: {
+    min_coverage: number
+    max_coverage: number
+    avg_coverage: number
+    variance: number
+  }
+  rule_compliance: {
+    total_violations: number
+    blocking_violations: number
+    warning_violations: number
+  }
+  failed_agents: Array<{
+    user_id: string
+    name: string
+    reason: string
+  }>
+}

@@ -31,6 +31,15 @@ export const STALE_TIMES = {
   
   /** Comments - frequent updates (1 minute) */
   COMMENTS: 1 * 60 * 1000,
+  
+  /** Break schedules - frequent updates (1 minute) */
+  BREAK_SCHEDULES: 1 * 60 * 1000,
+  
+  /** Break warnings - frequent updates (1 minute) */
+  BREAK_WARNINGS: 1 * 60 * 1000,
+  
+  /** Break rules - changes infrequently (5 minutes) */
+  BREAK_RULES: 5 * 60 * 1000,
 } as const
 
 /**
@@ -61,4 +70,7 @@ export const QUERY_KEYS = {
   LEAVE_REQUESTS: 'leaveRequests',
   SWAP_REQUESTS: 'swapRequests',
   COMMENTS: 'comments',
+  BREAK_SCHEDULES: 'breakSchedules',
+  BREAK_WARNINGS: 'breakWarnings',
+  BREAK_RULES: 'breakRules',
 } as const
