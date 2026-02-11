@@ -19,6 +19,12 @@ export default function AgentRow({
 }: AgentRowProps) {
   const hasWarning = schedule.has_warning
 
+  // Format time from HH:MM:SS to HH:MM
+  const formatTime = (time: string | null) => {
+    if (!time) return '-'
+    return time.substring(0, 5) // Extract HH:MM from HH:MM:SS
+  }
+
   return (
     <tr className="hover:bg-gray-50">
       <th
@@ -37,21 +43,23 @@ export default function AgentRow({
             </span>
           )}
         </div>
-        <div className="flex items-center gap-2 mt-1">
-          {schedule.shift_type && (
-            <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${SHIFT_COLORS[schedule.shift_type]}`}>
-              {SHIFT_LABELS[schedule.shift_type]}
-            </span>
-          )}
-          {schedule.breaks && (
-            <span className="text-xs text-gray-500">
-              {schedule.breaks.HB1 && `HB1: ${schedule.breaks.HB1}`}
-              {schedule.breaks.B && ` | B: ${schedule.breaks.B}`}
-              {schedule.breaks.HB2 && ` | HB2: ${schedule.breaks.HB2}`}
-            </span>
-          )}
-        </div>
       </th>
+      <td className="px-4 py-3 text-center text-sm">
+        {schedule.shift_type && (
+          <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${SHIFT_COLORS[schedule.shift_type]}`}>
+            {SHIFT_LABELS[schedule.shift_type]}
+          </span>
+        )}
+      </td>
+      <td className="px-4 py-3 text-center text-sm text-gray-900">
+        {formatTime(schedule.breaks?.HB1 || null)}
+      </td>
+      <td className="px-4 py-3 text-center text-sm text-gray-900">
+        {formatTime(schedule.breaks?.B || null)}
+      </td>
+      <td className="px-4 py-3 text-center text-sm text-gray-900">
+        {formatTime(schedule.breaks?.HB2 || null)}
+      </td>
       {intervals.map((intervalStart) => {
         const breakType = schedule.intervals[intervalStart] || null
         

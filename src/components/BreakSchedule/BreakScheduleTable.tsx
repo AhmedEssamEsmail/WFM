@@ -117,9 +117,33 @@ export default function BreakScheduleTable({
               <tr>
                 <th
                   scope="col"
-                  className="sticky left-0 z-30 bg-gray-50 px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[200px] shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]"
+                  className="sticky left-0 z-30 bg-gray-50 px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[150px] shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]"
                 >
-                  Agent
+                  Agent Name
+                </th>
+                <th
+                  scope="col"
+                  className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[80px] bg-gray-50"
+                >
+                  Shift
+                </th>
+                <th
+                  scope="col"
+                  className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[80px] bg-gray-50"
+                >
+                  HB1 Start
+                </th>
+                <th
+                  scope="col"
+                  className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[80px] bg-gray-50"
+                >
+                  B Start
+                </th>
+                <th
+                  scope="col"
+                  className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[80px] bg-gray-50"
+                >
+                  HB2 Start
                 </th>
                 {intervals.map((interval) => (
                   <th
@@ -141,8 +165,12 @@ export default function BreakScheduleTable({
                 >
                   Total IN
                 </th>
+                <td className="px-4 py-3 text-center bg-gray-100">-</td>
+                <td className="px-4 py-3 text-center bg-gray-100">-</td>
+                <td className="px-4 py-3 text-center bg-gray-100">-</td>
+                <td className="px-4 py-3 text-center bg-gray-100">-</td>
                 {intervals.map((interval) => (
-                  <td key={interval} className="px-2 py-3 text-center">
+                  <td key={interval} className="px-2 py-3 text-center bg-gray-100">
                     <CoverageCell count={getCoverageForInterval(interval)} />
                   </td>
                 ))}
