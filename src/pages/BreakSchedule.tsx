@@ -75,24 +75,10 @@ export default function BreakSchedule() {
   }
 
   // Handle auto-distribute preview
-  const handleAutoDistributePreview = async (_request: Omit<AutoDistributeRequest, 'schedule_date'>) => {
-    // This would call the preview endpoint
-    // For now, return mock data
-    return {
-      proposed_schedules: [],
-      coverage_stats: {
-        min_coverage: 5,
-        max_coverage: 10,
-        avg_coverage: 7.5,
-        variance: 1.5,
-      },
-      rule_compliance: {
-        total_violations: 2,
-        blocking_violations: 0,
-        warning_violations: 2,
-      },
-      failed_agents: [],
-    }
+  const handleAutoDistributePreview = async (request: Omit<AutoDistributeRequest, 'schedule_date'>) => {
+    const { generateDistributionPreview } = await import('../lib/autoDistribution')
+    const fullRequest = { ...request, schedule_date: dateStr }
+    return await generateDistributionPreview(fullRequest)
   }
 
   // Handle CSV import

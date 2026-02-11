@@ -50,17 +50,19 @@ export default function AgentRow({
             </span>
           )}
           {hasNoBreaks && schedule.shift_type && schedule.shift_type !== 'OFF' && (
-            <div className="relative group">
+            <div className="group relative inline-flex">
               <span
                 className="inline-flex items-center justify-center w-5 h-5 bg-red-100 text-red-800 rounded-full text-xs font-bold cursor-help"
                 aria-label="No breaks assigned"
               >
                 ✕
               </span>
-              <div className="invisible group-hover:visible absolute left-0 top-full mt-1 z-50 bg-gray-900 text-white text-xs rounded py-2 px-3 shadow-lg max-w-md w-max">
-                <div className="font-semibold mb-1">Auto-distribution failed:</div>
-                <div className="whitespace-normal">{failureReason}</div>
-                <div className="absolute -top-1 left-2 w-2 h-2 bg-gray-900 transform rotate-45"></div>
+              <div className="pointer-events-none absolute left-0 top-full mt-2 z-50 w-80 scale-0 transition-all duration-150 group-hover:scale-100">
+                <div className="bg-gray-900 text-white text-xs rounded-lg py-3 px-4 shadow-xl">
+                  <div className="font-semibold mb-2 text-red-300">Auto-distribution failed</div>
+                  <div className="whitespace-pre-wrap break-words leading-relaxed">{failureReason}</div>
+                  <div className="absolute -top-1.5 left-3 w-3 h-3 bg-gray-900 transform rotate-45"></div>
+                </div>
               </div>
             </div>
           )}
