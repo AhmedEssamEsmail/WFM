@@ -117,14 +117,14 @@ class ErrorHandler {
    * @param errorLog - The error log to send
    */
   private sendToErrorTracking(errorLog: ErrorLog): void {
-    // TODO: Integrate with Sentry, LogRocket, or similar service
-    // Example: Sentry.captureException(errorLog.error, { extra: errorLog.context })
-    
-    // For now, we'll just store it locally
-    // In production, replace this with actual error tracking integration
-    if (import.meta.env.PROD) {
-      // Placeholder for future error tracking service integration
-      void errorLog // Acknowledge the parameter is intentionally unused for now
+    if (import.meta.env.PROD && typeof window !== 'undefined' && (window as any).Sentry) {
+      const Sentry = (window as any).Sentry;
+      Sentry.captureException(errorLog.error, {
+        extra: errorLog.context,
+        tags: {
+          errorType: errorLog.context.type as string,
+        },
+      });
     }
   }
 

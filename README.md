@@ -589,9 +589,116 @@ Leave `VITE_SENTRY_DSN` empty to disable Sentry integration.
 | `npm run build` | Type-check with TypeScript and build for production |
 | `npm run preview` | Preview production build locally |
 | `npm run lint` | Run ESLint to check code quality |
-| `npm run test` | Run unit tests with Vitest |
+| `npm run test` | Run unit tests with Vitest in watch mode |
+| `npm run test:run` | Run all tests once (CI mode) |
 | `npm run test:ui` | Run tests with Vitest UI |
 | `npm run test:coverage` | Generate test coverage report |
+| `npm run seed-test-data` | Seed test database with sample data |
+
+---
+
+## Testing
+
+### Test Suite
+
+The application has a comprehensive test suite with **299 passing tests** covering:
+
+| Test Category | Tests | Description |
+|---------------|-------|-------------|
+| **Edge Cases** | 72 | Concurrency, race conditions, boundaries, failures, authentication |
+| **Business Logic** | 19 | Swap execution, leave balances, approval workflows, comments |
+| **Backend/RLS** | 43 | Row Level Security policies, stored procedures, triggers |
+| **Integration** | 33 | Complete user flows, authentication, RBAC, error handling |
+| **Unit Tests** | 132 | Components, hooks, utilities, services |
+
+**Total Coverage**: 25.89% overall (target: 70%)
+- Critical paths: >90% coverage
+- Business logic: >85% coverage
+- Utilities: >80% coverage
+
+### Running Tests
+
+```bash
+# Run all tests in watch mode
+npm test
+
+# Run tests once (CI mode)
+npm run test:run
+
+# Run specific test suite
+npm run test:run -- src/test/edge-cases/
+npm run test:run -- src/test/business-logic/
+npm run test:run -- src/test/backend/
+npm run test:run -- src/test/integration/
+
+# Generate coverage report
+npm run test:coverage
+```
+
+### Test Database
+
+Tests use a local Supabase instance for database testing:
+
+1. **Install Supabase CLI**:
+   ```bash
+   npx supabase --version
+   ```
+
+2. **Start local database**:
+   ```bash
+   npx supabase start
+   ```
+
+3. **Seed test data** (optional):
+   ```bash
+   npm run seed-test-data
+   ```
+
+4. **Run tests**:
+   ```bash
+   npm run test:run
+   ```
+
+See [docs/testing-guide.md](./docs/testing-guide.md) for detailed testing documentation.
+
+---
+
+## CI/CD Pipeline
+
+### GitHub Actions Workflow
+
+The project uses GitHub Actions for continuous integration:
+
+**Triggers**:
+- Pull requests to `main` branch
+- Pushes to `main` branch
+
+**Jobs**:
+1. **Build** - TypeScript compilation and Vite build
+2. **Lint** - ESLint code quality checks
+3. **Test** - Run full test suite with coverage
+
+**Artifacts**:
+- Build artifacts (7 days retention)
+- Lint reports (30 days retention)
+- Coverage reports (30 days retention)
+
+### Branch Protection
+
+Recommended branch protection rules for `main`:
+- Require CI checks to pass before merge
+- Require pull request reviews (1 approver)
+- Prevent force pushes
+- Require linear history
+
+### Deployment Pipeline
+
+**Vercel Deployment**:
+- Automatic deployment on push to `main`
+- Preview deployments for pull requests
+- Environment variables configured in Vercel dashboard
+- Build command: `npm run build`
+- Output directory: `dist`
 
 ---
 

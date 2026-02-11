@@ -94,5 +94,26 @@ export default defineConfig({
     environment: 'jsdom',
     setupFiles: './src/test/setup.ts',
     css: true,
+    env: {
+      // Test database configuration (Supabase Local)
+      VITE_SUPABASE_TEST_URL: 'http://127.0.0.1:54321',
+      VITE_SUPABASE_TEST_ANON_KEY: 'sb_publishable_ACJWlzQHlZjBrEguHvfOxg_3BJgxAaH',
+      VITE_SUPABASE_TEST_SERVICE_KEY: 'sb_secret_N7UND0UgjKTVK-Uodkm0Hg_xSvEMPvz',
+    },
+    coverage: {
+      provider: 'v8',
+      reporter: ['text', 'json', 'html'],
+      exclude: [
+        'node_modules/',
+        'src/test/',
+        '**/*.test.ts',
+        '**/*.test.tsx',
+        'src/vite-env.d.ts',
+        'vite.config.ts',
+        'tailwind.config.ts',
+        'postcss.config.js',
+        'eslint.config.js',
+      ],
+    },
   },
 })

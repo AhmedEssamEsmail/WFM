@@ -41,13 +41,16 @@ export function logUnauthorizedAccess(
   }
 
   // In production, send to logging service
-  // TODO: Integrate with production logging service (Sentry, DataDog, etc.)
-  if (import.meta.env.PROD) {
-    // Example: Send to logging service
-    // logToService(logEntry)
-    
-    // For now, still log to console in production for visibility
-    console.warn('Security Event:', JSON.stringify(logEntry))
+  if (import.meta.env.PROD && typeof window !== 'undefined' && (window as any).Sentry) {
+    const Sentry = (window as any).Sentry;
+    Sentry.captureMessage(`Security Event: ${action}`, {
+      level: 'warning',
+      extra: logEntry,
+      tags: {
+        securityEvent: action,
+        userRole,
+      },
+    });
   }
 
   // Store in local storage for debugging (limited to last 50 entries)

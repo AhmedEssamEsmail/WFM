@@ -2,7 +2,7 @@
 
 import { supabase } from '../lib/supabase'
 import type { LeaveRequest, LeaveRequestStatus, LeaveType } from '../types'
-import { API_ENDPOINTS } from '../constants'
+import { API_ENDPOINTS, PAGINATION } from '../constants'
 import {
   validateUUID,
   validateLeaveType,
@@ -12,10 +12,58 @@ import {
 import { validateLeaveRequest } from './validation/leaveBalanceValidation'
 import { sanitizeUserInput } from '../utils/sanitize'
 import { ConcurrencyError, ResourceNotFoundError } from '../types/errors'
+import type { PaginatedResponse } from '../hooks/usePaginatedQuery'
 
 export const leaveRequestsService = {
   /**
-   * Get all leave requests
+   * Get all leave requests with pagination support
+   * @param cursor - Cursor for pagination (created_at timestamp)
+   * @param limit - Number of items per page
+   */
+  async getLeaveRequestsPaginated(
+    cursor?: string,
+    limit: number = PAGINATION.DEFAULT_PAGE_SIZE
+  ): Promise<PaginatedResponse<LeaveRequest>> {
+    // Validate and cap limit
+    const validatedLimit = Math.min(
+      Math.max(1, limit),
+      PAGINATION.MAX_PAGE_SIZE
+    )
+
+    // Build query
+    let query = supabase
+      .from(API_ENDPOINTS.LEAVE_REQUESTS)
+      .select('*, users(id, name, email, role)')
+      .order('created_at', { ascending: false })
+      .limit(validatedLimit + 1) // Fetch one extra to check if there are more
+
+    // Apply cursor if provided
+    if (cursor) {
+      query = query.lt('created_at', cursor)
+    }
+
+    const { data, error } = await query
+
+    if (error) throw error
+
+    // Check if there are more results
+    const hasMore = data.length > validatedLimit
+    const items = hasMore ? data.slice(0, validatedLimit) : data
+
+    // Get next cursor from last item
+    const nextCursor = hasMore && items.length > 0
+      ? items[items.length - 1].created_at
+      : undefined
+
+    return {
+      data: items as LeaveRequest[],
+      nextCursor,
+      hasMore,
+    }
+  },
+
+  /**
+   * Get all leave requests (non-paginated - for backward compatibility)
    */
   async getLeaveRequests(): Promise<LeaveRequest[]> {
     const { data, error } = await supabase

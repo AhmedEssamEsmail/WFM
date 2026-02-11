@@ -2,7 +2,7 @@
 
 import { supabase } from '../lib/supabase'
 import type { SwapRequest, SwapRequestStatus, SwapExecutionResult } from '../types'
-import { API_ENDPOINTS } from '../constants'
+import { API_ENDPOINTS, PAGINATION } from '../constants'
 import {
   validateUUID,
   validateSwapRequestData,
@@ -13,6 +13,7 @@ import {
   ConcurrencyError,
   ResourceNotFoundError,
 } from '../types/errors'
+import type { PaginatedResponse } from '../hooks/usePaginatedQuery'
 
 export const swapRequestsService = {
   /**
@@ -89,7 +90,60 @@ export const swapRequestsService = {
   },
 
   /**
-   * Get all swap requests
+   * Get all swap requests with pagination support
+   * @param cursor - Cursor for pagination (created_at timestamp)
+   * @param limit - Number of items per page
+   */
+  async getSwapRequestsPaginated(
+    cursor?: string,
+    limit: number = PAGINATION.DEFAULT_PAGE_SIZE
+  ): Promise<PaginatedResponse<SwapRequest>> {
+    // Validate and cap limit
+    const validatedLimit = Math.min(
+      Math.max(1, limit),
+      PAGINATION.MAX_PAGE_SIZE
+    )
+
+    // Build query
+    let query = supabase
+      .from(API_ENDPOINTS.SWAP_REQUESTS)
+      .select(`
+        *,
+        requester:users!swap_requests_requester_id_fkey(id, name, email),
+        target:users!swap_requests_target_user_id_fkey(id, name, email),
+        requester_shift:shifts!swap_requests_requester_shift_id_fkey(date, shift_type),
+        target_shift:shifts!swap_requests_target_shift_id_fkey(date, shift_type)
+      `)
+      .order('created_at', { ascending: false })
+      .limit(validatedLimit + 1) // Fetch one extra to check if there are more
+
+    // Apply cursor if provided
+    if (cursor) {
+      query = query.lt('created_at', cursor)
+    }
+
+    const { data, error } = await query
+
+    if (error) throw error
+
+    // Check if there are more results
+    const hasMore = data.length > validatedLimit
+    const items = hasMore ? data.slice(0, validatedLimit) : data
+
+    // Get next cursor from last item
+    const nextCursor = hasMore && items.length > 0
+      ? items[items.length - 1].created_at
+      : undefined
+
+    return {
+      data: items as SwapRequest[],
+      nextCursor,
+      hasMore,
+    }
+  },
+
+  /**
+   * Get all swap requests (non-paginated - for backward compatibility)
    */
   async getSwapRequests(): Promise<SwapRequest[]> {
     const { data, error } = await supabase

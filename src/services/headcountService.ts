@@ -2,11 +2,59 @@
 
 import { supabase } from '../lib/supabase'
 import type { HeadcountUser, Department } from '../types'
-import { API_ENDPOINTS } from '../constants'
+import { API_ENDPOINTS, PAGINATION } from '../constants'
+import type { PaginatedResponse } from '../hooks/usePaginatedQuery'
 
 export const headcountService = {
   /**
-   * Get all employees
+   * Get all employees with pagination support
+   * @param cursor - Cursor for pagination (name for alphabetical sorting)
+   * @param limit - Number of items per page
+   */
+  async getEmployeesPaginated(
+    cursor?: string,
+    limit: number = PAGINATION.DEFAULT_PAGE_SIZE
+  ): Promise<PaginatedResponse<HeadcountUser>> {
+    // Validate and cap limit
+    const validatedLimit = Math.min(
+      Math.max(1, limit),
+      PAGINATION.MAX_PAGE_SIZE
+    )
+
+    // Build query
+    let query = supabase
+      .from('v_headcount_active')
+      .select('*')
+      .order('name', { ascending: true })
+      .limit(validatedLimit + 1) // Fetch one extra to check if there are more
+
+    // Apply cursor if provided (for alphabetical pagination)
+    if (cursor) {
+      query = query.gt('name', cursor)
+    }
+
+    const { data, error } = await query
+
+    if (error) throw error
+
+    // Check if there are more results
+    const hasMore = data.length > validatedLimit
+    const items = hasMore ? data.slice(0, validatedLimit) : data
+
+    // Get next cursor from last item
+    const nextCursor = hasMore && items.length > 0
+      ? items[items.length - 1].name
+      : undefined
+
+    return {
+      data: items as HeadcountUser[],
+      nextCursor,
+      hasMore,
+    }
+  },
+
+  /**
+   * Get all employees (non-paginated - for backward compatibility)
    */
   async getEmployees(): Promise<HeadcountUser[]> {
     const { data, error } = await supabase
