@@ -49,8 +49,31 @@ export default function BreakSchedule() {
     return matchesSearch && matchesDepartment
   })
   
+  // Sort schedules by shift type (AM, BET, PM, OFF, null) then by name
+  const sortedSchedules = [...filteredSchedules].sort((a, b) => {
+    // Define shift order priority
+    const shiftOrder: Record<string, number> = {
+      'AM': 1,
+      'BET': 2,
+      'PM': 3,
+      'OFF': 4,
+    }
+    
+    // Get shift priorities (null/undefined shifts go last)
+    const aShiftPriority = a.shift_type ? (shiftOrder[a.shift_type] || 5) : 5
+    const bShiftPriority = b.shift_type ? (shiftOrder[b.shift_type] || 5) : 5
+    
+    // First sort by shift type
+    if (aShiftPriority !== bShiftPriority) {
+      return aShiftPriority - bShiftPriority
+    }
+    
+    // Then sort by name alphabetically
+    return a.name.localeCompare(b.name)
+  })
+  
   // Merge failure reasons into schedules
-  const schedulesWithFailures = filteredSchedules.map((schedule: any) => ({
+  const schedulesWithFailures = sortedSchedules.map((schedule: any) => ({
     ...schedule,
     auto_distribution_failure: failedAgentsMap[schedule.user_id] || undefined,
   }))
