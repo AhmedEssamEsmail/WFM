@@ -20,7 +20,7 @@ export default function Settings() {
   const [saving, setSaving] = useState(false)
   
   // Leave types state
-  const [activeTab, setActiveTab] = useState<'general' | 'leave-types' | 'break-schedule'>('general')
+  const [activeTab, setActiveTab] = useState<'general' | 'leave-types' | 'break-schedule' | 'shift-configurations'>('general')
   const [leaveTypes, setLeaveTypes] = useState<LeaveTypeConfig[]>([])
   const [loadingLeaveTypes, setLoadingLeaveTypes] = useState(false)
   const [editingLeaveType, setEditingLeaveType] = useState<LeaveTypeConfig | null>(null)
@@ -62,6 +62,7 @@ export default function Settings() {
       fetchLeaveTypes()
     } else if (activeTab === 'break-schedule') {
       fetchBreakRules()
+    } else if (activeTab === 'shift-configurations') {
       fetchShiftConfigurations()
     }
   }, [activeTab, fetchLeaveTypes])
@@ -332,6 +333,16 @@ export default function Settings() {
             } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm`}
           >
             Break Schedule
+          </button>
+          <button
+            onClick={() => setActiveTab('shift-configurations')}
+            className={`${
+              activeTab === 'shift-configurations'
+                ? 'border-primary-500 text-primary-600'
+                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+            } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm`}
+          >
+            Shift Configurations
           </button>
         </nav>
       </div>
@@ -652,22 +663,6 @@ export default function Settings() {
           </div>
 
           <div className="bg-white rounded-lg shadow p-6">
-            {loadingShiftConfigurations ? (
-              <div className="flex items-center justify-center h-32">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
-              </div>
-            ) : (
-              <ShiftConfigurations
-                shifts={shiftConfigurations}
-                onUpdateShift={handleUpdateShift}
-                onToggleShift={handleToggleShift}
-                onCreateShift={handleCreateShift}
-                onDeleteShift={handleDeleteShift}
-              />
-            )}
-          </div>
-
-          <div className="bg-white rounded-lg shadow p-6">
             {loadingBreakRules ? (
               <div className="flex items-center justify-center h-32">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
@@ -680,6 +675,24 @@ export default function Settings() {
               />
             )}
           </div>
+        </div>
+      )}
+
+      {activeTab === 'shift-configurations' && (
+        <div className="bg-white rounded-lg shadow p-6">
+          {loadingShiftConfigurations ? (
+            <div className="flex items-center justify-center h-32">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
+            </div>
+          ) : (
+            <ShiftConfigurations
+              shifts={shiftConfigurations}
+              onUpdateShift={handleUpdateShift}
+              onToggleShift={handleToggleShift}
+              onCreateShift={handleCreateShift}
+              onDeleteShift={handleDeleteShift}
+            />
+          )}
         </div>
       )}
     </div>

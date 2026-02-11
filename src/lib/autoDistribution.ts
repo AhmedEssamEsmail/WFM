@@ -102,10 +102,10 @@ export async function balancedCoverageStrategy(
   rules: BreakScheduleRule[]
 ): Promise<{
   schedules: AgentBreakSchedule[]
-  failed: Array<{ user_id: string; name: string; reason: string }>
+  failed: Array<{ user_id: string; name: string; reason: string; blockedBy?: string[] }>
 }> {
   const schedules: AgentBreakSchedule[] = []
-  const failed: Array<{ user_id: string; name: string; reason: string }> = []
+  const failed: Array<{ user_id: string; name: string; reason: string; blockedBy?: string[] }> = []
 
   // Get current coverage
   const response = await breakSchedulesService.getScheduleForDate(scheduleDate)
@@ -179,15 +179,15 @@ export async function balancedCoverageStrategy(
     )
 
     if (validation.hasBlockingViolations) {
-      const errorMessages = validation.violations
-        .filter((v) => v.severity === 'error')
-        .map((v) => v.message)
-        .join('; ')
+      const errorViolations = validation.violations.filter((v) => v.severity === 'error')
+      const errorMessages = errorViolations.map((v) => v.message).join('; ')
+      const blockedByRules = errorViolations.map((v) => v.rule_name)
       
       failed.push({
         user_id: agent.user_id,
         name: agent.name,
         reason: errorMessages || 'Validation failed',
+        blockedBy: blockedByRules,
       })
       continue
     }
@@ -236,10 +236,10 @@ export async function staggeredTimingStrategy(
   rules: BreakScheduleRule[]
 ): Promise<{
   schedules: AgentBreakSchedule[]
-  failed: Array<{ user_id: string; name: string; reason: string }>
+  failed: Array<{ user_id: string; name: string; reason: string; blockedBy?: string[] }>
 }> {
   const schedules: AgentBreakSchedule[] = []
-  const failed: Array<{ user_id: string; name: string; reason: string }> = []
+  const failed: Array<{ user_id: string; name: string; reason: string; blockedBy?: string[] }> = []
   const SHIFT_HOURS = await getShiftHours()
 
   for (const agent of agents) {
@@ -294,13 +294,15 @@ export async function staggeredTimingStrategy(
     )
 
     if (validation.hasBlockingViolations) {
+      const errorViolations = validation.violations.filter((v) => v.severity === 'error')
+      const errorMessages = errorViolations.map((v) => v.message).join('; ')
+      const blockedByRules = errorViolations.map((v) => v.rule_name)
+      
       failed.push({
         user_id: agent.user_id,
         name: agent.name,
-        reason: validation.violations
-          .filter((v) => v.severity === 'error')
-          .map((v) => v.message)
-          .join('; '),
+        reason: errorMessages || 'Validation failed',
+        blockedBy: blockedByRules,
       })
       continue
     }

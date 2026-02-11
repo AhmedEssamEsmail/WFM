@@ -171,6 +171,7 @@ export const autoDistributePreviewSchema = z.object({
       user_id: z.string().uuid(),
       name: z.string(),
       reason: z.string(),
+      blockedBy: z.array(z.string()).optional(),
     })
   ),
 })

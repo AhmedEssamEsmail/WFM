@@ -327,5 +327,6 @@ export interface AutoDistributePreview {
     user_id: string
     name: string
     reason: string
+    blockedBy?: string[]
   }>
 }

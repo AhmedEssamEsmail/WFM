@@ -71,8 +71,8 @@ export default function AutoDistributeModal({
   }
 
   return (
-    <div className="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full mx-4 p-6 max-h-[90vh] overflow-y-auto">
+    <div className="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center z-[100]">
+      <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full mx-4 p-6 max-h-[90vh] overflow-y-auto relative z-[101]">
         <h3 className="text-lg font-medium text-gray-900 mb-4">Auto-Distribute Breaks</h3>
 
         <div className="space-y-4">
@@ -184,6 +184,24 @@ export default function AutoDistributeModal({
           ) : preview ? (
             <div className="border rounded-lg p-4 bg-gray-50">
               <h4 className="text-sm font-medium text-gray-900 mb-3">Preview</h4>
+              
+              {/* Show error if no breaks assigned */}
+              {preview.proposed_schedules.length === 0 && preview.failed_agents.length > 0 && (
+                <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded">
+                  <div className="flex items-start gap-2">
+                    <svg className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                    <div>
+                      <div className="text-sm font-medium text-red-900">No breaks assigned during auto-distribution</div>
+                      <div className="text-xs text-red-700 mt-1">
+                        All agents failed validation. Check the rule violations below to see which rules are blocking assignments.
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+              
               <div className="grid grid-cols-2 gap-4 text-sm">
                 <div>
                   <span className="text-gray-600">Agents Affected:</span>
@@ -205,13 +223,24 @@ export default function AutoDistributeModal({
 
               {preview.failed_agents.length > 0 && (
                 <div className="mt-3 pt-3 border-t">
-                  <div className={`text-xs font-medium ${SEMANTIC_COLORS.warning.text} mb-2`}>
-                    Failed Agents ({preview.failed_agents.length}):
+                  <div className={`text-xs font-medium ${SEMANTIC_COLORS.error.text} mb-2`}>
+                    ✕ Failed Agents ({preview.failed_agents.length}):
                   </div>
-                  <div className="space-y-1 max-h-32 overflow-y-auto">
+                  <div className="space-y-2 max-h-48 overflow-y-auto">
                     {preview.failed_agents.map((agent, idx) => (
-                      <div key={idx} className="text-xs text-gray-600">
-                        {agent.name}: {agent.reason}
+                      <div key={idx} className="text-xs bg-red-50 border border-red-200 rounded p-2">
+                        <div className="font-medium text-gray-900">{agent.name}</div>
+                        <div className="text-gray-700 mt-1">{agent.reason}</div>
+                        {agent.blockedBy && agent.blockedBy.length > 0 && (
+                          <div className="mt-1 text-red-700">
+                            <span className="font-medium">Blocked by rules:</span>{' '}
+                            {agent.blockedBy.map((rule) => (
+                              <span key={rule} className="inline-block bg-red-100 px-1.5 py-0.5 rounded mr-1 mt-1">
+                                {rule}
+                              </span>
+                            ))}
+                          </div>
+                        )}
                       </div>
                     ))}
                   </div>

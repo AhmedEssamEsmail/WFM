@@ -117,9 +117,8 @@ describe('autoDistribution', () => {
       expect(result[0]).toBe('10:00')
     })
   })
-})
-    })
 
+  describe('balancedCoverageStrategy', () => {
     it('should skip agents with OFF shift', async () => {
       const { breakSchedulesService } = await import('../../services/breakSchedulesService')
       const { breakRulesService } = await import('../../services/breakRulesService')
