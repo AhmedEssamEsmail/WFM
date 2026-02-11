@@ -11,8 +11,6 @@ interface BreakScheduleTableProps {
   scheduleDate: string
 }
 
-const BREAK_TYPE_CYCLE: (BreakType | null)[] = [null, 'HB1', 'B', 'HB2', 'IN']
-
 export default function BreakScheduleTable({
   schedules,
   intervals,
@@ -20,7 +18,6 @@ export default function BreakScheduleTable({
   isEditable = false,
   scheduleDate,
 }: BreakScheduleTableProps) {
-  const [selectedCells, setSelectedCells] = useState<Map<string, Set<string>>>(new Map())
   const [pendingUpdates, setPendingUpdates] = useState<BreakScheduleUpdateRequest[]>([])
   const [isSaving, setIsSaving] = useState(false)
 
@@ -54,17 +51,8 @@ export default function BreakScheduleTable({
   }, [pendingUpdates, onUpdate])
 
   const handleBreakClick = useCallback(
-    (userId: string, intervalStart: string, event?: React.MouseEvent) => {
+    (userId: string, intervalStart: string, selectedBreakType: BreakType) => {
       if (!isEditable) return
-
-      const schedule = schedules.find(s => s.user_id === userId)
-      if (!schedule) return
-
-      const currentType = schedule.intervals[intervalStart] || null
-
-      // Cycle to next break type
-      const currentIndex = BREAK_TYPE_CYCLE.indexOf(currentType)
-      const nextType = BREAK_TYPE_CYCLE[(currentIndex + 1) % BREAK_TYPE_CYCLE.length]
 
       // Add to pending updates
       const update: BreakScheduleUpdateRequest = {
@@ -72,7 +60,7 @@ export default function BreakScheduleTable({
         schedule_date: scheduleDate,
         intervals: [{
           interval_start: intervalStart + ':00', // Convert HH:MM to HH:MM:SS
-          break_type: nextType || 'IN',
+          break_type: selectedBreakType,
         }],
       }
 
@@ -83,25 +71,8 @@ export default function BreakScheduleTable({
         )
         return [...filtered, update]
       })
-
-      // Handle multi-select
-      if (event?.shiftKey || event?.ctrlKey) {
-        setSelectedCells(prev => {
-          const newMap = new Map(prev)
-          const userSet = newMap.get(userId) || new Set()
-          if (userSet.has(intervalStart)) {
-            userSet.delete(intervalStart)
-          } else {
-            userSet.add(intervalStart)
-          }
-          newMap.set(userId, userSet)
-          return newMap
-        })
-      } else {
-        setSelectedCells(new Map())
-      }
     },
-    [isEditable, schedules, scheduleDate]
+    [isEditable, scheduleDate]
   )
 
   return (
@@ -184,8 +155,8 @@ export default function BreakScheduleTable({
                   key={schedule.user_id}
                   schedule={schedule}
                   intervals={intervals}
-                  onBreakClick={(intervalStart) =>
-                    handleBreakClick(schedule.user_id, intervalStart)
+                  onBreakClick={(intervalStart, breakType) =>
+                    handleBreakClick(schedule.user_id, intervalStart, breakType)
                   }
                   selectedIntervals={selectedCells.get(schedule.user_id) || new Set()}
                   isEditable={isEditable}

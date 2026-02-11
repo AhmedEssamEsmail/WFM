@@ -66,19 +66,28 @@ export function findHighestCoverageIntervals(
 ): string[] {
   const intervals: Array<{ time: string; coverage: number }> = []
 
-  for (const [time, counts] of Object.entries(coverageSummary)) {
-    const timeMinutes = timeToMinutes(time + ':00')
-
-    if (timeMinutes >= startMinutes && timeMinutes < endMinutes) {
-      intervals.push({
-        time,
-        coverage: counts.in,
-      })
-    }
+  // Generate all 15-minute intervals in the range
+  for (let minutes = startMinutes; minutes < endMinutes; minutes += 15) {
+    const hour = Math.floor(minutes / 60)
+    const min = minutes % 60
+    const timeStr = `${hour.toString().padStart(2, '0')}:${min.toString().padStart(2, '0')}`
+    
+    // Get coverage from summary, default to 0 if not present
+    const coverage = coverageSummary[timeStr]?.in || 0
+    
+    intervals.push({
+      time: timeStr,
+      coverage,
+    })
   }
 
-  // Sort by coverage (highest first)
-  intervals.sort((a, b) => b.coverage - a.coverage)
+  // Sort by coverage (highest first), then by time (earliest first) for ties
+  intervals.sort((a, b) => {
+    if (b.coverage !== a.coverage) {
+      return b.coverage - a.coverage
+    }
+    return a.time.localeCompare(b.time)
+  })
 
   return intervals.slice(0, count).map((i) => i.time)
 }

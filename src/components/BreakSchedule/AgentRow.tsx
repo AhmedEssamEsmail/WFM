@@ -5,7 +5,7 @@ import BreakCell from './BreakCell'
 interface AgentRowProps {
   schedule: AgentBreakSchedule
   intervals: string[]
-  onBreakClick?: (intervalStart: string) => void
+  onBreakClick?: (intervalStart: string, breakType: BreakType) => void
   selectedIntervals?: Set<string>
   isEditable?: boolean
 }
@@ -67,7 +67,7 @@ export default function AgentRow({
           <td key={intervalStart} className="px-2 py-3 text-center">
             <BreakCell
               breakType={breakType}
-              onClick={() => onBreakClick?.(intervalStart)}
+              onClick={(selectedBreakType) => onBreakClick?.(intervalStart, selectedBreakType)}
               isSelected={selectedIntervals.has(intervalStart)}
               violations={[]}
               isEditable={isEditable}

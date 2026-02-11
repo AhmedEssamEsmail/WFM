@@ -1,9 +1,10 @@
+import { useState, useRef, useEffect } from 'react'
 import { BreakType, ValidationViolation } from '../../types'
 import { cn } from '../../lib/designSystem'
 
 interface BreakCellProps {
   breakType: BreakType | null
-  onClick?: () => void
+  onClick?: (breakType: BreakType) => void
   isSelected?: boolean
   violations?: ValidationViolation[]
   isEditable?: boolean
@@ -23,6 +24,8 @@ const BREAK_LABELS: Record<BreakType, string> = {
   IN: 'IN',
 }
 
+const BREAK_OPTIONS: BreakType[] = ['IN', 'HB1', 'B', 'HB2']
+
 export default function BreakCell({
   breakType,
   onClick,
@@ -30,43 +33,93 @@ export default function BreakCell({
   violations = [],
   isEditable = false,
 }: BreakCellProps) {
+  const [showDropdown, setShowDropdown] = useState(false)
+  const dropdownRef = useRef<HTMLDivElement>(null)
   const hasErrors = violations.some(v => v.severity === 'error')
   const hasWarnings = violations.some(v => v.severity === 'warning')
 
-  return (
-    <div
-      className={cn(
-        'relative px-2 py-1 text-center text-xs font-medium border rounded transition-colors',
-        breakType ? BREAK_COLORS[breakType] : 'bg-white text-gray-400 border-gray-200',
-        isEditable && 'cursor-pointer hover:opacity-80',
-        isSelected && 'ring-2 ring-primary-500 ring-offset-1',
-        hasErrors && 'border-red-500 border-2',
-        hasWarnings && !hasErrors && 'border-yellow-500 border-2'
-      )}
-      onClick={isEditable ? onClick : undefined}
-      role={isEditable ? 'button' : undefined}
-      tabIndex={isEditable ? 0 : -1}
-      onKeyDown={(e) => {
-        if (isEditable && (e.key === 'Enter' || e.key === ' ')) {
-          e.preventDefault()
-          onClick?.()
-        }
-      }}
-      aria-label={
-        breakType
-          ? `Break type ${BREAK_LABELS[breakType]}${isSelected ? ', selected' : ''}${
-              hasErrors ? ', has errors' : hasWarnings ? ', has warnings' : ''
-            }`
-          : 'No break scheduled'
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setShowDropdown(false)
       }
-      title={violations.length > 0 ? violations.map(v => v.message).join(', ') : undefined}
-    >
-      {breakType ? BREAK_LABELS[breakType] : '-'}
-      {hasErrors && (
-        <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full" aria-hidden="true" />
-      )}
-      {hasWarnings && !hasErrors && (
-        <span className="absolute -top-1 -right-1 w-3 h-3 bg-yellow-500 rounded-full" aria-hidden="true" />
+    }
+
+    if (showDropdown) {
+      document.addEventListener('mousedown', handleClickOutside)
+      return () => document.removeEventListener('mousedown', handleClickOutside)
+    }
+  }, [showDropdown])
+
+  const handleCellClick = () => {
+    if (isEditable) {
+      setShowDropdown(!showDropdown)
+    }
+  }
+
+  const handleOptionClick = (option: BreakType) => {
+    onClick?.(option)
+    setShowDropdown(false)
+  }
+
+  return (
+    <div className="relative" ref={dropdownRef}>
+      <div
+        className={cn(
+          'relative px-2 py-1 text-center text-xs font-medium border rounded transition-colors',
+          breakType ? BREAK_COLORS[breakType] : 'bg-white text-gray-400 border-gray-200',
+          isEditable && 'cursor-pointer hover:opacity-80',
+          isSelected && 'ring-2 ring-primary-500 ring-offset-1',
+          hasErrors && 'border-red-500 border-2',
+          hasWarnings && !hasErrors && 'border-yellow-500 border-2'
+        )}
+        onClick={handleCellClick}
+        role={isEditable ? 'button' : undefined}
+        tabIndex={isEditable ? 0 : -1}
+        onKeyDown={(e) => {
+          if (isEditable && (e.key === 'Enter' || e.key === ' ')) {
+            e.preventDefault()
+            handleCellClick()
+          }
+        }}
+        aria-label={
+          breakType
+            ? `Break type ${BREAK_LABELS[breakType]}${isSelected ? ', selected' : ''}${
+                hasErrors ? ', has errors' : hasWarnings ? ', has warnings' : ''
+              }`
+            : 'No break scheduled'
+        }
+        title={violations.length > 0 ? violations.map(v => v.message).join(', ') : undefined}
+      >
+        {breakType ? BREAK_LABELS[breakType] : '-'}
+        {hasErrors && (
+          <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full" aria-hidden="true" />
+        )}
+        {hasWarnings && !hasErrors && (
+          <span className="absolute -top-1 -right-1 w-3 h-3 bg-yellow-500 rounded-full" aria-hidden="true" />
+        )}
+      </div>
+
+      {/* Dropdown menu */}
+      {showDropdown && isEditable && (
+        <div className="absolute z-50 mt-1 bg-white border border-gray-300 rounded-md shadow-lg min-w-[80px]">
+          {BREAK_OPTIONS.map((option) => (
+            <button
+              key={option}
+              onClick={() => handleOptionClick(option)}
+              className={cn(
+                'w-full px-3 py-2 text-left text-xs hover:bg-gray-100 transition-colors',
+                option === breakType && 'bg-gray-50 font-semibold',
+                'first:rounded-t-md last:rounded-b-md'
+              )}
+            >
+              <span className={cn('inline-block w-full', BREAK_COLORS[option].split(' ')[1])}>
+                {BREAK_LABELS[option]}
+              </span>
+            </button>
+          ))}
+        </div>
       )}
     </div>
   )
