@@ -1,4 +1,4 @@
-import { AgentBreakSchedule, BreakType } from '../../types'
+import type { AgentBreakSchedule, BreakType } from '../../types'
 import { SHIFT_COLORS, SHIFT_LABELS } from '../../lib/designSystem'
 import BreakCell from './BreakCell'
 

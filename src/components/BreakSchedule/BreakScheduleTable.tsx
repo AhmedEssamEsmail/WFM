@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
-import { AgentBreakSchedule, BreakType, BreakScheduleUpdateRequest } from '../../types'
+import type { AgentBreakSchedule, BreakType, BreakScheduleUpdateRequest } from '../../types'
 import AgentRow from './AgentRow'
 import CoverageCell from './CoverageCell'
 

@@ -2,11 +2,12 @@ import { useState, useEffect, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
 import { useToast } from '../lib/ToastContext'
-import { settingsService, leaveTypesService } from '../services'
-import type { LeaveTypeConfig, LeaveType, DistributionStrategy, ApplyMode } from '../types'
+import { settingsService, leaveTypesService, breakRulesService } from '../services'
+import type { LeaveTypeConfig, LeaveType, DistributionStrategy, ApplyMode, BreakScheduleRule } from '../types'
 import { ROUTES, SUCCESS_MESSAGES, ERROR_MESSAGES } from '../constants'
 import { handleDatabaseError } from '../lib/errorHandler'
 import AutoDistributionSettings from '../components/Settings/AutoDistributionSettings'
+import RulesConfig from '../components/BreakSchedule/RulesConfig'
 
 export default function Settings() {
   const navigate = useNavigate()
@@ -28,6 +29,8 @@ export default function Settings() {
   // Break schedule settings state
   const [defaultStrategy, setDefaultStrategy] = useState<DistributionStrategy>('balanced_coverage')
   const [defaultApplyMode, setDefaultApplyMode] = useState<ApplyMode>('only_unscheduled')
+  const [breakRules, setBreakRules] = useState<BreakScheduleRule[]>([])
+  const [loadingBreakRules, setLoadingBreakRules] = useState(false)
 
   const fetchLeaveTypes = useCallback(async () => {
     setLoadingLeaveTypes(true)
@@ -54,8 +57,23 @@ export default function Settings() {
   useEffect(() => {
     if (activeTab === 'leave-types') {
       fetchLeaveTypes()
+    } else if (activeTab === 'break-schedule') {
+      fetchBreakRules()
     }
   }, [activeTab, fetchLeaveTypes])
+
+  async function fetchBreakRules() {
+    setLoadingBreakRules(true)
+    try {
+      const data = await breakRulesService.getRules()
+      setBreakRules(data)
+    } catch (error) {
+      handleDatabaseError(error, 'fetch break rules')
+      showError('Failed to load break rules')
+    } finally {
+      setLoadingBreakRules(false)
+    }
+  }
 
   async function fetchSettings() {
     try {
@@ -184,6 +202,28 @@ export default function Settings() {
     } catch (error) {
       handleDatabaseError(error, 'save break schedule settings')
       showError('Failed to save break schedule settings')
+    }
+  }
+
+  async function handleUpdateRule(ruleId: string, updates: Partial<BreakScheduleRule>) {
+    try {
+      await breakRulesService.updateRule(ruleId, updates)
+      await fetchBreakRules()
+      success('Rule updated successfully')
+    } catch (error) {
+      handleDatabaseError(error, 'update break rule')
+      showError('Failed to update rule')
+    }
+  }
+
+  async function handleToggleRule(ruleId: string, isActive: boolean) {
+    try {
+      await breakRulesService.toggleRule(ruleId, isActive)
+      await fetchBreakRules()
+      success(`Rule ${isActive ? 'activated' : 'deactivated'} successfully`)
+    } catch (error) {
+      handleDatabaseError(error, 'toggle break rule')
+      showError('Failed to toggle rule')
     }
   }
 
@@ -541,12 +581,28 @@ export default function Settings() {
       )}
 
       {activeTab === 'break-schedule' && (
-        <div className="bg-white rounded-lg shadow p-6">
-          <AutoDistributionSettings
-            defaultStrategy={defaultStrategy}
-            defaultApplyMode={defaultApplyMode}
-            onSave={handleSaveBreakScheduleSettings}
-          />
+        <div className="space-y-6">
+          <div className="bg-white rounded-lg shadow p-6">
+            <AutoDistributionSettings
+              defaultStrategy={defaultStrategy}
+              defaultApplyMode={defaultApplyMode}
+              onSave={handleSaveBreakScheduleSettings}
+            />
+          </div>
+
+          <div className="bg-white rounded-lg shadow p-6">
+            {loadingBreakRules ? (
+              <div className="flex items-center justify-center h-32">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
+              </div>
+            ) : (
+              <RulesConfig
+                rules={breakRules}
+                onUpdateRule={handleUpdateRule}
+                onToggleRule={handleToggleRule}
+              />
+            )}
+          </div>
         </div>
       )}
     </div>
