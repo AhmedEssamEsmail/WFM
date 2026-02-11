@@ -227,6 +227,7 @@ export default function BreakSchedule() {
         intervals={intervals}
         onUpdate={handleUpdate}
         isEditable={isEditable}
+        scheduleDate={dateStr}
       />
 
       {/* Auto-distribute modal */}

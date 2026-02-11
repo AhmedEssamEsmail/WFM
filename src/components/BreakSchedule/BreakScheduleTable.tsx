@@ -8,6 +8,7 @@ interface BreakScheduleTableProps {
   intervals: string[]
   onUpdate?: (updates: BreakScheduleUpdateRequest[]) => Promise<void>
   isEditable?: boolean
+  scheduleDate: string
 }
 
 const BREAK_TYPE_CYCLE: (BreakType | null)[] = [null, 'HB1', 'B', 'HB2', 'IN']
@@ -17,6 +18,7 @@ export default function BreakScheduleTable({
   intervals,
   onUpdate,
   isEditable = false,
+  scheduleDate,
 }: BreakScheduleTableProps) {
   const [selectedCells, setSelectedCells] = useState<Map<string, Set<string>>>(new Map())
   const [pendingUpdates, setPendingUpdates] = useState<BreakScheduleUpdateRequest[]>([])
@@ -67,9 +69,9 @@ export default function BreakScheduleTable({
       // Add to pending updates
       const update: BreakScheduleUpdateRequest = {
         user_id: userId,
-        schedule_date: '', // Will be set by parent
+        schedule_date: scheduleDate,
         intervals: [{
-          interval_start: intervalStart,
+          interval_start: intervalStart + ':00', // Convert HH:MM to HH:MM:SS
           break_type: nextType || 'IN',
         }],
       }
@@ -77,7 +79,7 @@ export default function BreakScheduleTable({
       setPendingUpdates(prev => {
         // Remove any existing update for this cell
         const filtered = prev.filter(
-          u => !(u.user_id === userId && u.intervals.some(i => i.interval_start === intervalStart))
+          u => !(u.user_id === userId && u.intervals.some(i => i.interval_start === intervalStart + ':00'))
         )
         return [...filtered, update]
       })
@@ -99,7 +101,7 @@ export default function BreakScheduleTable({
         setSelectedCells(new Map())
       }
     },
-    [isEditable, schedules]
+    [isEditable, schedules, scheduleDate]
   )
 
   return (
