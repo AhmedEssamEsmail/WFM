@@ -150,7 +150,7 @@ export async function balancedCoverageStrategy(
       failed.push({
         user_id: agent.user_id,
         name: agent.name,
-        reason: 'Could not find suitable intervals',
+        reason: 'Could not find suitable intervals in shift thirds',
       })
       continue
     }
@@ -179,13 +179,15 @@ export async function balancedCoverageStrategy(
     )
 
     if (validation.hasBlockingViolations) {
+      const errorMessages = validation.violations
+        .filter((v) => v.severity === 'error')
+        .map((v) => v.message)
+        .join('; ')
+      
       failed.push({
         user_id: agent.user_id,
         name: agent.name,
-        reason: validation.violations
-          .filter((v) => v.severity === 'error')
-          .map((v) => v.message)
-          .join('; '),
+        reason: errorMessages || 'Validation failed',
       })
       continue
     }
@@ -210,12 +212,14 @@ export async function balancedCoverageStrategy(
     // Update coverage summary for next agent
     for (const interval of intervals) {
       const time = interval.interval_start.substring(0, 5)
-      if (coverageSummary[time]) {
-        coverageSummary[time].in--
-        if (interval.break_type === 'HB1') coverageSummary[time].hb1++
-        else if (interval.break_type === 'B') coverageSummary[time].b++
-        else if (interval.break_type === 'HB2') coverageSummary[time].hb2++
+      if (!coverageSummary[time]) {
+        coverageSummary[time] = { in: 0, hb1: 0, b: 0, hb2: 0 }
       }
+      
+      coverageSummary[time].in = Math.max(0, coverageSummary[time].in - 1)
+      if (interval.break_type === 'HB1') coverageSummary[time].hb1++
+      else if (interval.break_type === 'B') coverageSummary[time].b++
+      else if (interval.break_type === 'HB2') coverageSummary[time].hb2++
     }
   }
 
