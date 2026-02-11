@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import type { AgentBreakSchedule, BreakType } from '../../types'
 import { SHIFT_COLORS, SHIFT_LABELS } from '../../lib/designSystem'
 import BreakCell from './BreakCell'
@@ -17,7 +18,11 @@ export default function AgentRow({
   selectedIntervals = new Set(),
   isEditable = false,
 }: AgentRowProps) {
+  const [showNoBreaksPopup, setShowNoBreaksPopup] = useState(false)
   const hasWarning = schedule.has_warning
+  
+  // Check if agent has no breaks assigned
+  const hasNoBreaks = !schedule.breaks?.HB1 && !schedule.breaks?.B && !schedule.breaks?.HB2
 
   // Format time from HH:MM:SS to HH:MM
   const formatTime = (time: string | null) => {
@@ -31,7 +36,7 @@ export default function AgentRow({
         scope="row"
         className="sticky left-0 z-10 bg-white px-4 py-3 text-sm font-medium text-gray-900 text-left shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]"
       >
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 relative">
           <span>{schedule.name}</span>
           {hasWarning && (
             <span
@@ -41,6 +46,24 @@ export default function AgentRow({
             >
               !
             </span>
+          )}
+          {hasNoBreaks && schedule.shift_type && schedule.shift_type !== 'OFF' && (
+            <div className="relative">
+              <span
+                className="inline-flex items-center justify-center w-5 h-5 bg-red-100 text-red-800 rounded-full text-xs font-bold cursor-help"
+                onMouseEnter={() => setShowNoBreaksPopup(true)}
+                onMouseLeave={() => setShowNoBreaksPopup(false)}
+                aria-label="No breaks assigned"
+              >
+                ✕
+              </span>
+              {showNoBreaksPopup && (
+                <div className="absolute left-0 top-full mt-1 z-50 bg-gray-900 text-white text-xs rounded py-2 px-3 whitespace-nowrap shadow-lg">
+                  No breaks assigned during auto-distribution
+                  <div className="absolute -top-1 left-2 w-2 h-2 bg-gray-900 transform rotate-45"></div>
+                </div>
+              )}
+            </div>
           )}
         </div>
       </th>
