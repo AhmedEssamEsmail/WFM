@@ -229,20 +229,25 @@ export const breakSchedulesService = {
 
     if (deleteError) throw deleteError
 
-    // Insert new breaks
-    const breaksToInsert = intervals.map((interval) => ({
-      user_id,
-      schedule_date,
-      shift_type: shift.shift_type,
-      interval_start: interval.interval_start,
-      break_type: interval.break_type,
-    }))
+    // Filter out 'IN' breaks - only insert actual breaks (HB1, B, HB2)
+    const breaksToInsert = intervals
+      .filter((interval) => interval.break_type !== 'IN')
+      .map((interval) => ({
+        user_id,
+        schedule_date,
+        shift_type: shift.shift_type,
+        interval_start: interval.interval_start,
+        break_type: interval.break_type,
+      }))
 
-    const { error: insertError } = await supabase
-      .from(BREAK_SCHEDULES_TABLE)
-      .insert(breaksToInsert)
+    // Only insert if there are actual breaks to insert
+    if (breaksToInsert.length > 0) {
+      const { error: insertError } = await supabase
+        .from(BREAK_SCHEDULES_TABLE)
+        .insert(breaksToInsert)
 
-    if (insertError) throw insertError
+      if (insertError) throw insertError
+    }
 
     // TODO: Validate against rules and return violations
     return {
