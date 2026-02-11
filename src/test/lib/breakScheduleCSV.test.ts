@@ -48,7 +48,7 @@ describe('breakScheduleCSV', () => {
   })
 
   describe('validateCSVFormat', () => {
-    it('should validate correct CSV format', () => {
+    it('should validate correct CSV format', async () => {
       const rows: BreakScheduleCSVRow[] = [
         {
           agent_name: 'John Doe',
@@ -60,22 +60,22 @@ describe('breakScheduleCSV', () => {
         },
       ]
 
-      const result = validateCSVFormat(rows)
+      const result = await validateCSVFormat(rows)
       
       expect(result.valid).toBe(true)
       expect(result.errors).toHaveLength(0)
     })
 
-    it('should reject empty rows', () => {
+    it('should reject empty rows', async () => {
       const rows: BreakScheduleCSVRow[] = []
 
-      const result = validateCSVFormat(rows)
+      const result = await validateCSVFormat(rows)
       
       expect(result.valid).toBe(false)
       expect(result.errors).toContain('No data rows found in CSV')
     })
 
-    it('should reject invalid date format', () => {
+    it('should reject invalid date format', async () => {
       const rows: BreakScheduleCSVRow[] = [
         {
           agent_name: 'John Doe',
@@ -87,13 +87,13 @@ describe('breakScheduleCSV', () => {
         },
       ]
 
-      const result = validateCSVFormat(rows)
+      const result = await validateCSVFormat(rows)
       
       expect(result.valid).toBe(false)
       expect(result.errors.some(e => e.includes('Date must be in YYYY-MM-DD format'))).toBe(true)
     })
 
-    it('should reject invalid shift type', () => {
+    it('should reject invalid shift type', async () => {
       const rows: BreakScheduleCSVRow[] = [
         {
           agent_name: 'John Doe',
@@ -105,13 +105,13 @@ describe('breakScheduleCSV', () => {
         },
       ]
 
-      const result = validateCSVFormat(rows)
+      const result = await validateCSVFormat(rows)
       
       expect(result.valid).toBe(false)
       expect(result.errors.some(e => e.includes('Shift must be one of'))).toBe(true)
     })
 
-    it('should reject invalid time format', () => {
+    it('should reject invalid time format', async () => {
       const rows: BreakScheduleCSVRow[] = [
         {
           agent_name: 'John Doe',
@@ -123,13 +123,13 @@ describe('breakScheduleCSV', () => {
         },
       ]
 
-      const result = validateCSVFormat(rows)
+      const result = await validateCSVFormat(rows)
       
       expect(result.valid).toBe(false)
       expect(result.errors.some(e => e.includes('must be in HH:MM format'))).toBe(true)
     })
 
-    it('should require agent name', () => {
+    it('should require agent name', async () => {
       const rows: BreakScheduleCSVRow[] = [
         {
           agent_name: '',
@@ -141,7 +141,7 @@ describe('breakScheduleCSV', () => {
         },
       ]
 
-      const result = validateCSVFormat(rows)
+      const result = await validateCSVFormat(rows)
       
       expect(result.valid).toBe(false)
       expect(result.errors.some(e => e.includes('Agent name is required'))).toBe(true)
