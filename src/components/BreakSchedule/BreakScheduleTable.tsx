@@ -158,7 +158,7 @@ export default function BreakScheduleTable({
                   onBreakClick={(intervalStart, breakType) =>
                     handleBreakClick(schedule.user_id, intervalStart, breakType)
                   }
-                  selectedIntervals={selectedCells.get(schedule.user_id) || new Set()}
+                  selectedIntervals={new Set()}
                   isEditable={isEditable}
                 />
               ))}
