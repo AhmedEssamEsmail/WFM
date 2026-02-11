@@ -10,27 +10,27 @@ import type {
 } from '../types'
 import { breakSchedulesService } from '../services/breakSchedulesService'
 import { breakRulesService } from '../services/breakRulesService'
+import { shiftConfigurationsService } from '../services/shiftConfigurationsService'
 import { getRuleViolations } from './breakValidation'
 import { timeToMinutes, minutesToTime } from './validations/breakSchedules'
 
 /**
- * Shift hours configuration
+ * Get shift hours from database configuration
  */
-const SHIFT_HOURS: Record<ShiftType, { start: string; end: string } | null> = {
-  AM: { start: '09:00:00', end: '17:00:00' },
-  PM: { start: '13:00:00', end: '21:00:00' },
-  BET: { start: '11:00:00', end: '19:00:00' },
-  OFF: null,
+async function getShiftHours(): Promise<Record<ShiftType, { start: string; end: string } | null>> {
+  const shiftMap = await shiftConfigurationsService.getShiftHoursMap()
+  return shiftMap as Record<ShiftType, { start: string; end: string } | null>
 }
 
 /**
  * Calculate shift thirds (early, middle, late)
  */
-export function calculateShiftThirds(shiftType: ShiftType): {
+export async function calculateShiftThirds(shiftType: ShiftType): Promise<{
   early: { start: number; end: number }
   middle: { start: number; end: number }
   late: { start: number; end: number }
-} | null {
+} | null> {
+  const SHIFT_HOURS = await getShiftHours()
   const hours = SHIFT_HOURS[shiftType]
   if (!hours) return null
 
@@ -116,7 +116,7 @@ export async function balancedCoverageStrategy(
       continue
     }
 
-    const thirds = calculateShiftThirds(agent.shift_type)
+    const thirds = await calculateShiftThirds(agent.shift_type)
     if (!thirds) {
       failed.push({
         user_id: agent.user_id,
@@ -168,7 +168,7 @@ export async function balancedCoverageStrategy(
     ]
 
     // Validate against rules
-    const validation = getRuleViolations(
+    const validation = await getRuleViolations(
       {
         user_id: agent.user_id,
         schedule_date: scheduleDate,
@@ -240,13 +240,14 @@ export async function staggeredTimingStrategy(
 }> {
   const schedules: AgentBreakSchedule[] = []
   const failed: Array<{ user_id: string; name: string; reason: string }> = []
+  const SHIFT_HOURS = await getShiftHours()
 
   for (const agent of agents) {
     if (!agent.shift_type || agent.shift_type === 'OFF') {
       continue
     }
 
-    const thirds = calculateShiftThirds(agent.shift_type)
+    const thirds = await calculateShiftThirds(agent.shift_type)
     if (!thirds) {
       failed.push({
         user_id: agent.user_id,
@@ -282,7 +283,7 @@ export async function staggeredTimingStrategy(
     ]
 
     // Validate against rules
-    const validation = getRuleViolations(
+    const validation = await getRuleViolations(
       {
         user_id: agent.user_id,
         schedule_date: scheduleDate,
@@ -406,7 +407,7 @@ export async function generateDistributionPreview(
         break_type: breakType,
       }))
 
-    const validation = getRuleViolations(
+    const validation = await getRuleViolations(
       {
         user_id: agent.user_id,
         schedule_date: request.schedule_date,

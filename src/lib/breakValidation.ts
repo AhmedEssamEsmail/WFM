@@ -8,15 +8,26 @@ import type {
   ShiftType,
 } from '../types'
 import { timeToMinutes, calculateBreakGap } from './validations/breakSchedules'
+import { shiftConfigurationsService } from '../services/shiftConfigurationsService'
 
 /**
- * Shift hours configuration
+ * Get shift hours from database configuration
  */
-const SHIFT_HOURS: Record<ShiftType, { start: string; end: string } | null> = {
-  AM: { start: '09:00', end: '17:00' },
-  PM: { start: '13:00', end: '21:00' },
-  BET: { start: '11:00', end: '19:00' },
-  OFF: null,
+async function getShiftHours(): Promise<Record<ShiftType, { start: string; end: string } | null>> {
+  const shiftMap = await shiftConfigurationsService.getShiftHoursMap()
+  // Convert HH:MM:SS to HH:MM for validation
+  const result: Record<string, { start: string; end: string } | null> = {}
+  for (const [key, value] of Object.entries(shiftMap)) {
+    if (value) {
+      result[key] = {
+        start: value.start.substring(0, 5),
+        end: value.end.substring(0, 5),
+      }
+    } else {
+      result[key] = null
+    }
+  }
+  return result as Record<ShiftType, { start: string; end: string } | null>
 }
 
 /**
@@ -160,11 +171,12 @@ export function validateBreakTiming(
 /**
  * Validate shift boundary: breaks must be within shift hours
  */
-export function validateShiftBoundary(
+export async function validateShiftBoundary(
   intervals: Array<{ interval_start: string; break_type: BreakType }>,
   shiftType: ShiftType
-): ValidationViolation[] {
+): Promise<ValidationViolation[]> {
   const violations: ValidationViolation[] = []
+  const SHIFT_HOURS = await getShiftHours()
   const shiftHours = SHIFT_HOURS[shiftType]
 
   if (!shiftHours) {
@@ -191,15 +203,19 @@ export function validateShiftBoundary(
 
   return violations
 }
+  }
+
+  return violations
+}
 
 /**
  * Validate against a specific rule
  */
-function validateAgainstRule(
+async function validateAgainstRule(
   request: BreakScheduleUpdateRequest,
   rule: BreakScheduleRule,
   shiftType: ShiftType
-): ValidationViolation[] {
+): Promise<ValidationViolation[]> {
   const violations: ValidationViolation[] = []
 
   switch (rule.rule_type) {
@@ -225,7 +241,7 @@ function validateAgainstRule(
           }
         }
       } else if (rule.rule_name === 'shift_boundary') {
-        const boundaryViolations = validateShiftBoundary(request.intervals, shiftType)
+        const boundaryViolations = await validateShiftBoundary(request.intervals, shiftType)
         for (const violation of boundaryViolations) {
           violation.severity = rule.is_blocking ? 'error' : 'warning'
           violations.push(violation)
@@ -249,11 +265,11 @@ function validateAgainstRule(
 /**
  * Validate against all active rules
  */
-export function validateAgainstRules(
+export async function validateAgainstRules(
   request: BreakScheduleUpdateRequest,
   rules: BreakScheduleRule[],
   shiftType: ShiftType
-): ValidationViolation[] {
+): Promise<ValidationViolation[]> {
   const violations: ValidationViolation[] = []
 
   // Sort rules by priority (lower number = higher priority)
@@ -262,6 +278,12 @@ export function validateAgainstRules(
     .sort((a, b) => a.priority - b.priority)
 
   for (const rule of sortedRules) {
+    const ruleViolations = await validateAgainstRule(request, rule, shiftType)
+    violations.push(...ruleViolations)
+  }
+
+  return violations
+}
     const ruleViolations = validateAgainstRule(request, rule, shiftType)
     violations.push(...ruleViolations)
   }
@@ -272,15 +294,15 @@ export function validateAgainstRules(
 /**
  * Get rule violations with priority resolution
  */
-export function getRuleViolations(
+export async function getRuleViolations(
   request: BreakScheduleUpdateRequest,
   rules: BreakScheduleRule[],
   shiftType: ShiftType
-): {
+): Promise<{
   violations: ValidationViolation[]
   hasBlockingViolations: boolean
-} {
-  const violations = validateAgainstRules(request, rules, shiftType)
+}> {
+  const violations = await validateAgainstRules(request, rules, shiftType)
 
   // Remove duplicate violations (keep highest priority)
   const uniqueViolations = violations.reduce((acc, violation) => {
@@ -296,6 +318,14 @@ export function getRuleViolations(
 
     return acc
   }, [] as ValidationViolation[])
+
+  const hasBlockingViolations = uniqueViolations.some((v) => v.severity === 'error')
+
+  return {
+    violations: uniqueViolations,
+    hasBlockingViolations,
+  }
+}
 
   const hasBlockingViolations = uniqueViolations.some((v) => v.severity === 'error')
 

@@ -2,12 +2,13 @@ import { useState, useEffect, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
 import { useToast } from '../lib/ToastContext'
-import { settingsService, leaveTypesService, breakRulesService } from '../services'
-import type { LeaveTypeConfig, LeaveType, DistributionStrategy, ApplyMode, BreakScheduleRule } from '../types'
+import { settingsService, leaveTypesService, breakRulesService, shiftConfigurationsService } from '../services'
+import type { LeaveTypeConfig, LeaveType, DistributionStrategy, ApplyMode, BreakScheduleRule, ShiftConfiguration } from '../types'
 import { ROUTES, SUCCESS_MESSAGES, ERROR_MESSAGES } from '../constants'
 import { handleDatabaseError } from '../lib/errorHandler'
 import AutoDistributionSettings from '../components/Settings/AutoDistributionSettings'
 import RulesConfig from '../components/BreakSchedule/RulesConfig'
+import ShiftConfigurations from '../components/Settings/ShiftConfigurations'
 
 export default function Settings() {
   const navigate = useNavigate()
@@ -31,6 +32,8 @@ export default function Settings() {
   const [defaultApplyMode, setDefaultApplyMode] = useState<ApplyMode>('only_unscheduled')
   const [breakRules, setBreakRules] = useState<BreakScheduleRule[]>([])
   const [loadingBreakRules, setLoadingBreakRules] = useState(false)
+  const [shiftConfigurations, setShiftConfigurations] = useState<ShiftConfiguration[]>([])
+  const [loadingShiftConfigurations, setLoadingShiftConfigurations] = useState(false)
 
   const fetchLeaveTypes = useCallback(async () => {
     setLoadingLeaveTypes(true)
@@ -59,6 +62,7 @@ export default function Settings() {
       fetchLeaveTypes()
     } else if (activeTab === 'break-schedule') {
       fetchBreakRules()
+      fetchShiftConfigurations()
     }
   }, [activeTab, fetchLeaveTypes])
 
@@ -72,6 +76,19 @@ export default function Settings() {
       showError('Failed to load break rules')
     } finally {
       setLoadingBreakRules(false)
+    }
+  }
+
+  async function fetchShiftConfigurations() {
+    setLoadingShiftConfigurations(true)
+    try {
+      const data = await shiftConfigurationsService.getAllShiftConfigurations()
+      setShiftConfigurations(data)
+    } catch (error) {
+      handleDatabaseError(error, 'fetch shift configurations')
+      showError('Failed to load shift configurations')
+    } finally {
+      setLoadingShiftConfigurations(false)
     }
   }
 
@@ -224,6 +241,50 @@ export default function Settings() {
     } catch (error) {
       handleDatabaseError(error, 'toggle break rule')
       showError('Failed to toggle rule')
+    }
+  }
+
+  async function handleUpdateShift(shiftId: string, updates: Partial<ShiftConfiguration>) {
+    try {
+      await shiftConfigurationsService.updateShiftConfiguration(shiftId, updates)
+      await fetchShiftConfigurations()
+      success('Shift updated successfully')
+    } catch (error) {
+      handleDatabaseError(error, 'update shift configuration')
+      showError('Failed to update shift')
+    }
+  }
+
+  async function handleToggleShift(shiftId: string, isActive: boolean) {
+    try {
+      await shiftConfigurationsService.toggleShiftActive(shiftId, isActive)
+      await fetchShiftConfigurations()
+      success(`Shift ${isActive ? 'activated' : 'deactivated'} successfully`)
+    } catch (error) {
+      handleDatabaseError(error, 'toggle shift')
+      showError('Failed to toggle shift')
+    }
+  }
+
+  async function handleCreateShift(shift: Omit<ShiftConfiguration, 'id' | 'created_at' | 'updated_at'>) {
+    try {
+      await shiftConfigurationsService.createShiftConfiguration(shift)
+      await fetchShiftConfigurations()
+      success('Shift created successfully')
+    } catch (error) {
+      handleDatabaseError(error, 'create shift')
+      showError('Failed to create shift')
+    }
+  }
+
+  async function handleDeleteShift(shiftId: string) {
+    try {
+      await shiftConfigurationsService.deleteShiftConfiguration(shiftId)
+      await fetchShiftConfigurations()
+      success('Shift deleted successfully')
+    } catch (error) {
+      handleDatabaseError(error, 'delete shift')
+      showError('Failed to delete shift')
     }
   }
 
@@ -588,6 +649,22 @@ export default function Settings() {
               defaultApplyMode={defaultApplyMode}
               onSave={handleSaveBreakScheduleSettings}
             />
+          </div>
+
+          <div className="bg-white rounded-lg shadow p-6">
+            {loadingShiftConfigurations ? (
+              <div className="flex items-center justify-center h-32">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
+              </div>
+            ) : (
+              <ShiftConfigurations
+                shifts={shiftConfigurations}
+                onUpdateShift={handleUpdateShift}
+                onToggleShift={handleToggleShift}
+                onCreateShift={handleCreateShift}
+                onDeleteShift={handleDeleteShift}
+              />
+            )}
           </div>
 
           <div className="bg-white rounded-lg shadow p-6">
