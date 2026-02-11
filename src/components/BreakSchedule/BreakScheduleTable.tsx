@@ -90,7 +90,7 @@ export default function BreakScheduleTable({
               <tr>
                 <th
                   scope="col"
-                  className="sticky left-0 z-30 bg-gray-50 px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[150px] shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]"
+                  className="sticky left-0 z-30 bg-gray-50 px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[173px] shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]"
                 >
                   Agent Name
                 </th>

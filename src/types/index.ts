@@ -29,6 +29,19 @@ export interface Shift {
   created_at: string
 }
 
+export interface ShiftConfiguration {
+  id: string
+  shift_code: string
+  shift_label: string
+  start_time: string
+  end_time: string
+  is_active: boolean
+  display_order: number
+  description: string | null
+  created_at: string
+  updated_at: string
+}
+
 export interface SwapRequest {
   id: string
   requester_id: string
