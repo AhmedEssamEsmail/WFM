@@ -29,7 +29,7 @@ export default function AgentRow({
     <tr className="hover:bg-gray-50">
       <th
         scope="row"
-        className="sticky left-0 z-10 bg-white px-4 py-3 text-sm font-medium text-gray-900 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]"
+        className="sticky left-0 z-10 bg-white px-4 py-3 text-sm font-medium text-gray-900 text-left shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]"
       >
         <div className="flex items-center gap-2">
           <span>{schedule.name}</span>
