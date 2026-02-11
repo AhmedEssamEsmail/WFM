@@ -29,6 +29,7 @@ const LeaveBalances = lazy(() => import('./pages/LeaveRequests/LeaveBalances'))
 const Reports = lazy(() => import('./pages/Reports'))
 const EmployeeDirectory = lazy(() => import('./pages/Headcount/EmployeeDirectory'))
 const EmployeeDetail = lazy(() => import('./pages/Headcount/EmployeeDetail'))
+const BreakSchedule = lazy(() => import('./pages/BreakSchedule'))
 
 // Loading fallback component
 function PageLoader() {
@@ -73,6 +74,7 @@ function App() {
                 {/* Protected routes - Employee accessible */}
                 <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
                 <Route path="/schedule" element={<ProtectedRoute><Schedule /></ProtectedRoute>} />
+                <Route path="/break-schedule" element={<ProtectedRoute><BreakSchedule /></ProtectedRoute>} />
                 <Route path="/swap-requests" element={<ProtectedRoute><SwapRequests /></ProtectedRoute>} />
                 <Route path="/swap-requests/create" element={<ProtectedRoute><CreateSwapRequest /></ProtectedRoute>} />
                 <Route path="/swap-requests/new" element={<ProtectedRoute><CreateSwapRequest /></ProtectedRoute>} />

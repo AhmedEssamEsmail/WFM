@@ -3,9 +3,10 @@ import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
 import { useToast } from '../lib/ToastContext'
 import { settingsService, leaveTypesService } from '../services'
-import type { LeaveTypeConfig, LeaveType } from '../types'
+import type { LeaveTypeConfig, LeaveType, DistributionStrategy, ApplyMode } from '../types'
 import { ROUTES, SUCCESS_MESSAGES, ERROR_MESSAGES } from '../constants'
 import { handleDatabaseError } from '../lib/errorHandler'
+import AutoDistributionSettings from '../components/Settings/AutoDistributionSettings'
 
 export default function Settings() {
   const navigate = useNavigate()
@@ -17,12 +18,16 @@ export default function Settings() {
   const [saving, setSaving] = useState(false)
   
   // Leave types state
-  const [activeTab, setActiveTab] = useState<'general' | 'leave-types'>('general')
+  const [activeTab, setActiveTab] = useState<'general' | 'leave-types' | 'break-schedule'>('general')
   const [leaveTypes, setLeaveTypes] = useState<LeaveTypeConfig[]>([])
   const [loadingLeaveTypes, setLoadingLeaveTypes] = useState(false)
   const [editingLeaveType, setEditingLeaveType] = useState<LeaveTypeConfig | null>(null)
   const [newLeaveType, setNewLeaveType] = useState({ code: '', label: '', description: '', color: '#E5E7EB', display_order: 0, is_active: true })
   const [showAddLeaveType, setShowAddLeaveType] = useState(false)
+
+  // Break schedule settings state
+  const [defaultStrategy, setDefaultStrategy] = useState<DistributionStrategy>('balanced_coverage')
+  const [defaultApplyMode, setDefaultApplyMode] = useState<ApplyMode>('only_unscheduled')
 
   const fetchLeaveTypes = useCallback(async () => {
     setLoadingLeaveTypes(true)
@@ -60,6 +65,13 @@ export default function Settings() {
       
       setAutoApprove(autoApproveValue)
       setAllowLeaveExceptions(exceptionsValue)
+
+      // Fetch break schedule settings
+      const strategyValue = await settingsService.getSetting('break_distribution_strategy')
+      const applyModeValue = await settingsService.getSetting('break_apply_mode')
+      
+      if (strategyValue) setDefaultStrategy(strategyValue as DistributionStrategy)
+      if (applyModeValue) setDefaultApplyMode(applyModeValue as ApplyMode)
     } catch (err) {
       handleDatabaseError(err, 'fetch settings')
     } finally {
@@ -161,6 +173,20 @@ export default function Settings() {
     }
   }
 
+  async function handleSaveBreakScheduleSettings(strategy: DistributionStrategy, applyMode: ApplyMode) {
+    try {
+      await settingsService.updateSetting('break_distribution_strategy', strategy)
+      await settingsService.updateSetting('break_apply_mode', applyMode)
+      
+      setDefaultStrategy(strategy)
+      setDefaultApplyMode(applyMode)
+      success('Break schedule settings saved successfully')
+    } catch (error) {
+      handleDatabaseError(error, 'save break schedule settings')
+      showError('Failed to save break schedule settings')
+    }
+  }
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -195,6 +221,16 @@ export default function Settings() {
             } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm`}
           >
             Leave Types
+          </button>
+          <button
+            onClick={() => setActiveTab('break-schedule')}
+            className={`${
+              activeTab === 'break-schedule'
+                ? 'border-primary-500 text-primary-600'
+                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+            } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm`}
+          >
+            Break Schedule
           </button>
         </nav>
       </div>
@@ -501,6 +537,16 @@ export default function Settings() {
               </div>
             </div>
           )}
+        </div>
+      )}
+
+      {activeTab === 'break-schedule' && (
+        <div className="bg-white rounded-lg shadow p-6">
+          <AutoDistributionSettings
+            defaultStrategy={defaultStrategy}
+            defaultApplyMode={defaultApplyMode}
+            onSave={handleSaveBreakScheduleSettings}
+          />
         </div>
       )}
     </div>

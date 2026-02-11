@@ -18,6 +18,7 @@ interface NavItem {
 const NAV_ITEMS: NavItem[] = [
   { name: 'Dashboard', href: '/dashboard', roles: ['agent', 'tl', 'wfm'], icon: DashboardIcon },
   { name: 'Schedule', href: '/schedule', roles: ['agent', 'tl', 'wfm'], icon: ScheduleIcon },
+  { name: 'Break Schedule', href: '/break-schedule', roles: ['agent', 'tl', 'wfm'], icon: BreakScheduleIcon },
   { name: 'Swap Requests', href: '/swap-requests', roles: ['agent', 'tl', 'wfm'], icon: SwapIcon },
   { name: 'Leave Requests', href: '/leave-requests', roles: ['agent', 'tl', 'wfm'], icon: LeaveIcon },
   { name: 'Leave Balances', href: '/leave-balances', roles: ['agent', 'tl', 'wfm'], icon: BalanceIcon },
@@ -189,4 +190,7 @@ function CloseIcon() {
 }
 function SignOutIcon(props: React.SVGProps<SVGSVGElement>) {
   return <svg {...props} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>
+}
+function BreakScheduleIcon(props: React.SVGProps<SVGSVGElement>) {
+  return <svg {...props} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
       }
