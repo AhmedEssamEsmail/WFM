@@ -226,20 +226,24 @@ export default function AutoDistributeModal({
                   <div className={`text-xs font-medium ${SEMANTIC_COLORS.error.text} mb-2`}>
                     ✕ Failed Agents ({preview.failed_agents.length}):
                   </div>
-                  <div className="space-y-2 max-h-48 overflow-y-auto">
+                  <div className="space-y-2 max-h-64 overflow-y-auto">
                     {preview.failed_agents.map((agent, idx) => (
-                      <div key={idx} className="text-xs bg-red-50 border border-red-200 rounded p-2">
-                        <div className="font-medium text-gray-900">{agent.name}</div>
-                        <div className="text-gray-700 mt-1">{agent.reason}</div>
-                        {agent.blockedBy && agent.blockedBy.length > 0 && (
-                          <div className="mt-1 text-red-700">
-                            <span className="font-medium">Blocked by rules:</span>{' '}
-                            {agent.blockedBy.map((rule) => (
-                              <span key={rule} className="inline-block bg-red-100 px-1.5 py-0.5 rounded mr-1 mt-1">
-                                {rule}
-                              </span>
-                            ))}
+                      <div key={idx} className="text-xs bg-red-50 border border-red-200 rounded p-3">
+                        <div className="font-medium text-gray-900 mb-1">{agent.name}</div>
+                        {agent.blockedBy && agent.blockedBy.length > 0 ? (
+                          <div className="space-y-1">
+                            <div className="text-red-800 font-medium">Blocked by validation rules:</div>
+                            <div className="flex flex-wrap gap-1 mt-1">
+                              {agent.blockedBy.map((rule) => (
+                                <span key={rule} className="inline-block bg-red-100 text-red-800 px-2 py-1 rounded text-xs font-medium">
+                                  {rule}
+                                </span>
+                              ))}
+                            </div>
+                            <div className="text-gray-700 mt-2 leading-relaxed">{agent.reason}</div>
                           </div>
+                        ) : (
+                          <div className="text-gray-700 leading-relaxed">{agent.reason}</div>
                         )}
                       </div>
                     ))}

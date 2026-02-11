@@ -7,12 +7,27 @@ import type {
   BreakScheduleRule,
   ShiftType,
   BreakType,
+  ValidationViolation,
 } from '../types'
 import { breakSchedulesService } from '../services/breakSchedulesService'
 import { breakRulesService } from '../services/breakRulesService'
 import { shiftConfigurationsService } from '../services/shiftConfigurationsService'
 import { getRuleViolations } from './breakValidation'
 import { timeToMinutes, minutesToTime } from './validations/breakSchedules'
+
+/**
+ * Format validation errors into detailed message
+ */
+function formatValidationErrors(violations: ValidationViolation[]): string {
+  const ruleDetails = violations.map((v) => {
+    if (v.affected_intervals && v.affected_intervals.length > 0) {
+      return `${v.rule_name}: ${v.message} (at ${v.affected_intervals.join(', ')})`
+    }
+    return `${v.rule_name}: ${v.message}`
+  })
+  
+  return ruleDetails.join(' | ')
+}
 
 /**
  * Get shift hours from database configuration
@@ -180,7 +195,7 @@ export async function balancedCoverageStrategy(
 
     if (validation.hasBlockingViolations) {
       const errorViolations = validation.violations.filter((v) => v.severity === 'error')
-      const errorMessages = errorViolations.map((v) => v.message).join('; ')
+      const errorMessages = formatValidationErrors(errorViolations)
       const blockedByRules = errorViolations.map((v) => v.rule_name)
       
       failed.push({
@@ -295,7 +310,7 @@ export async function staggeredTimingStrategy(
 
     if (validation.hasBlockingViolations) {
       const errorViolations = validation.violations.filter((v) => v.severity === 'error')
-      const errorMessages = errorViolations.map((v) => v.message).join('; ')
+      const errorMessages = formatValidationErrors(errorViolations)
       const blockedByRules = errorViolations.map((v) => v.rule_name)
       
       failed.push({
