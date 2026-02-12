@@ -1,7 +1,7 @@
 import { useState, useEffect, FormEvent } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../hooks/useAuth'
-import { loginSchema } from '../../utils/validators'
+import { loginSchema } from '../../validation'
 import { ROUTES } from '../../constants'
 
 export default function Login() {

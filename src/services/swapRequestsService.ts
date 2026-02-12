@@ -6,7 +6,7 @@ import { API_ENDPOINTS, PAGINATION } from '../constants'
 import {
   validateUUID,
   validateSwapRequestData,
-} from '../utils/validation'
+} from '../validation'
 import {
   SwapExecutionError,
   ValidationError,

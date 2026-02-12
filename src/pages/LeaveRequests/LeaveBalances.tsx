@@ -334,6 +334,8 @@ export default function LeaveBalances() {
         const currentUser = usersWithBalances.find(u => u.id === row.userId)
         
         for (const [leaveType, newBalance] of Object.entries(row.balances)) {
+          if (typeof newBalance !== 'number') continue
+          
           try {
             const currentBalance = currentUser?.balances[leaveType as LeaveType] || 0
             

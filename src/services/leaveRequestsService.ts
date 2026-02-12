@@ -8,8 +8,8 @@ import {
   validateLeaveType,
   validateDateRange,
   validateLeaveRequestData,
-} from '../utils/validation'
-import { validateLeaveRequest } from './validation/leaveBalanceValidation'
+  validateLeaveRequest,
+} from '../validation'
 import { sanitizeUserInput } from '../utils/sanitize'
 import { ConcurrencyError, ResourceNotFoundError } from '../types/errors'
 import type { PaginatedResponse } from '../hooks/usePaginatedQuery'

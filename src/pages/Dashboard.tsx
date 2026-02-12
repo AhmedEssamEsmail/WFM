@@ -1,13 +1,12 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useCallback } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
 import { useLeaveTypes } from '../hooks/useLeaveTypes'
+import { useDashboardData } from '../hooks/useDashboardData'
 import type { SwapRequest, LeaveRequest, User } from '../types'
 import { getStatusColor, getStatusLabel } from '../lib/designSystem'
-import { swapRequestsService, leaveRequestsService } from '../services'
 import { formatDate as formatDateUtil } from '../utils'
 import { ROUTES } from '../constants'
-import { handleDatabaseError } from '../lib/errorHandler'
 
 interface SwapRequestWithUsers extends SwapRequest {
   requester: User
@@ -22,11 +21,10 @@ export default function Dashboard() {
   const { user } = useAuth()
   const navigate = useNavigate()
   const { leaveTypes } = useLeaveTypes()
-  const [swapRequests, setSwapRequests] = useState<SwapRequestWithUsers[]>([])
-  const [leaveRequests, setLeaveRequests] = useState<LeaveRequestWithUser[]>([])
-  const [loading, setLoading] = useState(true)
+  const { data, isLoading: loading } = useDashboardData()
 
-  const isManager = user?.role === 'tl' || user?.role === 'wfm'
+  const swapRequests = data?.swapRequests || []
+  const leaveRequests = data?.leaveRequests || []
 
   // Helper function to get leave type info with color
   const getLeaveTypeInfo = useCallback((leaveTypeCode: string) => {
@@ -36,80 +34,6 @@ export default function Dashboard() {
       color: leaveType?.color || '#E5E7EB'
     }
   }, [leaveTypes])
-
-  const fetchRequests = useCallback(async () => {
-    setLoading(true)
-    try {
-      // Fetch all requests using services
-      const [allSwapRequests, allLeaveRequests] = await Promise.all([
-        swapRequestsService.getSwapRequests(),
-        leaveRequestsService.getLeaveRequests()
-      ])
-
-      // Filter and sort swap requests
-      let filteredSwaps = isManager 
-        ? allSwapRequests 
-        : allSwapRequests.filter(r => r.requester_id === user!.id || r.target_user_id === user!.id)
-
-      if (isManager) {
-        filteredSwaps = [...filteredSwaps].sort((a, b) => {
-          const aPending = a.status.startsWith('pending')
-          const bPending = b.status.startsWith('pending')
-          if (aPending && !bPending) return -1
-          if (!aPending && bPending) return 1
-          return new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
-        })
-      }
-
-      // Map the data to match the expected interface structure
-      // Service returns 'target' but interface expects 'target_user'
-      const mappedSwaps = filteredSwaps.slice(0, 5).map(swap => {
-        console.log('Swap request data:', swap)
-        return {
-          ...swap,
-          requester: (swap as any).requester,
-          target_user: (swap as any).target  // Map 'target' to 'target_user'
-        }
-      })
-      setSwapRequests(mappedSwaps as SwapRequestWithUsers[])
-
-      // Filter and sort leave requests
-      let filteredLeaves = isManager
-        ? allLeaveRequests
-        : allLeaveRequests.filter(r => r.user_id === user!.id)
-
-      if (isManager) {
-        filteredLeaves = [...filteredLeaves].sort((a, b) => {
-          const aPending = a.status.startsWith('pending')
-          const bPending = b.status.startsWith('pending')
-          if (aPending && !bPending) return -1
-          if (!aPending && bPending) return 1
-          return new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
-        })
-      }
-
-      // Map the data to match the expected interface structure
-      // Service returns 'users' (plural) but interface expects 'user' (singular)
-      const mappedLeaves = filteredLeaves.slice(0, 5).map(leave => {
-        console.log('Leave request data:', leave)
-        return {
-          ...leave,
-          user: (leave as any).users  // Map 'users' to 'user'
-        }
-      })
-      setLeaveRequests(mappedLeaves as LeaveRequestWithUser[])
-    } catch (error) {
-      handleDatabaseError(error, 'fetch dashboard requests')
-    } finally {
-      setLoading(false)
-    }
-  }, [user, isManager])
-
-  useEffect(() => {
-    if (user) {
-      fetchRequests()
-    }
-  }, [user, fetchRequests])
 
   const formatDate = useCallback((dateString: string) => {
     return formatDateUtil(dateString)

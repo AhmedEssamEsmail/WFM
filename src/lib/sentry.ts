@@ -2,7 +2,9 @@ import * as Sentry from '@sentry/react';
 
 export function initSentry() {
   if (!import.meta.env.VITE_SENTRY_DSN) {
-    console.warn('Sentry DSN not configured - error tracking disabled');
+    if (import.meta.env.DEV) {
+      console.warn('Sentry DSN not configured - error tracking disabled');
+    }
     return;
   }
 
@@ -29,3 +31,6 @@ export function initSentry() {
     },
   });
 }
+
+// Re-export Sentry for use across the app — avoids (window as any).Sentry
+export { Sentry }

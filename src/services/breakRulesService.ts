@@ -106,7 +106,7 @@ export const breakRulesService = {
    * Validate rule parameters based on rule type
    */
   validateRuleParameters(
-    parameters: Record<string, any>,
+    parameters: Record<string, unknown>,
     ruleType?: string
   ): string | null {
     if (!ruleType) return null

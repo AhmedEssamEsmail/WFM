@@ -5,7 +5,7 @@ import { supabase } from '../../lib/supabase'
 import type { User, Shift, ShiftType } from '../../types'
 import { shiftsService } from '../../services'
 import { formatDate } from '../../utils'
-import { swapRequestSchema } from '../../utils/validators'
+import { swapRequestCreateSchema } from '../../validation'
 import { ROUTES, ERROR_MESSAGES } from '../../constants'
 import { ValidationError } from '../../types/errors'
 
@@ -144,7 +144,7 @@ export default function CreateSwapRequest() {
     const effectiveRequesterId = canSubmitOnBehalf ? requesterUserId : user!.id
 
     // Validate with Zod
-    const result = swapRequestSchema.safeParse({
+    const result = swapRequestCreateSchema.safeParse({
       target_user_id: targetUserId,
       requester_shift_id: myShiftId,
       target_shift_id: targetShiftId,

@@ -1,7 +1,7 @@
 import { useState, FormEvent } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../hooks/useAuth'
-import { signupSchema } from '../../utils/validators'
+import { signupSchema } from '../../validation'
 import { ROUTES, SUCCESS_MESSAGES } from '../../constants'
 
 export default function Signup() {

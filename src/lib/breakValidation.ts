@@ -7,7 +7,7 @@ import type {
   BreakType,
   ShiftType,
 } from '../types'
-import { timeToMinutes, calculateBreakGap } from './validations/breakSchedules'
+import { timeToMinutes, calculateBreakGap } from '../validation'
 import { shiftConfigurationsService } from '../services/shiftConfigurationsService'
 
 /**
@@ -226,8 +226,8 @@ async function validateAgainstRule(
 
     case 'timing': {
       if (rule.rule_name === 'minimum_gap' || rule.rule_name === 'maximum_gap') {
-        const minMinutes = rule.parameters.min_minutes || 90
-        const maxMinutes = rule.parameters.max_minutes || 270
+        const minMinutes = (rule.parameters.min_minutes as number | undefined) || 90
+        const maxMinutes = (rule.parameters.max_minutes as number | undefined) || 270
         const timingViolations = validateBreakTiming(request.intervals, minMinutes, maxMinutes)
 
         for (const violation of timingViolations) {

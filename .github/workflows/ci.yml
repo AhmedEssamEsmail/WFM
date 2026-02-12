@@ -86,10 +86,8 @@ jobs:
       - name: Install dependencies
         run: npm ci
       
-      - name: Run tests
-        run: npm run test:run
-      
-      - name: Generate coverage report
+      # Run tests with coverage in a single step (optimized to avoid duplicate test execution)
+      - name: Run tests with coverage
         run: npm run test:coverage
       
       - name: Upload coverage artifacts

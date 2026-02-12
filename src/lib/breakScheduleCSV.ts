@@ -45,16 +45,24 @@ export async function exportToCSV(
 export function parseCSV(csvContent: string): BreakScheduleCSVRow[] {
   const lines = csvContent.trim().split('\n')
 
-  if (lines.length < 2) {
-    throw new Error('CSV file is empty or has no data rows')
+  if (lines.length < 1) {
+    throw new Error('CSV file is empty')
   }
 
-  // Skip header row
-  const dataLines = lines.slice(1)
+  // Skip header row if it exists
+  const dataLines = lines.length > 1 ? lines.slice(1) : []
+
+  // Return empty array if no data rows (this is valid for empty schedules)
+  if (dataLines.length === 0) {
+    throw new Error('CSV file is empty or has no data rows')
+  }
 
   const rows: BreakScheduleCSVRow[] = []
 
   for (const line of dataLines) {
+    // Skip empty lines
+    if (!line.trim()) continue
+    
     // Handle quoted fields
     const fields = line.match(/(".*?"|[^",\s]+)(?=\s*,|\s*$)/g) || []
     const cleanFields = fields.map((field) => field.replace(/^"|"$/g, '').trim())
@@ -98,7 +106,7 @@ export async function validateCSVFormat(rows: BreakScheduleCSVRow[]): Promise<{
   try {
     const shifts = await shiftConfigurationsService.getActiveShiftConfigurations()
     validShiftTypes = shifts.map(s => s.shift_code)
-  } catch (error) {
+  } catch {
     // Fallback to defaults if database fails
     validShiftTypes = ['AM', 'PM', 'BET', 'OFF']
   }
@@ -262,7 +270,7 @@ export async function importFromCSV(file: File): Promise<ImportResult> {
           await breakSchedulesService.updateBreakSchedule({
             user_id: userId,
             schedule_date: row.date,
-            intervals: intervals as any,
+            intervals: intervals as Array<{ interval_start: string; break_type: 'HB1' | 'B' | 'HB2' }>,
           })
         }
 

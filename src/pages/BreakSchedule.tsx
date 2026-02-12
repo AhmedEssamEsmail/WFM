@@ -10,7 +10,7 @@ import BreakScheduleTable from '../components/BreakSchedule/BreakScheduleTable'
 import WarningPopup from '../components/BreakSchedule/WarningPopup'
 import AutoDistributeModal from '../components/BreakSchedule/AutoDistributeModal'
 import { exportToCSV, importFromCSV } from '../lib/breakScheduleCSV'
-import type { BreakScheduleUpdateRequest, AutoDistributeRequest } from '../types'
+import type { BreakScheduleUpdateRequest, AutoDistributeRequest, AgentBreakSchedule } from '../types'
 
 export default function BreakSchedule() {
   const { user } = useAuth()
@@ -40,7 +40,7 @@ export default function BreakSchedule() {
   const isEditable = isWFM
 
   // Filter schedules based on search and department
-  const filteredSchedules = schedules.filter((schedule: any) => {
+  const filteredSchedules = schedules.filter((schedule: AgentBreakSchedule) => {
     const matchesSearch = schedule.name
       .toLowerCase()
       .includes(searchQuery.toLowerCase())
@@ -73,13 +73,13 @@ export default function BreakSchedule() {
   })
   
   // Merge failure reasons into schedules
-  const schedulesWithFailures = sortedSchedules.map((schedule: any) => ({
+  const schedulesWithFailures = sortedSchedules.map((schedule: AgentBreakSchedule) => ({
     ...schedule,
     auto_distribution_failure: failedAgentsMap[schedule.user_id] || undefined,
   }))
 
   // Get unique departments
-  const departments = Array.from(new Set(schedules.map((s: any) => s.department).filter(Boolean))) as string[]
+  const departments = Array.from(new Set(schedules.map((s: AgentBreakSchedule) => s.department).filter(Boolean))) as string[]
 
   // Handle break schedule updates
   const handleUpdate = async (updates: BreakScheduleUpdateRequest[]) => {

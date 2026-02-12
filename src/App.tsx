@@ -30,6 +30,7 @@ const Reports = lazy(() => import('./pages/Reports'))
 const EmployeeDirectory = lazy(() => import('./pages/Headcount/EmployeeDirectory'))
 const EmployeeDetail = lazy(() => import('./pages/Headcount/EmployeeDetail'))
 const BreakSchedule = lazy(() => import('./pages/BreakSchedule'))
+const NotFound = lazy(() => import('./pages/NotFound'))
 
 // Loading fallback component
 function PageLoader() {
@@ -43,7 +44,7 @@ function PageLoader() {
 // Initialize error handler with toast function
 function ErrorHandlerInitializer() {
   const { error: showError } = useToast()
-  
+
   useEffect(() => {
     // Create a wrapper that matches the expected signature
     const errorToastFn = (message: string, type: 'error' | 'success' | 'warning' | 'info') => {
@@ -53,7 +54,7 @@ function ErrorHandlerInitializer() {
     }
     initializeErrorHandler(errorToastFn)
   }, [showError])
-  
+
   return null
 }
 
@@ -70,41 +71,39 @@ function App() {
                 <Route path="/login" element={<PublicRoute><Login /></PublicRoute>} />
                 <Route path="/signup" element={<PublicRoute><Signup /></PublicRoute>} />
                 <Route path="/unauthorized" element={<Unauthorized />} />
-                
+
                 {/* Protected routes - Employee accessible */}
                 <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
                 <Route path="/schedule" element={<ProtectedRoute><Schedule /></ProtectedRoute>} />
                 <Route path="/break-schedule" element={<ProtectedRoute><BreakSchedule /></ProtectedRoute>} />
                 <Route path="/swap-requests" element={<ProtectedRoute><SwapRequests /></ProtectedRoute>} />
                 <Route path="/swap-requests/create" element={<ProtectedRoute><CreateSwapRequest /></ProtectedRoute>} />
-                <Route path="/swap-requests/new" element={<ProtectedRoute><CreateSwapRequest /></ProtectedRoute>} />
                 <Route path="/swap-requests/:id" element={<ProtectedRoute><SwapRequestDetail /></ProtectedRoute>} />
                 <Route path="/leave-requests" element={<ProtectedRoute><LeaveRequests /></ProtectedRoute>} />
                 <Route path="/leave-requests/create" element={<ProtectedRoute><CreateLeaveRequest /></ProtectedRoute>} />
-                <Route path="/leave-requests/new" element={<ProtectedRoute><CreateLeaveRequest /></ProtectedRoute>} />
                 <Route path="/leave-requests/:id" element={<ProtectedRoute><LeaveRequestDetail /></ProtectedRoute>} />
                 <Route path="/leave-balances" element={<ProtectedRoute><LeaveBalances /></ProtectedRoute>} />
-                
+
                 {/* WFM only routes - Admin access */}
                 <Route path="/settings" element={<ProtectedRoute requiredRoles={['wfm']}><Settings /></ProtectedRoute>} />
                 <Route path="/schedule/upload" element={<ProtectedRoute requiredRoles={['wfm']}><ScheduleUpload /></ProtectedRoute>} />
-                
+
                 {/* TL and WFM routes - Manager access */}
                 <Route path="/reports" element={<ProtectedRoute requiredRoles={['tl', 'wfm']}><Reports /></ProtectedRoute>} />
                 <Route path="/headcount/employees" element={<ProtectedRoute requiredRoles={['tl', 'wfm']}><EmployeeDirectory /></ProtectedRoute>} />
                 <Route path="/headcount/employees/:id" element={<ProtectedRoute requiredRoles={['tl', 'wfm']}><EmployeeDetail /></ProtectedRoute>} />
-                
+
                 {/* Redirect root to dashboard */}
                 <Route path="/" element={<Navigate to="/dashboard" replace />} />
-                
-                {/* Catch all */}
-                <Route path="*" element={<Navigate to="/dashboard" replace />} />
+
+                {/* 404 — Page Not Found */}
+                <Route path="*" element={<NotFound />} />
               </Routes>
             </Suspense>
           </Router>
         </ToastProvider>
       </AuthProvider>
-      <ReactQueryDevtools initialIsOpen={false} />
+      {import.meta.env.DEV && <ReactQueryDevtools initialIsOpen={false} />}
     </QueryClientProvider>
   )
 }

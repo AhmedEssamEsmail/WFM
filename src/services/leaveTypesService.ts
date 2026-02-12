@@ -88,4 +88,20 @@ export const leaveTypesService = {
     
     if (error) throw error
   },
+
+  /**
+   * Get default leave balances for initialization
+   * Returns a map of leave type codes to their default balance (0)
+   * This is used when initializing new users or resetting balances
+   */
+  async getDefaultLeaveBalances(): Promise<Record<string, number>> {
+    const leaveTypes = await this.getActiveLeaveTypes()
+    const balances: Record<string, number> = {}
+    
+    for (const leaveType of leaveTypes) {
+      balances[leaveType.code] = 0 // Default balance is 0, WFM updates as needed
+    }
+    
+    return balances
+  },
 }

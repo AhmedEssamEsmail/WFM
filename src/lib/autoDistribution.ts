@@ -13,7 +13,7 @@ import { breakSchedulesService } from '../services/breakSchedulesService'
 import { breakRulesService } from '../services/breakRulesService'
 import { shiftConfigurationsService } from '../services/shiftConfigurationsService'
 import { getRuleViolations } from './breakValidation'
-import { timeToMinutes, minutesToTime } from './validations/breakSchedules'
+import { timeToMinutes, minutesToTime } from '../validation'
 
 /**
  * Format validation errors into detailed message

@@ -65,7 +65,18 @@ describe('Validation Properties', () => {
           hb1: fc.integer({ min: 0, max: 200 }),
           b: fc.integer({ min: 90, max: 400 }),
           hb2: fc.integer({ min: 180, max: 500 })
-        }).filter(times => times.hb1 < times.b && times.b < times.hb2),
+        }).filter(times => {
+          // Ensure breaks are ordered
+          if (!(times.hb1 < times.b && times.b < times.hb2)) return false
+          
+          // Calculate gaps
+          const gapHB1toB = times.b - times.hb1
+          const gapBtoHB2 = times.hb2 - times.b
+          
+          // Only test cases where at least one gap is outside valid range
+          // or both gaps are within valid range (to test both pass and fail cases)
+          return true
+        }),
         (breakTimes) => {
           const hb1Time = minutesToTime(breakTimes.hb1)
           const bTime = minutesToTime(breakTimes.b)
@@ -83,13 +94,17 @@ describe('Validation Properties', () => {
           
           const violations = validateBreakTiming(request.intervals)
           
-          const gapHB1toB = breakTimes.b - breakTimes.hb1
-          const gapBtoHB2 = breakTimes.hb2 - breakTimes.b
+          // Calculate actual gaps based on the rounded times (not the input minutes)
+          const hb1Minutes = parseInt(hb1Time.split(':')[0]) * 60 + parseInt(hb1Time.split(':')[1])
+          const bMinutes = parseInt(bTime.split(':')[0]) * 60 + parseInt(bTime.split(':')[1])
+          const hb2Minutes = parseInt(hb2Time.split(':')[0]) * 60 + parseInt(hb2Time.split(':')[1])
+          
+          const actualGapHB1toB = bMinutes - hb1Minutes
+          const actualGapBtoHB2 = hb2Minutes - bMinutes
           
           // Check if gaps are within valid range (90-270 minutes inclusive)
-          // The validation function uses < for minimum, so >= 90 is valid
-          const validGaps = (gapHB1toB >= 90 && gapHB1toB <= 270) &&
-                           (gapBtoHB2 >= 90 && gapBtoHB2 <= 270)
+          const validGaps = (actualGapHB1toB >= 90 && actualGapHB1toB <= 270) &&
+                           (actualGapBtoHB2 >= 90 && actualGapBtoHB2 <= 270)
           
           if (validGaps) {
             expect(violations).toHaveLength(0)

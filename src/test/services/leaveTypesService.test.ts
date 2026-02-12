@@ -284,4 +284,67 @@ describe('leaveTypesService', () => {
       )
     })
   })
+
+  describe('getDefaultLeaveBalances', () => {
+    it('should return default balances for all active leave types', async () => {
+      const mockLeaveTypes = [
+        { ...mockLeaveType, code: 'annual' as LeaveType },
+        { ...mockLeaveType, code: 'sick' as LeaveType, id: '223e4567-e89b-12d3-a456-426614174000' },
+        { ...mockLeaveType, code: 'emergency' as LeaveType, id: '323e4567-e89b-12d3-a456-426614174000' },
+      ]
+
+      vi.mocked(supabase.from).mockReturnValue({
+        select: vi.fn().mockReturnValue({
+          eq: vi.fn().mockReturnValue({
+            order: vi.fn().mockResolvedValue({
+              data: mockLeaveTypes,
+              error: null,
+            }),
+          }),
+        }),
+      } as any)
+
+      const result = await leaveTypesService.getDefaultLeaveBalances()
+
+      expect(result).toEqual({
+        annual: 0,
+        sick: 0,
+        emergency: 0,
+      })
+    })
+
+    it('should return empty object when no active leave types exist', async () => {
+      vi.mocked(supabase.from).mockReturnValue({
+        select: vi.fn().mockReturnValue({
+          eq: vi.fn().mockReturnValue({
+            order: vi.fn().mockResolvedValue({
+              data: [],
+              error: null,
+            }),
+          }),
+        }),
+      } as any)
+
+      const result = await leaveTypesService.getDefaultLeaveBalances()
+
+      expect(result).toEqual({})
+    })
+
+    it('should throw error when fetch fails', async () => {
+      const mockError = new Error('Database error')
+
+      vi.mocked(supabase.from).mockReturnValue({
+        select: vi.fn().mockReturnValue({
+          eq: vi.fn().mockReturnValue({
+            order: vi.fn().mockResolvedValue({
+              data: null,
+              error: mockError,
+            }),
+          }),
+        }),
+      } as any)
+
+      await expect(leaveTypesService.getDefaultLeaveBalances()).rejects.toThrow('Database error')
+    })
+  })
 })

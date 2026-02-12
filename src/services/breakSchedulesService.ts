@@ -12,6 +12,8 @@ import type {
   BreakScheduleUpdateResponse,
   BreakType,
   ShiftType,
+  AutoDistributeRequest,
+  AutoDistributePreview,
 } from '../types'
 
 const BREAK_SCHEDULES_TABLE = 'break_schedules'
@@ -131,7 +133,7 @@ export const breakSchedulesService = {
     const coverageCounts: Record<string, { in: number; hb1: number; b: number; hb2: number }> = {}
 
     for (const shift of shifts || []) {
-      const user = shift.users as any
+      const user = shift.users as { id: string; name: string; department?: string } | null
       if (!user) continue
 
       const userBreaks = (breakSchedules || []).filter(
@@ -311,7 +313,7 @@ export const breakSchedulesService = {
   /**
    * Auto-distribute breaks
    */
-  async autoDistribute(request: any): Promise<any> {
+  async autoDistribute(request: AutoDistributeRequest): Promise<AutoDistributePreview> {
     const { generateDistributionPreview, applyDistribution } = await import('../lib/autoDistribution')
     
     // Generate preview

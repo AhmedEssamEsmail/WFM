@@ -6,7 +6,7 @@ import { supabase } from '../../lib/supabase'
 import type { LeaveType, User } from '../../types'
 import { leaveBalancesService } from '../../services'
 import { getDaysBetween, isValidDateRange } from '../../utils'
-import { leaveRequestSchema } from '../../utils/validators'
+import { leaveRequestCreateSchema } from '../../validation'
 import { ROUTES, ERROR_MESSAGES } from '../../constants'
 import { InsufficientLeaveBalanceError } from '../../types/errors'
 
@@ -106,7 +106,7 @@ export default function CreateLeaveRequest() {
     const targetUserId = canSubmitOnBehalf ? selectedUserId : user!.id
 
     // Validate with Zod
-    const result = leaveRequestSchema.safeParse({
+    const result = leaveRequestCreateSchema.safeParse({
       user_id: targetUserId,
       leave_type: leaveType,
       start_date: startDate,

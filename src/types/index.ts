@@ -6,7 +6,7 @@ export type SwapRequestStatus = 'pending_acceptance' | 'pending_tl' | 'pending_w
 
 export type LeaveRequestStatus = 'pending_tl' | 'pending_wfm' | 'approved' | 'rejected' | 'denied'
 
-export type LeaveType = 'sick' | 'annual' | 'casual' | 'public_holiday' | 'bereavement'
+export type LeaveType = string
 
 export type RequestType = 'swap' | 'leave'
 
@@ -126,7 +126,6 @@ export interface SwapExecutionResult {
   error?: string
   error_code?: string
 }
-// ADD THESE TYPES TO YOUR EXISTING types/index.ts FILE
 
 // Extended User with headcount fields
 export interface HeadcountUser extends User {
@@ -209,7 +208,7 @@ export interface BreakScheduleRule {
   rule_name: string
   rule_type: 'distribution' | 'ordering' | 'timing' | 'coverage'
   description: string | null
-  parameters: Record<string, any>
+  parameters: Record<string, unknown>
   is_active: boolean
   is_blocking: boolean
   priority: number

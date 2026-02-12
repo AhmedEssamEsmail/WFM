@@ -142,15 +142,33 @@ export function validateNonEmptyString(
 
 /**
  * Validates that a leave type is valid
+ * Note: This is a basic validation for backward compatibility.
+ * For dynamic validation against the database, use leaveTypesService.getLeaveTypeByCode()
  */
 export function validateLeaveType(leaveType: string): asserts leaveType is LeaveType {
-  const validLeaveTypes: LeaveType[] = ['sick', 'annual', 'casual', 'public_holiday', 'bereavement']
-  if (!validLeaveTypes.includes(leaveType as LeaveType)) {
+  // Basic validation - accepts any non-empty string
+  // The database will be the source of truth for valid leave types
+  if (!leaveType || typeof leaveType !== 'string' || leaveType.trim().length === 0) {
     throw new ValidationError(
       'leave_type',
       leaveType,
-      `Must be one of: ${validLeaveTypes.join(', ')}`
+      'Leave type is required'
     )
+  }
+}
+
+/**
+ * Validates leave type against database configurations (async)
+ */
+export async function validateLeaveTypeAsync(leaveType: string): Promise<boolean> {
+  const { leaveTypesService } = await import('../services/leaveTypesService')
+  try {
+    const activeTypes = await leaveTypesService.getActiveLeaveTypes()
+    const validLeaveCodes = activeTypes.map(t => t.code)
+    return validLeaveCodes.includes(leaveType)
+  } catch {
+    // If database fails, accept any non-empty string
+    return !!(leaveType && typeof leaveType === 'string' && leaveType.trim().length > 0)
   }
 }
 
@@ -180,7 +198,7 @@ export async function validateShiftTypeAsync(shiftType: string): Promise<boolean
     const shifts = await shiftConfigurationsService.getActiveShiftConfigurations()
     const validShiftTypes = shifts.map(s => s.shift_code)
     return validShiftTypes.includes(shiftType)
-  } catch (error) {
+  } catch {
     // Fallback to defaults if database fails
     const fallbackTypes = ['AM', 'PM', 'BET', 'OFF']
     return fallbackTypes.includes(shiftType)

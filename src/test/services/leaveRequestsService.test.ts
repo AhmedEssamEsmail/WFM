@@ -16,8 +16,12 @@ vi.mock('../../lib/supabase', () => ({
 }))
 
 // Mock validation module
-vi.mock('../../services/validation/leaveBalanceValidation', () => ({
+vi.mock('../../validation', () => ({
   validateLeaveRequest: vi.fn(),
+  validateUUID: vi.fn(),
+  validateLeaveType: vi.fn(),
+  validateDateRange: vi.fn(),
+  validateLeaveRequestData: vi.fn(),
 }))
 
 // Mock dateHelpers

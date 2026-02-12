@@ -5,16 +5,13 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import Dashboard from '../../pages/Dashboard'
 import { AuthContext } from '../../lib/AuthContext'
 import { ToastProvider } from '../../lib/ToastContext'
-import { swapRequestsService, leaveRequestsService } from '../../services'
+import { dashboardService } from '../../services/dashboardService'
 import type { User, SwapRequest, LeaveRequest } from '../../types'
 
-// Mock services
-vi.mock('../../services', () => ({
-  swapRequestsService: {
-    getSwapRequests: vi.fn()
-  },
-  leaveRequestsService: {
-    getLeaveRequests: vi.fn()
+// Mock dashboard service
+vi.mock('../../services/dashboardService', () => ({
+  dashboardService: {
+    getPendingItems: vi.fn()
   }
 }))
 
@@ -49,7 +46,7 @@ describe('Dashboard Component', () => {
         role: 'agent',
         created_at: '2024-01-01T00:00:00Z'
       },
-      target: {
+      target_user: {
         id: 'user-2',
         email: 'target@dabdoob.com',
         name: 'Jane Target',
@@ -69,7 +66,7 @@ describe('Dashboard Component', () => {
       status: 'pending_tl',
       created_at: '2024-01-15T10:00:00Z',
       updated_at: '2024-01-15T10:00:00Z',
-      users: {
+      user: {
         id: 'user-1',
         email: 'user@dabdoob.com',
         name: 'John Doe',
@@ -114,8 +111,10 @@ describe('Dashboard Component', () => {
 
   describe('Rendering with data', () => {
     it('should render dashboard with user name', async () => {
-      vi.mocked(swapRequestsService.getSwapRequests).mockResolvedValue(mockSwapRequests)
-      vi.mocked(leaveRequestsService.getLeaveRequests).mockResolvedValue(mockLeaveRequests)
+      vi.mocked(dashboardService.getPendingItems).mockResolvedValue({
+        swapRequests: mockSwapRequests as any,
+        leaveRequests: mockLeaveRequests as any
+      })
 
       renderDashboard()
 
@@ -123,8 +122,10 @@ describe('Dashboard Component', () => {
     })
 
     it('should render action cards', async () => {
-      vi.mocked(swapRequestsService.getSwapRequests).mockResolvedValue([])
-      vi.mocked(leaveRequestsService.getLeaveRequests).mockResolvedValue([])
+      vi.mocked(dashboardService.getPendingItems).mockResolvedValue({
+        swapRequests: [],
+        leaveRequests: []
+      })
 
       renderDashboard()
 
@@ -133,8 +134,10 @@ describe('Dashboard Component', () => {
     })
 
     it('should render swap requests when data is available', async () => {
-      vi.mocked(swapRequestsService.getSwapRequests).mockResolvedValue(mockSwapRequests)
-      vi.mocked(leaveRequestsService.getLeaveRequests).mockResolvedValue([])
+      vi.mocked(dashboardService.getPendingItems).mockResolvedValue({
+        swapRequests: mockSwapRequests as any,
+        leaveRequests: []
+      })
 
       renderDashboard()
 
@@ -145,8 +148,10 @@ describe('Dashboard Component', () => {
     })
 
     it('should render leave requests when data is available', async () => {
-      vi.mocked(swapRequestsService.getSwapRequests).mockResolvedValue([])
-      vi.mocked(leaveRequestsService.getLeaveRequests).mockResolvedValue(mockLeaveRequests)
+      vi.mocked(dashboardService.getPendingItems).mockResolvedValue({
+        swapRequests: [],
+        leaveRequests: mockLeaveRequests as any
+      })
 
       renderDashboard()
 
@@ -159,11 +164,8 @@ describe('Dashboard Component', () => {
 
   describe('Loading states', () => {
     it('should show loading spinner for swap requests', () => {
-      vi.mocked(swapRequestsService.getSwapRequests).mockImplementation(
+      vi.mocked(dashboardService.getPendingItems).mockImplementation(
         () => new Promise(() => {}) // Never resolves
-      )
-      vi.mocked(leaveRequestsService.getLeaveRequests).mockImplementation(
-        () => new Promise(() => {})
       )
 
       renderDashboard()
@@ -174,8 +176,10 @@ describe('Dashboard Component', () => {
     })
 
     it('should hide loading spinner after data loads', async () => {
-      vi.mocked(swapRequestsService.getSwapRequests).mockResolvedValue([])
-      vi.mocked(leaveRequestsService.getLeaveRequests).mockResolvedValue([])
+      vi.mocked(dashboardService.getPendingItems).mockResolvedValue({
+        swapRequests: [],
+        leaveRequests: []
+      })
 
       renderDashboard()
 
@@ -188,10 +192,9 @@ describe('Dashboard Component', () => {
 
   describe('Error states', () => {
     it('should handle swap requests fetch error gracefully', async () => {
-      vi.mocked(swapRequestsService.getSwapRequests).mockRejectedValue(
-        new Error('Failed to fetch swap requests')
+      vi.mocked(dashboardService.getPendingItems).mockRejectedValue(
+        new Error('Failed to fetch dashboard data')
       )
-      vi.mocked(leaveRequestsService.getLeaveRequests).mockResolvedValue([])
 
       renderDashboard()
 
@@ -204,9 +207,8 @@ describe('Dashboard Component', () => {
     })
 
     it('should handle leave requests fetch error gracefully', async () => {
-      vi.mocked(swapRequestsService.getSwapRequests).mockResolvedValue([])
-      vi.mocked(leaveRequestsService.getLeaveRequests).mockRejectedValue(
-        new Error('Failed to fetch leave requests')
+      vi.mocked(dashboardService.getPendingItems).mockRejectedValue(
+        new Error('Failed to fetch dashboard data')
       )
 
       renderDashboard()
@@ -220,8 +222,10 @@ describe('Dashboard Component', () => {
     })
 
     it('should show empty state when no swap requests', async () => {
-      vi.mocked(swapRequestsService.getSwapRequests).mockResolvedValue([])
-      vi.mocked(leaveRequestsService.getLeaveRequests).mockResolvedValue([])
+      vi.mocked(dashboardService.getPendingItems).mockResolvedValue({
+        swapRequests: [],
+        leaveRequests: []
+      })
 
       renderDashboard()
 
@@ -231,8 +235,10 @@ describe('Dashboard Component', () => {
     })
 
     it('should show empty state when no leave requests', async () => {
-      vi.mocked(swapRequestsService.getSwapRequests).mockResolvedValue([])
-      vi.mocked(leaveRequestsService.getLeaveRequests).mockResolvedValue([])
+      vi.mocked(dashboardService.getPendingItems).mockResolvedValue({
+        swapRequests: [],
+        leaveRequests: []
+      })
 
       renderDashboard()
 

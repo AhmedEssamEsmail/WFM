@@ -4,6 +4,7 @@
  */
 
 import type { UserRole } from '../types'
+import { Sentry } from './sentry'
 
 interface SecurityLogEntry {
   userId: string
@@ -41,16 +42,19 @@ export function logUnauthorizedAccess(
   }
 
   // In production, send to logging service
-  if (import.meta.env.PROD && typeof window !== 'undefined' && (window as any).Sentry) {
-    const Sentry = (window as any).Sentry;
-    Sentry.captureMessage(`Security Event: ${action}`, {
-      level: 'warning',
-      extra: logEntry,
-      tags: {
-        securityEvent: action,
-        userRole,
-      },
-    });
+  if (import.meta.env.PROD) {
+    try {
+      Sentry.captureMessage(`Security Event: ${action}`, {
+        level: 'warning',
+        extra: logEntry as unknown as Record<string, unknown>,
+        tags: {
+          securityEvent: action,
+          userRole,
+        },
+      });
+    } catch {
+      // Sentry not initialized — silently skip
+    }
   }
 
   // Store in local storage for debugging (limited to last 50 entries)
@@ -66,15 +70,15 @@ function storeSecurityLog(entry: SecurityLogEntry): void {
     const key = 'security_logs'
     const stored = localStorage.getItem(key)
     const logs: SecurityLogEntry[] = stored ? JSON.parse(stored) : []
-    
+
     // Add new entry
     logs.push(entry)
-    
+
     // Keep only last 50 entries
     if (logs.length > 50) {
       logs.shift()
     }
-    
+
     localStorage.setItem(key, JSON.stringify(logs))
   } catch (error) {
     // Silently fail if localStorage is not available
@@ -91,7 +95,7 @@ export function getSecurityLogs(limit: number = 50): SecurityLogEntry[] {
     const key = 'security_logs'
     const stored = localStorage.getItem(key)
     const logs: SecurityLogEntry[] = stored ? JSON.parse(stored) : []
-    
+
     return logs.slice(-limit)
   } catch (error) {
     console.error('Failed to retrieve security logs:', error)

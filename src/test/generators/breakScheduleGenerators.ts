@@ -9,7 +9,7 @@ export const nonOffShiftTypeArb = fc.constantFrom<ShiftType>('AM', 'PM', 'BET')
 
 // Time generators (HH:MM format)
 export const timeArb = fc.tuple(
-  fc.integer({ min: 9, max: 20 }), // hours 9-20
+  fc.integer({ min: 9, max: 19 }), // hours 9-19 (to stay within all shift types)
   fc.constantFrom(0, 15, 30, 45) // minutes in 15-min intervals
 ).map(([h, m]) => `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`)
 
@@ -65,6 +65,16 @@ export const agentBreakScheduleArb = fc.record({
     HB2: fc.option(timeArb, { nil: null })
   }),
   intervals: fc.constant({})
+}).filter(agent => {
+  // OFF shifts should not have any breaks scheduled
+  if (agent.shift_type === 'OFF') {
+    return agent.breaks.HB1 === null && agent.breaks.B === null && agent.breaks.HB2 === null
+  }
+  
+  // Ensure all breaks are at different times (no duplicates)
+  const times = [agent.breaks.HB1, agent.breaks.B, agent.breaks.HB2].filter(t => t !== null)
+  const uniqueTimes = new Set(times)
+  return times.length === uniqueTimes.size
 }).chain(agent => {
   // OFF shifts should not have any breaks scheduled
   if (agent.shift_type === 'OFF') {
@@ -86,8 +96,12 @@ export const breakScheduleRuleArb = fc.record({
   is_active: fc.boolean(),
   is_blocking: fc.boolean(),
   priority: fc.integer({ min: 1, max: 10 }),
-  created_at: fc.date().map(d => d.toISOString()),
-  updated_at: fc.date().map(d => d.toISOString())
+  created_at: fc.date({ min: new Date('2020-01-01'), max: new Date('2026-12-31') })
+    .filter(d => !isNaN(d.getTime()))
+    .map(d => d.toISOString()),
+  updated_at: fc.date({ min: new Date('2020-01-01'), max: new Date('2026-12-31') })
+    .filter(d => !isNaN(d.getTime()))
+    .map(d => d.toISOString())
 })
 
 // Interval map generator
@@ -112,22 +126,30 @@ export function generateIntervals(shiftType: ShiftType, breaks: { HB1: string | 
     }
   }
   
-  // Apply breaks
-  if (breaks.HB1) {
-    intervals[breaks.HB1] = 'HB1'
-  }
-  if (breaks.B) {
-    intervals[breaks.B] = 'B'
-    // B is 30 minutes, so mark next interval too
-    const [h, m] = breaks.B.split(':').map(Number)
-    const nextM = m + 15
-    const nextTime = `${h.toString().padStart(2, '0')}:${nextM.toString().padStart(2, '0')}`
-    if (intervals[nextTime]) {
-      intervals[nextTime] = 'B'
+  // Apply breaks in order: HB1, B, HB2 to ensure correct assignment
+  // This ensures that if a break time overlaps, the correct break type is assigned
+  const breakOrder: Array<{ time: string | null, type: BreakType }> = [
+    { time: breaks.HB1, type: 'HB1' },
+    { time: breaks.B, type: 'B' },
+    { time: breaks.HB2, type: 'HB2' }
+  ]
+  
+  for (const { time, type } of breakOrder) {
+    if (time && intervals[time] !== undefined) {
+      intervals[time] = type
+      
+      // B is 30 minutes, so mark next interval too
+      if (type === 'B') {
+        const [h, m] = time.split(':').map(Number)
+        const nextM = m + 15
+        const nextH = nextM >= 60 ? h + 1 : h
+        const adjustedM = nextM >= 60 ? nextM - 60 : nextM
+        const nextTime = `${nextH.toString().padStart(2, '0')}:${adjustedM.toString().padStart(2, '0')}`
+        if (intervals[nextTime] !== undefined) {
+          intervals[nextTime] = type
+        }
+      }
     }
-  }
-  if (breaks.HB2) {
-    intervals[breaks.HB2] = 'HB2'
   }
   
   return intervals

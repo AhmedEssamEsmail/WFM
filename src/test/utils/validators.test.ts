@@ -2,11 +2,11 @@ import { describe, it, expect } from 'vitest'
 import {
   loginSchema,
   signupSchema,
-  leaveRequestSchema,
-  swapRequestSchema,
+  leaveRequestCreateSchema,
+  swapRequestCreateSchema,
   commentSchema,
   employeeSchema,
-} from '../../utils/validators'
+} from '../../validation'
 
 describe('validators', () => {
   describe('loginSchema', () => {
@@ -67,9 +67,9 @@ describe('validators', () => {
     })
   })
 
-  describe('leaveRequestSchema', () => {
+  describe('leaveRequestCreateSchema', () => {
     it('should validate valid leave request', () => {
-      const result = leaveRequestSchema.safeParse({
+      const result = leaveRequestCreateSchema.safeParse({
         leave_type: 'annual',
         start_date: '2024-01-01',
         end_date: '2024-01-05',
@@ -79,7 +79,7 @@ describe('validators', () => {
     })
 
     it('should reject end date before start date', () => {
-      const result = leaveRequestSchema.safeParse({
+      const result = leaveRequestCreateSchema.safeParse({
         leave_type: 'annual',
         start_date: '2024-01-05',
         end_date: '2024-01-01',
@@ -89,9 +89,9 @@ describe('validators', () => {
     })
   })
 
-  describe('swapRequestSchema', () => {
+  describe('swapRequestCreateSchema', () => {
     it('should validate valid swap request', () => {
-      const result = swapRequestSchema.safeParse({
+      const result = swapRequestCreateSchema.safeParse({
         target_user_id: '123e4567-e89b-12d3-a456-426614174000',
         requester_shift_id: '123e4567-e89b-12d3-a456-426614174001',
         target_shift_id: '123e4567-e89b-12d3-a456-426614174002',
@@ -100,7 +100,7 @@ describe('validators', () => {
     })
 
     it('should reject invalid UUID', () => {
-      const result = swapRequestSchema.safeParse({
+      const result = swapRequestCreateSchema.safeParse({
         target_user_id: 'invalid-uuid',
         requester_shift_id: '123e4567-e89b-12d3-a456-426614174001',
         target_shift_id: '123e4567-e89b-12d3-a456-426614174002',

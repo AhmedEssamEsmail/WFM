@@ -4,7 +4,7 @@ import {
   checkOverlappingLeave,
   validateNoOverlappingLeave,
   validateLeaveRequest,
-} from '../../../services/validation/leaveBalanceValidation'
+} from '../../../validation'
 import { leaveBalancesService } from '../../../services/leaveBalancesService'
 import { leaveRequestsService } from '../../../services/leaveRequestsService'
 import { InsufficientLeaveBalanceError, ValidationError } from '../../../types/errors'

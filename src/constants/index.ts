@@ -3,7 +3,7 @@
 // ============================================
 // DOMAIN & AUTH
 // ============================================
-export const ALLOWED_EMAIL_DOMAIN = '@dabdoob.com'
+export const ALLOWED_EMAIL_DOMAIN = import.meta.env.VITE_ALLOWED_EMAIL_DOMAIN || '@dabdoob.com'
 export const SESSION_STORAGE_KEY = 'wfm_session'
 
 // ============================================
@@ -41,13 +41,14 @@ export const FILE_UPLOAD = {
 // ============================================
 // LEAVE BALANCES (Default annual allocations)
 // ============================================
-export const DEFAULT_LEAVE_BALANCES = {
-  annual: 21,        // 21 days annual leave
-  sick: 10,          // 10 days sick leave
-  casual: 5,         // 5 days casual leave
-  public_holiday: 0, // Calculated based on calendar
-  bereavement: 3,    // 3 days bereavement leave
-} as const
+// NOTE: Leave types and balances are loaded dynamically from the leave_types
+// table using leaveTypesService. The database trigger automatically initializes
+// leave balances to 0 for all active leave types when a user is created.
+// WFM can then update individual balances as needed.
+//
+// This constant is kept for backward compatibility but should not be used
+// for new code. Use leaveTypesService.getActiveLeaveTypes() instead.
+export const DEFAULT_LEAVE_BALANCE = 0 as const
 
 // ============================================
 // QUERY CACHE TIMES (in milliseconds)

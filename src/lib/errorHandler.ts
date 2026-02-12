@@ -4,6 +4,7 @@
  */
 
 import { SystemCommentProtectedError } from '../types/errors'
+import { Sentry } from './sentry'
 
 interface ErrorOptions {
   userMessage?: string
@@ -24,9 +25,15 @@ class ErrorHandler {
   private static instance: ErrorHandler
   private toastFunction: ((message: string, type: 'error' | 'success' | 'warning' | 'info') => void) | null = null
   private errorLogs: ErrorLog[] = []
-  private maxLogs = 100
+  private maxLogs = 50 // Reduced from 100
+  private logTTL = 1000 * 60 * 30 // 30 minutes TTL
 
-  private constructor() {}
+  private constructor() {
+    // Clean up old logs every 5 minutes
+    if (typeof window !== 'undefined') {
+      setInterval(() => this.cleanupOldLogs(), 1000 * 60 * 5)
+    }
+  }
 
   static getInstance(): ErrorHandler {
     if (!ErrorHandler.instance) {
@@ -117,14 +124,17 @@ class ErrorHandler {
    * @param errorLog - The error log to send
    */
   private sendToErrorTracking(errorLog: ErrorLog): void {
-    if (import.meta.env.PROD && typeof window !== 'undefined' && (window as any).Sentry) {
-      const Sentry = (window as any).Sentry;
-      Sentry.captureException(errorLog.error, {
-        extra: errorLog.context,
-        tags: {
-          errorType: errorLog.context.type as string,
-        },
-      });
+    if (import.meta.env.PROD) {
+      try {
+        Sentry.captureException(errorLog.error, {
+          extra: errorLog.context,
+          tags: {
+            errorType: errorLog.context.type as string,
+          },
+        });
+      } catch {
+        // Sentry not initialized — silently skip
+      }
     }
   }
 
@@ -142,6 +152,17 @@ class ErrorHandler {
    */
   clearLogs(): void {
     this.errorLogs = []
+  }
+
+  /**
+   * Clean up error logs older than TTL
+   */
+  private cleanupOldLogs(): void {
+    const now = Date.now()
+    this.errorLogs = this.errorLogs.filter(log => {
+      const logTime = new Date(log.timestamp).getTime()
+      return now - logTime < this.logTTL
+    })
   }
 
   // Specific error handlers with predefined messages
@@ -171,7 +192,7 @@ class ErrorHandler {
    */
   handleValidationError(error: unknown, field?: string): string {
     return this.handle(error, {
-      userMessage: field 
+      userMessage: field
         ? `Validation error in ${field}. Please check your input.`
         : 'Please check your input and try again.',
       context: { type: 'validation', field }
