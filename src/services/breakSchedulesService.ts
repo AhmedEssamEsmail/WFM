@@ -679,28 +679,58 @@ export const breakSchedulesService = {
         if (deleteError) throw deleteError
       } else {
         // If setting a break type (HB1, B, HB2)
-        // First, delete any existing break of the same type at a different time
+        // First, delete any existing break of the same type at any time
         const { error: deleteOldError } = await supabase
           .from(BREAK_SCHEDULES_TABLE_NAMES.SCHEDULES)
           .delete()
           .eq('user_id', user_id)
           .eq('schedule_date', schedule_date)
           .eq('break_type', breakType)
-          .neq('interval_start', intervalStart)
 
         if (deleteOldError) throw deleteOldError
 
-        // Now upsert the break at the selected interval
-        // This handles both insert and update atomically
-        const { error: upsertError } = await supabase
-          .from(BREAK_SCHEDULES_TABLE_NAMES.SCHEDULES)
-          .upsert({
+        // Prepare intervals to insert
+        // B (lunch) breaks span 2 consecutive 15-minute intervals (30 minutes)
+        // HB1 and HB2 are single 15-minute intervals
+        const intervalsToInsert: Array<{
+          user_id: string
+          schedule_date: string
+          shift_type: ShiftType | null
+          interval_start: string
+          break_type: BreakType
+        }> = []
+
+        // Add the first interval
+        intervalsToInsert.push({
+          user_id,
+          schedule_date,
+          shift_type: shift.shift_type,
+          interval_start: intervalStart,
+          break_type: breakType,
+        })
+
+        // If it's a B (lunch) break, add the second consecutive interval
+        if (breakType === 'B') {
+          // Parse the time and add 15 minutes
+          const [hours, minutes, seconds = '00'] = intervalStart.split(':').map(Number)
+          const totalMinutes = hours * 60 + minutes + 15
+          const newHours = Math.floor(totalMinutes / 60)
+          const newMinutes = totalMinutes % 60
+          const secondIntervalStart = `${newHours.toString().padStart(2, '0')}:${newMinutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`
+
+          intervalsToInsert.push({
             user_id,
             schedule_date,
             shift_type: shift.shift_type,
-            interval_start: intervalStart,
+            interval_start: secondIntervalStart,
             break_type: breakType,
-          }, {
+          })
+        }
+
+        // Insert all intervals
+        const { error: upsertError } = await supabase
+          .from(BREAK_SCHEDULES_TABLE_NAMES.SCHEDULES)
+          .upsert(intervalsToInsert, {
             onConflict: 'user_id,schedule_date,interval_start',
             ignoreDuplicates: false, // Update if exists
           })
