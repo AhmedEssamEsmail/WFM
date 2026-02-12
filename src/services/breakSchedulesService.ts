@@ -217,33 +217,79 @@ export const breakSchedulesService = {
 
     if (shiftError) throw shiftError
 
-    // Delete existing breaks for this user/date
-    const { error: deleteError } = await supabase
+    // Get existing breaks for this user/date
+    const { data: existingBreaks, error: fetchError } = await supabase
       .from(BREAK_SCHEDULES_TABLE)
-      .delete()
+      .select('*')
       .eq('user_id', user_id)
       .eq('schedule_date', schedule_date)
 
-    if (deleteError) throw deleteError
+    if (fetchError) throw fetchError
 
-    // Filter out 'IN' breaks - only insert actual breaks (HB1, B, HB2)
-    const breaksToInsert = intervals
-      .filter((interval) => interval.break_type !== 'IN')
-      .map((interval) => ({
-        user_id,
-        schedule_date,
-        shift_type: shift.shift_type,
-        interval_start: interval.interval_start,
-        break_type: interval.break_type,
-      }))
+    // Process each interval update
+    for (const interval of intervals) {
+      const intervalStart = interval.interval_start
+      const breakType = interval.break_type
 
-    // Only insert if there are actual breaks to insert
-    if (breaksToInsert.length > 0) {
-      const { error: insertError } = await supabase
-        .from(BREAK_SCHEDULES_TABLE)
-        .insert(breaksToInsert)
+      // Find if there's an existing break at this interval
+      const existingBreak = (existingBreaks || []).find(
+        (b: BreakSchedule) => b.interval_start === intervalStart
+      )
 
-      if (insertError) throw insertError
+      if (breakType === 'IN') {
+        // If changing to 'IN', delete the break at this interval if it exists
+        if (existingBreak) {
+          const { error: deleteError } = await supabase
+            .from(BREAK_SCHEDULES_TABLE)
+            .delete()
+            .eq('id', existingBreak.id)
+
+          if (deleteError) throw deleteError
+        }
+      } else {
+        // If setting a break type (HB1, B, HB2)
+        // First, check if this break type already exists at a different time
+        const existingBreakOfSameType = (existingBreaks || []).find(
+          (b: BreakSchedule) => b.break_type === breakType && b.interval_start !== intervalStart
+        )
+
+        // Delete the old break of the same type if it exists
+        if (existingBreakOfSameType) {
+          const { error: deleteOldError } = await supabase
+            .from(BREAK_SCHEDULES_TABLE)
+            .delete()
+            .eq('id', existingBreakOfSameType.id)
+
+          if (deleteOldError) throw deleteOldError
+        }
+
+        // Now upsert the new break at the selected interval
+        if (existingBreak) {
+          // Update existing break at this interval
+          const { error: updateError } = await supabase
+            .from(BREAK_SCHEDULES_TABLE)
+            .update({
+              break_type: breakType,
+              shift_type: shift.shift_type,
+            })
+            .eq('id', existingBreak.id)
+
+          if (updateError) throw updateError
+        } else {
+          // Insert new break at this interval
+          const { error: insertError } = await supabase
+            .from(BREAK_SCHEDULES_TABLE)
+            .insert({
+              user_id,
+              schedule_date,
+              shift_type: shift.shift_type,
+              interval_start: intervalStart,
+              break_type: breakType,
+            })
+
+          if (insertError) throw insertError
+        }
+      }
     }
 
     // TODO: Validate against rules and return violations
