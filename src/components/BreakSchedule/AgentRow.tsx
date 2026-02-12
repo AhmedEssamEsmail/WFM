@@ -61,7 +61,6 @@ export default function AgentRow({
                 <div className="bg-gray-900 text-white text-xs rounded-lg py-3 px-4 shadow-xl">
                   <div className="font-semibold mb-2 text-red-300">Auto-distribution failed</div>
                   <div className="whitespace-pre-wrap break-words leading-relaxed">{failureReason}</div>
-                  <div className="absolute bottom-3 left-16 w-3 h-3 bg-gray-900 transform rotate-45"></div>
                 </div>
               </div>
             </div>
