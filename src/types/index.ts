@@ -13,6 +13,9 @@ export type RequestType = 'swap' | 'leave'
 // Export error types
 export * from './errors'
 
+// Export overtime types
+export * from './overtime'
+
 export interface User {
   id: string
   email: string

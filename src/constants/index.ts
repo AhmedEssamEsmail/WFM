@@ -94,6 +94,7 @@ export const API_ENDPOINTS = {
   DEPARTMENTS: 'departments',
   HEADCOUNT_PROFILES: 'headcount_profiles',
   HEADCOUNT_AUDIT_LOG: 'headcount_audit_log',
+  OVERTIME_SETTINGS: 'overtime_settings',
 } as const
 
 // ============================================

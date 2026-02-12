@@ -236,32 +236,16 @@ export default function ScheduleUpload() {
                 continue
               }
 
-              // Get the leave type ID from database
-              const { data: leaveType, error: leaveTypeError } = await supabase
-                .from('leave_types')
-                .select('id')
-                .eq('code', leaveTypeCode)
-                .eq('is_active', true)
-                .single()
-
-              if (leaveTypeError || !leaveType) {
-                console.error('Leave type not found in database:', leaveTypeCode)
-                failedCount++
-                continue
-              }
-
               // Create a leave request for this single day
               const { error: leaveError } = await supabase
                 .from('leave_requests')
                 .insert({
                   user_id: row.userId,
-                  leave_type_id: leaveType.id,
+                  leave_type: leaveTypeCode,
                   start_date: shift.date,
                   end_date: shift.date,
                   status: 'approved', // Auto-approve bulk uploaded leaves
-                  reason: 'Bulk schedule upload',
-                  created_at: new Date().toISOString(),
-                  updated_at: new Date().toISOString()
+                  notes: 'Bulk schedule upload'
                 })
 
               if (leaveError) {

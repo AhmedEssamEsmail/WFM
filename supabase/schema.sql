@@ -762,7 +762,8 @@ CREATE POLICY "Users can delete shifts"
 
 CREATE POLICY "WFM can manage all shifts"
     ON shifts FOR ALL TO authenticated
-    USING (get_user_role(auth.uid()) = 'wfm');
+    USING (get_user_role(auth.uid()) = 'wfm')
+    WITH CHECK (get_user_role(auth.uid()) = 'wfm');
 
 -- ============================================
 -- RLS POLICIES - SWAP REQUESTS
