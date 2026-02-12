@@ -357,6 +357,18 @@ export const breakSchedulesService = {
   },
 
   /**
+   * Clear all breaks for all users on a specific date
+   */
+  async clearAllBreaksForDate(date: string): Promise<void> {
+    const { error } = await supabase
+      .from(BREAK_SCHEDULES_TABLE)
+      .delete()
+      .eq('schedule_date', date)
+
+    if (error) throw error
+  },
+
+  /**
    * Auto-distribute breaks
    */
   async autoDistribute(request: AutoDistributeRequest): Promise<AutoDistributePreview> {

@@ -11,6 +11,7 @@ interface FilterBarProps {
   onAutoDistribute?: () => void
   onImport?: () => void
   onExport?: () => void
+  onClearAll?: () => void
 }
 
 export default function FilterBar({
@@ -23,6 +24,7 @@ export default function FilterBar({
   onAutoDistribute,
   onImport,
   onExport,
+  onClearAll,
 }: FilterBarProps) {
   const [localSearch, setLocalSearch] = useState(searchQuery)
 
@@ -83,6 +85,13 @@ export default function FilterBar({
               className={`${BUTTON_STYLES.primary} text-sm whitespace-nowrap`}
             >
               Auto-Distribute
+            </button>
+            <button
+              onClick={onClearAll}
+              className={`${BUTTON_STYLES.danger} text-sm whitespace-nowrap`}
+              title="Clear all breaks for this date"
+            >
+              Clear All
             </button>
             <button
               onClick={onImport}

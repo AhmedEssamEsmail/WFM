@@ -60,6 +60,18 @@ export function useBreakSchedules(date: string) {
     },
   })
 
+  // Clear all breaks mutation
+  const clearAllBreaks = useMutation({
+    mutationFn: (date: string) => breakSchedulesService.clearAllBreaksForDate(date),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.BREAK_SCHEDULES] })
+      success('All breaks cleared successfully!')
+    },
+    onError: (error: Error) => {
+      showError(error.message || 'Failed to clear breaks')
+    },
+  })
+
   // Generate 15-minute intervals from 9:00 AM to 9:00 PM
   const generateIntervals = () => {
     const intervals: string[] = []
@@ -86,6 +98,7 @@ export function useBreakSchedules(date: string) {
     updateBreakSchedules,
     dismissWarning,
     autoDistribute,
+    clearAllBreaks,
     queryClient, // Expose queryClient for manual invalidation
   }
 }

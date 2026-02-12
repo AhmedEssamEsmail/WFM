@@ -377,7 +377,7 @@ export default function Schedule() {
                     <tr key={u.id}>
                       <th 
                         scope="row"
-                        className="sticky left-0 z-10 bg-white px-4 py-3 whitespace-nowrap text-sm font-medium text-gray-900 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]"
+                        className="sticky left-0 z-10 bg-white px-4 py-3 whitespace-nowrap text-sm font-medium text-gray-900 text-left shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]"
                       >
                         {u.name}
                       </th>

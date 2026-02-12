@@ -33,6 +33,7 @@ export default function BreakSchedule() {
     updateBreakSchedules,
     dismissWarning,
     autoDistribute,
+    clearAllBreaks,
     queryClient,
   } = useBreakSchedules(dateStr)
 
@@ -173,6 +174,15 @@ export default function BreakSchedule() {
     }
   }
 
+  // Handle clear all breaks
+  const handleClearAll = async () => {
+    if (window.confirm(`Are you sure you want to clear all breaks for ${dateStr}? This action cannot be undone.`)) {
+      await clearAllBreaks.mutateAsync(dateStr)
+      // Clear failed agents map
+      setFailedAgentsMap({})
+    }
+  }
+
   const activeWarning = warnings.find((w) => w.id === selectedWarning)
 
   if (isLoading) {
@@ -245,6 +255,7 @@ export default function BreakSchedule() {
         onAutoDistribute={() => setShowAutoDistribute(true)}
         onImport={handleImport}
         onExport={handleExport}
+        onClearAll={handleClearAll}
       />
 
       <BreakScheduleTable
