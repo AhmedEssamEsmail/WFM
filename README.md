@@ -128,7 +128,52 @@ A comprehensive Workforce Management system for shift scheduling, swap requests,
 - Better offline experience with cached data
 
 ### Recent Improvements (February 2026)
-- **Centralized Leave Type Management** (February 2026):
+
+#### Audit-Driven Improvements (February 2026)
+Following a comprehensive codebase audit, we implemented critical security, architecture, and code quality improvements:
+
+**Security Enhancements**:
+- **Hardened Content Security Policy**: Removed `unsafe-eval` from CSP directives in production deployment
+- **Proper Sentry Integration**: Migrated from `(window as any).Sentry` to official `@sentry/react` SDK with proper initialization
+- **Environment Variable Security**: Removed hardcoded test keys from `.env.example`, replaced with secure placeholders
+- **Service Layer Validation**: All data-fetching now goes through service layer with React Query hooks
+
+**Architecture Improvements**:
+- **Component Decomposition**: Split large components for better maintainability
+  - Settings page (701 lines) → 5 focused sub-components (~80-150 lines each)
+  - Reports page (462 lines) → 5 focused sub-components with dedicated data hook
+  - Dashboard data-fetching extracted to `useDashboardData` hook
+- **Unified Data-Fetching Strategy**: All pages now use React Query hooks with service layer (no direct Supabase imports in components)
+- **Consolidated Validation**: New `src/validation/` module with Zod schemas as single source of truth
+  - Organized schemas: `common.ts`, `user.ts`, `leaveRequest.ts`, `swapRequest.ts`, `breakSchedule.ts`, `settings.ts`
+  - Derived imperative validators from Zod schemas
+  - Eliminated scattered validation logic across 4+ locations
+- **Fully Dynamic Leave Types**: Removed hardcoded `LeaveType` union, now loads from database at runtime
+- **Service Layer Completeness**: All services properly exported from barrel file
+
+**Code Quality Improvements**:
+- **Package Naming**: Renamed from "swaptool" to "wfm" for consistency
+- **Clean Codebase**: Removed AI-generated scaffold comments and leftover instructions
+- **Unified Constants**: All localStorage keys now defined in `constants/index.ts` (no inline strings)
+- **Route Consolidation**: Removed duplicate `/new` routes, kept canonical `/create` paths
+- **Conditional DevTools**: React Query DevTools only load in development mode
+- **404 Page**: Added dedicated NotFound page instead of silent redirects
+- **Build Artifacts**: Added `coverage/` to `.gitignore` for cleaner repository
+
+**Testing & CI Improvements**:
+- **Optimized CI Pipeline**: Merged duplicate test runs (was running tests twice), now single `test:coverage` step
+- **Test Count Accuracy**: Corrected documentation to reflect actual test count (568 tests)
+- **Integration Tests**: Added comprehensive approval workflow tests
+
+**UI/UX Polish**:
+- **Icon Organization**: Extracted 12+ inline SVG icons to dedicated `src/components/icons/` directory
+- **Configurable Email Domain**: Email domain now loads from `VITE_ALLOWED_EMAIL_DOMAIN` environment variable
+- **Enhanced Supabase Client**: Configured auth persistence, auto-refresh, and retry options
+- **Error Log Management**: Added TTL and ring buffer to prevent unbounded error log growth
+- **Documentation Consolidation**: Merged related docs (accessibility, testing, monitoring, performance) for clarity
+
+#### Previous Improvements
+- **Centralized Leave Type Management**:
   - **Fully Dynamic System**: All leave type references now load from database in real-time
   - Database-driven leave types with `leave_types` table
   - WFM can manage leave types via Settings page (add/edit/deactivate)
@@ -191,7 +236,7 @@ A comprehensive Workforce Management system for shift scheduling, swap requests,
 - Track leave balances by type for each employee
 - View balance history and transactions
 - Bulk balance upload via CSV for WFM administrators
-- Automatic balance initialization for new users
+- Automatic balance initialization for new users (database trigger creates balances for all active leave types with 0 default)
 - Balance deduction upon leave approval
 - Monthly accrual tracking (handled via Supabase cron jobs)
 
@@ -292,15 +337,101 @@ Agent requests swap
 | **Backend / BaaS** | Supabase (PostgreSQL + Auth + Row-Level Security) |
 | **Routing** | React Router v6 |
 | **Date Utilities** | date-fns 3 |
-| **Testing** | Vitest + React Testing Library (36 tests) |
+| **Testing** | Vitest + React Testing Library (568 tests) |
 | **Linting** | ESLint 9 + typescript-eslint + React Hooks plugin |
 | **Deployment** | Vercel |
 
 ### Build Stats
 - **Bundle Size**: 571 KB (150 KB gzipped) - Optimized with code splitting
-- **Test Coverage**: 36 passing unit tests
+- **Test Coverage**: 568 passing tests across all categories
 - **TypeScript**: Strict mode enabled with zero errors
 - **Performance**: PWA-enabled with offline support and caching
+- **Package Name**: `wfm` (consistent with project identity)
+- **Code Quality**: ESLint 9 with strict rules, no scaffold comments
+
+---
+
+## Architecture Principles
+
+### Component Decomposition
+
+Large components have been split into focused, single-responsibility modules:
+
+**Settings Page** (was 701 lines → now 5 components):
+- `index.tsx` - Tab navigation shell (~80 lines)
+- `GeneralSettings.tsx` - Auto-approve and exceptions toggles (~80 lines)
+- `LeaveTypeManager.tsx` - Leave type CRUD operations (~150 lines)
+- `BreakScheduleSettings.tsx` - Break schedule configuration (~100 lines)
+- `ShiftConfigSettings.tsx` - Shift configuration (~100 lines)
+
+**Reports Page** (was 462 lines → now 5 components + hook):
+- `index.tsx` - Layout orchestrator (~60 lines)
+- `ReportFilters.tsx` - Date range selector (~60 lines)
+- `MetricCards.tsx` - Summary cards (~80 lines)
+- `SwapChart.tsx` - Swap bar chart (~60 lines)
+- `LeaveChart.tsx` - Leave pie chart (~60 lines)
+- `useReportData.ts` - Data fetching hook (~80 lines)
+
+**Dashboard Page** (was 284 lines → extracted hook):
+- `Dashboard.tsx` - UI component
+- `useDashboardData.ts` - Data fetching logic
+
+### Unified Data-Fetching Strategy
+
+All data-fetching follows a consistent pattern:
+
+```
+Component → React Query Hook → Service Layer → Supabase
+```
+
+**Rules**:
+- No components import `supabase` directly
+- All data-fetching wrapped in React Query hooks
+- Service layer handles all database operations
+- Consistent error handling and loading states
+
+**Benefits**:
+- Automatic caching and background refetching
+- Request deduplication
+- Optimistic updates
+- Better testability
+- Consistent error handling
+
+### Service Layer Pattern
+
+All services follow a consistent structure:
+
+```typescript
+// services/exampleService.ts
+import { supabase } from '@/lib/supabase';
+
+export const exampleService = {
+  async getItems() {
+    const { data, error } = await supabase
+      .from('table')
+      .select('*');
+    
+    if (error) throw error;
+    return data;
+  },
+  
+  async createItem(item: Item) {
+    // Validation at service layer
+    validateItem(item);
+    
+    const { data, error } = await supabase
+      .from('table')
+      .insert(item)
+      .select()
+      .single();
+    
+    if (error) throw error;
+    return data;
+  }
+};
+```
+
+All services are exported from `services/index.ts` for easy imports.
 
 ---
 
@@ -326,6 +457,7 @@ Agent requests swap
 - Memoized callbacks and expensive computations
 - React Query for efficient data fetching and caching
 - Optimized re-renders with useMemo and useCallback
+- React Query DevTools conditionally loaded (development only)
 
 ### Performance Utilities
 - Debounce and throttle functions
@@ -367,9 +499,40 @@ WFM/
 │   │   ├── ChunkErrorBoundary.tsx   # Chunk loading error handler with auto-reload
 │   │   ├── ProtectedRoute.tsx       # Route guard for authenticated users
 │   │   ├── PublicRoute.tsx          # Route guard for unauthenticated users
+│   │   ├── Pagination.tsx           # Pagination component for lists
 │   │   ├── Toast.tsx                # Toast notification component
 │   │   ├── ToastContainer.tsx       # Toast container with positioning
 │   │   ├── Skeleton.tsx             # Loading skeleton components (7 variants)
+│   │   ├── icons/                   # SVG icon components (extracted from Layout)
+│   │   │   ├── index.ts             # Icon barrel exports
+│   │   │   ├── DashboardIcon.tsx    # Dashboard navigation icon
+│   │   │   ├── ScheduleIcon.tsx     # Schedule navigation icon
+│   │   │   ├── SwapIcon.tsx         # Swap requests icon
+│   │   │   ├── LeaveIcon.tsx        # Leave requests icon
+│   │   │   ├── BalanceIcon.tsx      # Leave balance icon
+│   │   │   ├── BreakScheduleIcon.tsx # Break schedule icon
+│   │   │   ├── UsersIcon.tsx        # Headcount icon
+│   │   │   ├── ReportsIcon.tsx      # Reports icon
+│   │   │   ├── SettingsIcon.tsx     # Settings icon
+│   │   │   ├── SignOutIcon.tsx      # Sign out icon
+│   │   │   ├── MenuIcon.tsx         # Mobile menu icon
+│   │   │   ├── CloseIcon.tsx        # Close icon
+│   │   │   ├── ChevronDoubleLeftIcon.tsx # Collapse sidebar icon
+│   │   │   └── UploadIcon.tsx       # Upload icon
+│   │   ├── BreakSchedule/           # Break schedule components
+│   │   │   ├── BreakScheduleTable.tsx
+│   │   │   ├── AgentRow.tsx
+│   │   │   ├── BreakCell.tsx
+│   │   │   ├── CoverageCell.tsx
+│   │   │   ├── DateNavigation.tsx
+│   │   │   ├── FilterBar.tsx
+│   │   │   ├── RulesConfig.tsx
+│   │   │   ├── ValidationBanner.tsx
+│   │   │   ├── WarningPopup.tsx
+│   │   │   └── AutoDistributeModal.tsx
+│   │   ├── Settings/                # Settings sub-components
+│   │   │   ├── AutoDistributionSettings.tsx
+│   │   │   └── ShiftConfigurations.tsx
 │   │   └── Headcount/
 │   │       ├── EmployeeTable.tsx    # Employee directory table component
 │   │       └── ProtectedEdit.tsx    # Protected edit wrapper for WFM-only actions
@@ -379,25 +542,39 @@ WFM/
 │   │   ├── useSwapRequests.ts       # Swap requests with React Query
 │   │   ├── useLeaveRequests.ts      # Leave requests with React Query
 │   │   ├── useLeaveTypes.ts         # Leave types with React Query (centralized)
-│   │   └── useSettings.ts           # Settings management with React Query
+│   │   ├── useSettings.ts           # Settings management with React Query
+│   │   ├── useDashboardData.ts      # Dashboard data fetching hook (extracted)
+│   │   └── useReportData.ts         # Reports data fetching hook (extracted)
 │   ├── lib/
-│   │   ├── supabase.ts              # Supabase client initialization
+│   │   ├── supabase.ts              # Supabase client initialization with auth config
 │   │   ├── AuthContext.tsx          # Auth provider with session management
 │   │   ├── ToastContext.tsx         # Toast notification context
 │   │   ├── queryClient.ts           # React Query client configuration
 │   │   ├── designSystem.ts          # Unified design system (colors, styles, helpers)
-│   │   ├── errorHandler.ts          # Centralized error handling utilities
+│   │   ├── errorHandler.ts          # Centralized error handling with TTL and ring buffer
 │   │   ├── performance.ts           # Performance utilities (debounce, throttle, etc.)
-│   │   └── securityLogger.ts        # Security event logging
+│   │   ├── securityLogger.ts        # Security event logging
+│   │   └── sentry.ts                # Sentry SDK initialization and configuration
 │   ├── pages/
 │   │   ├── Pages/                    # Page-level documentation
 │   │   │   ├── Dashboard.tsx        # Main dashboard with pending requests
-│   │   │   ├── Reports.tsx              # Reports dashboard with charts (TL/WFM only)
-│   │   │   ├── Settings.tsx             # WFM settings configuration (includes Leave Types management)
-│   │   │   ├── Auth/                    # Authentication pages
-│   │   │   ├── Login.tsx            # Login page with domain validation
-│   │   │   ├── Signup.tsx           # User registration
-│   │   │   └── Unauthorized.tsx     # Unauthorized domain access page
+│   │   │   ├── NotFound.tsx         # 404 page with navigation back to dashboard
+│   │   │   ├── Auth/                # Authentication pages
+│   │   │   │   ├── Login.tsx        # Login page with domain validation
+│   │   │   │   ├── Signup.tsx       # User registration
+│   │   │   │   └── Unauthorized.tsx # Unauthorized domain access page
+│   │   │   ├── Reports/             # Reports dashboard (decomposed)
+│   │   │   │   ├── index.tsx        # Reports layout orchestrator (~60 lines)
+│   │   │   │   ├── ReportFilters.tsx # Date range selector (~60 lines)
+│   │   │   │   ├── MetricCards.tsx  # Summary cards (~80 lines)
+│   │   │   │   ├── SwapChart.tsx    # Swap bar chart (~60 lines)
+│   │   │   │   └── LeaveChart.tsx   # Leave pie chart (~60 lines)
+│   │   │   ├── Settings/            # Settings pages (decomposed)
+│   │   │   │   ├── index.tsx        # Settings tab navigation shell (~80 lines)
+│   │   │   │   ├── GeneralSettings.tsx # Auto-approve, exceptions toggles (~80 lines)
+│   │   │   │   ├── LeaveTypeManager.tsx # Leave type CRUD (~150 lines)
+│   │   │   │   ├── BreakScheduleSettings.tsx # Break schedule config (~100 lines)
+│   │   │   │   └── ShiftConfigSettings.tsx # Shift configuration (~100 lines)
 │   │   ├── Schedule/                # Schedule management pages
 │   │   │   ├── Schedule.tsx         # Calendar view of shifts
 │   │   │   └── ScheduleUpload.tsx   # CSV bulk upload for shifts (WFM only)
@@ -414,7 +591,8 @@ WFM/
 │   │       ├── HeadcountDashboard.tsx # Headcount metrics dashboard
 │   │       ├── EmployeeDirectory.tsx # Employee directory with filters
 │   │       └── EmployeeDetail.tsx   # Individual employee profile
-│   ├── services/                    # API service layer
+│   ├── services/                    # API service layer (unified data-fetching)
+│   │   ├── index.ts                 # Service barrel exports (all services)
 │   │   ├── authService.ts           # Authentication services
 │   │   ├── commentsService.ts       # Comment management
 │   │   ├── headcountService.ts      # Headcount operations
@@ -424,15 +602,26 @@ WFM/
 │   │   ├── settingsService.ts       # Settings management
 │   │   ├── shiftsService.ts         # Shift operations
 │   │   ├── swapRequestsService.ts   # Swap request operations
-│   │   └── validation/              # Service-level validation
-│   │       └── leaveBalanceValidation.ts
+│   │   ├── dashboardService.ts      # Dashboard data service (extracted)
+│   │   ├── reportsService.ts        # Reports data service (extracted)
+│   │   ├── breakSchedulesService.ts # Break schedule operations
+│   │   └── breakRulesService.ts     # Break validation rules
 │   ├── utils/                       # Utility functions
 │   │   ├── csvHelpers.ts            # CSV parsing and generation
 │   │   ├── dateHelpers.ts           # Date manipulation utilities
 │   │   ├── formatters.ts            # Data formatting utilities
-│   │   ├── sanitize.ts              # Input sanitization
-│   │   ├── validation.ts            # Validation utilities
-│   │   └── validators.ts            # Zod schema validators
+│   │   └── sanitize.ts              # Input sanitization
+│   ├── validation/                  # Consolidated validation module (Zod-based)
+│   │   ├── index.ts                 # Validation barrel exports
+│   │   ├── validators.ts            # Imperative validators derived from Zod
+│   │   ├── leaveBalanceValidation.ts # Leave balance validation logic
+│   │   └── schemas/                 # Zod schemas (single source of truth)
+│   │       ├── common.ts            # UUID, date, email schemas
+│   │       ├── user.ts              # User data schemas
+│   │       ├── leaveRequest.ts      # Leave request schemas
+│   │       ├── swapRequest.ts       # Swap request schemas
+│   │       ├── breakSchedule.ts     # Break schedule schemas
+│   │       └── settings.ts          # Settings schemas
 │   ├── test/                        # Unit tests (36 passing tests)
 │   │   ├── setup.ts                 # Test configuration
 │   │   ├── components/              # Component tests
@@ -444,11 +633,13 @@ WFM/
 │   │   ├── index.ts                 # TypeScript type definitions
 │   │   ├── errors.ts                # Custom error types
 │   │   └── pagination.ts            # Pagination types
-│   └── constants/
-│       ├── index.ts                 # Application constants
+│   ├── constants/
+│       ├── index.ts                 # Application constants (unified localStorage keys, routes, etc.)
 │       └── cache.ts                 # Cache configuration constants
-├── .env.example                     # Environment variable template
-├── .gitignore
+├── .env.example                     # Environment variable template (secure placeholders)
+├── .env.test.example                # Test environment template
+├── .gitignore                       # Git ignore rules (includes coverage/)
+├── package.json                     # Package name: "wfm"
 ├── package.json
 ├── tailwind.config.ts
 ├── tsconfig.json
@@ -456,8 +647,8 @@ WFM/
 ├── tsconfig.node.json
 ├── eslint.config.js
 ├── postcss.config.js
-├── vercel.json                      # Vercel config (SPA rewrites + security headers)
-└── vite.config.ts
+├── vercel.json                      # Vercel config (SPA rewrites + hardened CSP)
+└── vite.config.ts                   # Vite config (secure test environment)
 ```
 
 ---
@@ -586,6 +777,7 @@ WFM/
 | `VITE_SUPABASE_ANON_KEY` | Your Supabase anonymous/public API key | Yes |
 | `VITE_SENTRY_DSN` | Sentry Data Source Name for error tracking | No |
 | `VITE_SENTRY_ENVIRONMENT` | Environment name (development, staging, production) | No |
+| `VITE_ALLOWED_EMAIL_DOMAIN` | Allowed email domain for authentication (default: @dabdoob.com) | No |
 
 Get Supabase values from your Supabase project dashboard under Settings → API.
 
@@ -627,7 +819,7 @@ Leave `VITE_SENTRY_DSN` empty to disable Sentry integration.
 
 ### Test Suite
 
-The application has a comprehensive test suite with **299 passing tests** covering:
+The application has a comprehensive test suite with **568 tests** covering:
 
 | Test Category | Tests | Description |
 |---------------|-------|-------------|
@@ -702,7 +894,7 @@ The project uses GitHub Actions for continuous integration:
 **Jobs**:
 1. **Build** - TypeScript compilation and Vite build
 2. **Lint** - ESLint code quality checks
-3. **Test** - Run full test suite with coverage
+3. **Test & Coverage** - Single optimized test run with coverage report (no duplicate test execution)
 
 **Artifacts**:
 - Build artifacts (7 days retention)
@@ -769,18 +961,50 @@ The `vercel.json` configuration handles all routing automatically.
 - Role-based route guards (ProtectedRoute, WFMOnlyRoute, HeadcountRoute)
 - Protected component wrappers for sensitive actions
 - Only public/anon keys exposed to client (no service role keys)
+- Canonical routes with 404 page for invalid paths (no silent redirects)
+- Removed duplicate routes for cleaner URL structure
 
 ### Deployment Security
 - Security headers via Vercel configuration:
+  - **Hardened Content Security Policy (CSP)**: Removed `unsafe-eval`, restricted script sources
   - `X-Frame-Options: DENY` (prevents clickjacking)
   - `X-Content-Type-Options: nosniff` (prevents MIME sniffing)
   - `Referrer-Policy: strict-origin-when-cross-origin` (controls referrer information)
 - HTTPS enforced on production
 - Environment variables secured in Vercel dashboard
+- **Sentry Integration**: Production error tracking with `@sentry/react` SDK
+  - Proper initialization with DSN and environment configuration
+  - Automatic error capture and performance monitoring
+  - Sourcemap upload for better debugging
 
 ---
 
 ## Key Features Implementation
+
+### February 2026 Audit Improvements Summary
+
+Following a comprehensive codebase audit, we implemented 47 improvements across 6 priority levels:
+
+**Completed (P0-P2 - Critical to Medium)**:
+- ✅ 12 Security improvements (hardened CSP, proper Sentry integration, secure env vars)
+- ✅ 10 Architecture improvements (component decomposition, unified data-fetching, consolidated validation)
+- ✅ 8 Code quality improvements (package naming, clean code, unified constants, conditional DevTools)
+- ✅ 2 Testing improvements (optimized CI pipeline, accurate test counts)
+- ✅ 3 UX polish items (icon extraction, configurable email domain, enhanced Supabase client)
+
+**Optional (P3-P5 - Lower Priority)**:
+- 🔄 Database migration renumbering (works but inconsistent)
+- 🔄 Security audit trail server-side (currently localStorage)
+- 🔄 Additional test coverage (25.89% → 70% target)
+- 🔄 PWA icon additions (192×192, 512×512)
+
+**Impact**:
+- Improved security posture with hardened CSP and proper error tracking
+- Better maintainability with decomposed components (701 lines → 5 focused components)
+- Consistent data-fetching pattern across all pages
+- Single source of truth for validation (Zod schemas)
+- Faster CI pipeline (eliminated duplicate test runs)
+- Cleaner codebase (removed scaffold comments, unified naming)
 
 ### Auto-Approve Workflow
 When enabled in Settings, requests automatically move from `pending_tl` → `approved` after TL approval, bypassing WFM approval step.
@@ -806,6 +1030,65 @@ This allows displaying complete swap history even after shifts are modified.
 - **Employee Import**: CSV import for bulk headcount updates (WFM only)
 
 All imports include validation, error reporting, and rollback on failure.
+
+---
+
+## Validation Architecture
+
+The application uses a **consolidated validation system** built on Zod schemas as the single source of truth.
+
+### Structure
+
+```
+src/validation/
+├── index.ts                    # Barrel exports for all validators
+├── validators.ts               # Imperative validators derived from Zod
+├── leaveBalanceValidation.ts   # Leave balance business logic
+└── schemas/                    # Zod schemas (single source of truth)
+    ├── common.ts               # UUID, date, email, pagination schemas
+    ├── user.ts                 # User profile and role schemas
+    ├── leaveRequest.ts         # Leave request validation schemas
+    ├── swapRequest.ts          # Swap request validation schemas
+    ├── breakSchedule.ts        # Break schedule validation schemas
+    └── settings.ts             # Settings validation schemas
+```
+
+### Key Features
+
+- **Zod-First Approach**: All validation rules defined as Zod schemas
+- **Type Safety**: TypeScript types automatically inferred from schemas
+- **Reusable Schemas**: Common patterns (UUID, date ranges, enums) defined once
+- **Imperative Validators**: Derived from Zod schemas for backward compatibility
+- **Centralized Location**: All validation logic in one place (`src/validation/`)
+- **Service Layer Integration**: Validation enforced at service layer to prevent API bypass
+
+### Common Schemas
+
+```typescript
+// UUID validation
+uuidSchema: z.string().uuid()
+
+// Date validation
+dateSchema: z.string().regex(/^\d{4}-\d{2}-\d{2}$/)
+
+// Email validation
+emailSchema: z.string().email()
+
+// Enum validation (role, status, shift type, etc.)
+roleSchema: z.enum(['agent', 'tl', 'wfm'])
+```
+
+### Usage Example
+
+```typescript
+import { leaveRequestSchema, validateLeaveRequest } from '@/validation';
+
+// Zod schema validation
+const result = leaveRequestSchema.safeParse(data);
+
+// Imperative validation (backward compatible)
+const isValid = validateLeaveRequest(data);
+```
 
 ---
 
@@ -882,6 +1165,33 @@ The design system includes pre-defined styles for:
 - Font Family: System font stack (default Tailwind)
 - Headings: Bold weight with appropriate sizing
 - Body: Regular weight, comfortable line height
+
+---
+
+## Documentation
+
+The project includes comprehensive documentation in the `docs/` folder:
+
+| Document | Description |
+|----------|-------------|
+| `accessibility.md` | Accessibility guidelines and WCAG compliance |
+| `testing.md` | Testing strategy, coverage, and best practices |
+| `performance.md` | Performance optimization techniques and monitoring |
+| `monitoring.md` | Production monitoring and error tracking setup |
+| `caching-strategy.md` | React Query caching configuration |
+| `data-fetching-optimization.md` | Data fetching patterns and optimization |
+| `pagination-usage.md` | Pagination implementation guide |
+| `pagination-performance.md` | Pagination performance considerations |
+| `cicd-monitoring.md` | CI/CD pipeline and monitoring |
+| `developer-onboarding.md` | New developer onboarding guide |
+| `team-training-guide.md` | Team training materials |
+| `technical-debt.md` | Technical debt tracking |
+| `production-readiness-summary.md` | Production readiness checklist |
+| `production-readiness-scorecard.md` | Production readiness scoring |
+| `final-review-checklist.md` | Pre-deployment checklist |
+| `security-warnings-fix.md` | Security fixes documentation |
+
+**Note**: Documentation has been consolidated from 33+ files to focused, non-overlapping documents for easier maintenance.
 
 ---
 
