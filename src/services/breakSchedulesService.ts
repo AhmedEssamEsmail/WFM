@@ -217,78 +217,50 @@ export const breakSchedulesService = {
 
     if (shiftError) throw shiftError
 
-    // Get existing breaks for this user/date
-    const { data: existingBreaks, error: fetchError } = await supabase
-      .from(BREAK_SCHEDULES_TABLE)
-      .select('*')
-      .eq('user_id', user_id)
-      .eq('schedule_date', schedule_date)
-
-    if (fetchError) throw fetchError
-
     // Process each interval update
     for (const interval of intervals) {
       const intervalStart = interval.interval_start
       const breakType = interval.break_type
 
-      // Find if there's an existing break at this interval
-      const existingBreak = (existingBreaks || []).find(
-        (b: BreakSchedule) => b.interval_start === intervalStart
-      )
-
       if (breakType === 'IN') {
         // If changing to 'IN', delete the break at this interval if it exists
-        if (existingBreak) {
-          const { error: deleteError } = await supabase
-            .from(BREAK_SCHEDULES_TABLE)
-            .delete()
-            .eq('id', existingBreak.id)
+        const { error: deleteError } = await supabase
+          .from(BREAK_SCHEDULES_TABLE)
+          .delete()
+          .eq('user_id', user_id)
+          .eq('schedule_date', schedule_date)
+          .eq('interval_start', intervalStart)
 
-          if (deleteError) throw deleteError
-        }
+        if (deleteError) throw deleteError
       } else {
         // If setting a break type (HB1, B, HB2)
-        // First, check if this break type already exists at a different time
-        const existingBreakOfSameType = (existingBreaks || []).find(
-          (b: BreakSchedule) => b.break_type === breakType && b.interval_start !== intervalStart
-        )
+        // First, delete any existing break of the same type at a different time
+        const { error: deleteOldError } = await supabase
+          .from(BREAK_SCHEDULES_TABLE)
+          .delete()
+          .eq('user_id', user_id)
+          .eq('schedule_date', schedule_date)
+          .eq('break_type', breakType)
+          .neq('interval_start', intervalStart)
 
-        // Delete the old break of the same type if it exists
-        if (existingBreakOfSameType) {
-          const { error: deleteOldError } = await supabase
-            .from(BREAK_SCHEDULES_TABLE)
-            .delete()
-            .eq('id', existingBreakOfSameType.id)
+        if (deleteOldError) throw deleteOldError
 
-          if (deleteOldError) throw deleteOldError
-        }
+        // Now upsert the break at the selected interval
+        // This handles both insert and update atomically
+        const { error: upsertError } = await supabase
+          .from(BREAK_SCHEDULES_TABLE)
+          .upsert({
+            user_id,
+            schedule_date,
+            shift_type: shift.shift_type,
+            interval_start: intervalStart,
+            break_type: breakType,
+          }, {
+            onConflict: 'user_id,schedule_date,interval_start',
+            ignoreDuplicates: false, // Update if exists
+          })
 
-        // Now upsert the new break at the selected interval
-        if (existingBreak) {
-          // Update existing break at this interval
-          const { error: updateError } = await supabase
-            .from(BREAK_SCHEDULES_TABLE)
-            .update({
-              break_type: breakType,
-              shift_type: shift.shift_type,
-            })
-            .eq('id', existingBreak.id)
-
-          if (updateError) throw updateError
-        } else {
-          // Insert new break at this interval
-          const { error: insertError } = await supabase
-            .from(BREAK_SCHEDULES_TABLE)
-            .insert({
-              user_id,
-              schedule_date,
-              shift_type: shift.shift_type,
-              interval_start: intervalStart,
-              break_type: breakType,
-            })
-
-          if (insertError) throw insertError
-        }
+        if (upsertError) throw upsertError
       }
     }
 
