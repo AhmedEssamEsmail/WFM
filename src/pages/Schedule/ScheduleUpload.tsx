@@ -13,7 +13,7 @@ interface ParsedRow {
   email: string
   userId?: string
   userName?: string
-  shifts: { date: string; shiftType: ShiftType }[]
+  shifts: { date: string; shiftType: ShiftType | string }[]
   error?: string
 }
 
@@ -42,25 +42,31 @@ export default function ScheduleUpload() {
   const [uploadResult, setUploadResult] = useState<{ success: number; failed: number } | null>(null)
   const [error, setError] = useState('')
   const [validShiftTypes, setValidShiftTypes] = useState<string[]>([])
+  const [validLeaveTypes, setValidLeaveTypes] = useState<string[]>([])
 
   // Export state
   const [showExportModal, setShowExportModal] = useState(false)
   const [exportStartDate, setExportStartDate] = useState('')
   const [exportEndDate, setExportEndDate] = useState('')
 
-  // Load valid shift types from database
+  // Load valid shift types and leave types from database
   useEffect(() => {
-    async function loadShiftTypes() {
+    async function loadValidTypes() {
       try {
         const shifts = await shiftConfigurationsService.getActiveShiftConfigurations()
         setValidShiftTypes(shifts.map(s => s.shift_code))
+
+        // Load leave types - use the short labels mapping
+        const leaveLabels = Object.values(leaveTypeShortLabels)
+        setValidLeaveTypes(leaveLabels)
       } catch (error) {
-        console.error('Failed to load shift types:', error)
+        console.error('Failed to load shift/leave types:', error)
         // Fallback to defaults if database fails
         setValidShiftTypes(['AM', 'PM', 'BET', 'OFF'])
+        setValidLeaveTypes(['ANNUAL', 'SICK', 'CASUAL', 'BEREAV', 'HOLIDAY'])
       }
     }
-    loadShiftTypes()
+    loadValidTypes()
   }, [])
   const [exporting, setExporting] = useState(false)
 
@@ -132,20 +138,21 @@ export default function ScheduleUpload() {
         continue
       }
 
-      const shifts: { date: string; shiftType: ShiftType }[] = []
+      const shifts: { date: string; shiftType: ShiftType | string }[] = []
       
       for (let j = 1; j < cells.length && j <= dateHeaders.length; j++) {
         const value = cells[j]?.toUpperCase() || ''
         
         if (!value) continue
         
-        if (validShiftTypes.includes(value as ShiftType)) {
+        if (validShiftTypes.includes(value as ShiftType) || validLeaveTypes.includes(value)) {
           shifts.push({
             date: dateHeaders[j - 1],
-            shiftType: value as ShiftType
+            shiftType: value
           })
         } else {
-          errors.push(`Row ${i + 1}, Column ${j + 1}: Invalid shift type "${cells[j]}". Valid values: ${validShiftTypes.join(', ')}`)
+          const allValidValues = [...validShiftTypes, ...validLeaveTypes].join(', ')
+          errors.push(`Row ${i + 1}, Column ${j + 1}: Invalid shift/leave type "${cells[j]}". Valid values: ${allValidValues}`)
         }
       }
 
@@ -214,15 +221,66 @@ export default function ScheduleUpload() {
 
         for (const shift of row.shifts) {
           try {
-            // Use shiftsService for bulk upsert
-            await shiftsService.bulkUpsertShifts([{
-              user_id: row.userId,
-              date: shift.date,
-              shift_type: shift.shiftType
-            }])
-            successCount++
+            const shiftValue = shift.shiftType.toUpperCase()
+            
+            // Check if it's a leave type
+            if (validLeaveTypes.includes(shiftValue)) {
+              // Map short label back to leave type code
+              const leaveTypeCode = Object.entries(leaveTypeShortLabels).find(
+                ([_, label]) => label === shiftValue
+              )?.[0] as LeaveType | undefined
+
+              if (!leaveTypeCode) {
+                console.error('Leave type code not found for:', shiftValue)
+                failedCount++
+                continue
+              }
+
+              // Get the leave type ID from database
+              const { data: leaveType, error: leaveTypeError } = await supabase
+                .from('leave_types')
+                .select('id')
+                .eq('code', leaveTypeCode)
+                .eq('is_active', true)
+                .single()
+
+              if (leaveTypeError || !leaveType) {
+                console.error('Leave type not found in database:', leaveTypeCode)
+                failedCount++
+                continue
+              }
+
+              // Create a leave request for this single day
+              const { error: leaveError } = await supabase
+                .from('leave_requests')
+                .insert({
+                  user_id: row.userId,
+                  leave_type_id: leaveType.id,
+                  start_date: shift.date,
+                  end_date: shift.date,
+                  status: 'approved', // Auto-approve bulk uploaded leaves
+                  reason: 'Bulk schedule upload',
+                  created_at: new Date().toISOString(),
+                  updated_at: new Date().toISOString()
+                })
+
+              if (leaveError) {
+                console.error('Failed to create leave request:', leaveError)
+                failedCount++
+              } else {
+                successCount++
+              }
+            } else {
+              // It's a regular shift
+              await shiftsService.bulkUpsertShifts([{
+                user_id: row.userId,
+                date: shift.date,
+                shift_type: shiftValue as ShiftType
+              }])
+              successCount++
+            }
           } catch (err) {
-            handleDatabaseError(err, 'insert shift')
+            handleDatabaseError(err, 'insert shift/leave')
             failedCount++
           }
         }
@@ -377,19 +435,26 @@ export default function ScheduleUpload() {
         <ul className="text-sm text-blue-800 space-y-1 list-disc list-inside">
           <li>First column must be <code className="bg-blue-100 px-1 rounded">email</code> (agent's email address)</li>
           <li>Subsequent columns are dates (either <code className="bg-blue-100 px-1 rounded">1, 2, 3...</code> for current month or <code className="bg-blue-100 px-1 rounded">2026-01-15</code> for specific dates)</li>
-          <li>Cell values: {validShiftTypes.map((type, i) => (
+          <li>Cell values - Shifts: {validShiftTypes.map((type, i) => (
             <span key={type}>
               <code className="bg-blue-100 px-1 rounded">{type}</code>
               {i < validShiftTypes.length - 1 ? ', ' : ''}
             </span>
           ))}</li>
+          <li>Cell values - Leaves: {validLeaveTypes.map((type, i) => (
+            <span key={type}>
+              <code className="bg-blue-100 px-1 rounded">{type}</code>
+              {i < validLeaveTypes.length - 1 ? ', ' : ''}
+            </span>
+          ))}</li>
           <li>Empty cells are skipped (existing shifts not deleted)</li>
           <li>Existing shifts for the same user/date are updated (merge mode)</li>
+          <li>Leave types are auto-approved when uploaded</li>
         </ul>
         <div className="mt-3">
           <p className="text-sm text-blue-800 font-medium mb-1">Example CSV:</p>
           <pre className="bg-blue-100 p-2 rounded text-xs overflow-x-auto">
-email,1,2,3,4,5{String.fromCharCode(10)}agent@example.com,AM,PM,AM,OFF,BET{String.fromCharCode(10)}lead@example.com,PM,AM,OFF,AM,PM
+email,1,2,3,4,5{String.fromCharCode(10)}agent@example.com,AM,PM,ANNUAL,OFF,BET{String.fromCharCode(10)}lead@example.com,PM,SICK,OFF,AM,PM
           </pre>
         </div>
       </div>
