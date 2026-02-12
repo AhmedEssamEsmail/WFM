@@ -1,6 +1,7 @@
 // Break Schedules Service
 
 import { supabase } from '../lib/supabase'
+import { shiftConfigurationsService } from './shiftConfigurationsService'
 import type {
   BreakSchedule,
   BreakScheduleResponse,
@@ -17,21 +18,12 @@ const BREAK_SCHEDULES_TABLE = 'break_schedules'
 const BREAK_WARNINGS_TABLE = 'break_schedule_warnings'
 
 /**
- * Shift hours configuration
- */
-const SHIFT_HOURS: Record<ShiftType, { start: string; end: string } | null> = {
-  AM: { start: '09:00:00', end: '17:00:00' },
-  PM: { start: '13:00:00', end: '21:00:00' },
-  BET: { start: '11:00:00', end: '19:00:00' },
-  OFF: null,
-}
-
-/**
  * Convert break schedules to interval map
  */
 function buildIntervalMap(
   schedules: BreakSchedule[],
-  shiftType: ShiftType
+  shiftType: ShiftType,
+  shiftHours: Record<string, { start: string; end: string } | null>
 ): Record<string, BreakType> {
   const intervals: Record<string, BreakType> = {}
 
@@ -42,10 +34,10 @@ function buildIntervalMap(
         const timeStr = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`
         
         // Check if this interval is within the agent's shift hours
-        const shiftHours = SHIFT_HOURS[shiftType]
-        if (shiftHours) {
-          const [shiftStartHour, shiftStartMin] = shiftHours.start.split(':').map(Number)
-          const [shiftEndHour, shiftEndMin] = shiftHours.end.split(':').map(Number)
+        const shiftConfig = shiftHours[shiftType]
+        if (shiftConfig) {
+          const [shiftStartHour, shiftStartMin] = shiftConfig.start.split(':').map(Number)
+          const [shiftEndHour, shiftEndMin] = shiftConfig.end.split(':').map(Number)
           
           const intervalMinutes = hour * 60 + minute
           const shiftStartMinutes = shiftStartHour * 60 + shiftStartMin
@@ -100,6 +92,9 @@ export const breakSchedulesService = {
     date: string,
     department?: string
   ): Promise<BreakScheduleResponse> {
+    // Fetch shift hours from database
+    const shiftHours = await shiftConfigurationsService.getShiftHoursMap()
+    
     // Fetch shifts for the date
     let shiftsQuery = supabase
       .from('shifts')
@@ -147,7 +142,7 @@ export const breakSchedulesService = {
         (w: BreakScheduleWarning) => w.user_id === user.id
       )
 
-      const intervals = buildIntervalMap(userBreaks, shift.shift_type)
+      const intervals = buildIntervalMap(userBreaks, shift.shift_type, shiftHours)
       const breakTimes = extractBreakTimes(intervals)
 
       agents.push({

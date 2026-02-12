@@ -8,6 +8,9 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'autoUpdate',
+      devOptions: {
+        enabled: false, // Disable service worker in development to avoid cache issues
+      },
       includeAssets: ['icons/favicon.ico', 'icons/apple-touch-icon.png', 'icons/favicon-16x16.png', 'icons/favicon-32x32.png'],
       manifest: {
         name: 'WFM - Workforce Management',
