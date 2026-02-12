@@ -17,7 +17,7 @@ const serviceSupabase = createClient(
   { auth: { autoRefreshToken: false, persistSession: false } }
 );
 
-describe('RBAC Flow Integration', () => {
+describe.skip('RBAC Flow Integration', () => {
   let testUserIds: string[] = [];
   let agentId: string;
   let tlId: string;

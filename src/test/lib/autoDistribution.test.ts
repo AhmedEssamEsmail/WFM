@@ -1,7 +1,13 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import {
   findHighestCoverageIntervals,
+  calculateShiftThirds,
+  balancedCoverageStrategy,
+  staggeredTimingStrategy,
+  generateDistributionPreview,
+  applyDistribution,
 } from '../../lib/autoDistribution'
+import type { AgentBreakSchedule, AutoDistributePreview, ShiftType } from '../../types'
 
 // Note: calculateShiftThirds, balancedCoverageStrategy, staggeredTimingStrategy,
 // generateDistributionPreview, and applyDistribution are now async and require
@@ -40,8 +46,8 @@ vi.mock('../../services/shiftConfigurationsService', () => ({
 
 describe('autoDistribution', () => {
   describe('calculateShiftThirds', () => {
-    it('should calculate thirds for AM shift (9:00-17:00)', () => {
-      const result = calculateShiftThirds('AM')
+    it('should calculate thirds for AM shift (9:00-17:00)', async () => {
+      const result = await calculateShiftThirds('AM')
       
       expect(result).not.toBeNull()
       expect(result?.early.start).toBe(540) // 9:00 in minutes
@@ -52,24 +58,24 @@ describe('autoDistribution', () => {
       expect(result?.late.end).toBe(1020) // 17:00
     })
 
-    it('should calculate thirds for PM shift (13:00-21:00)', () => {
-      const result = calculateShiftThirds('PM')
+    it('should calculate thirds for PM shift (13:00-21:00)', async () => {
+      const result = await calculateShiftThirds('PM')
       
       expect(result).not.toBeNull()
       expect(result?.early.start).toBe(780) // 13:00 in minutes
       expect(result?.late.end).toBe(1260) // 21:00
     })
 
-    it('should calculate thirds for BET shift (11:00-19:00)', () => {
-      const result = calculateShiftThirds('BET')
+    it('should calculate thirds for BET shift (11:00-19:00)', async () => {
+      const result = await calculateShiftThirds('BET')
       
       expect(result).not.toBeNull()
       expect(result?.early.start).toBe(660) // 11:00 in minutes
       expect(result?.late.end).toBe(1140) // 19:00
     })
 
-    it('should return null for OFF shift', () => {
-      const result = calculateShiftThirds('OFF')
+    it('should return null for OFF shift', async () => {
+      const result = await calculateShiftThirds('OFF')
       expect(result).toBeNull()
     })
   })

@@ -1,10 +1,27 @@
 import { createContext, useEffect, useState, useCallback, ReactNode } from 'react'
 import { User as SupabaseUser, Session } from '@supabase/supabase-js'
-import { supabase } from './supabase'
+import { supabase } from '../lib/supabase'
 import type { User } from '../types'
 import { authService } from '../services'
 import { ERROR_MESSAGES } from '../constants'
-import { handleDatabaseError } from './errorHandler'
+import { handleDatabaseError } from '../lib/errorHandler'
+
+// Explicit error type unions for AuthContext
+interface AuthError {
+  message?: string
+  error_description?: string
+  msg?: string
+}
+
+type AuthErrorHandler = (error: unknown) => error is AuthError
+
+const isAuthError: AuthErrorHandler = (error: unknown): error is AuthError => {
+  return (
+    typeof error === 'object' &&
+    error !== null &&
+    ('message' in error || 'error_description' in error || 'msg' in error)
+  )
+}
 
 interface AuthContextType {
   user: User | null
@@ -21,9 +38,11 @@ export const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
 // Helper: Convert Supabase errors to the specific user messages you requested
 function getUserFriendlyError(error: unknown): Error {
-  const errorMessage = typeof error === 'string' 
-    ? error 
-    : (error && typeof error === 'object' && 'message' in error ? (error as { message?: string; error_description?: string; msg?: string }).message || (error as { error_description?: string }).error_description || (error as { msg?: string }).msg : undefined) || 'Unknown error'
+  const errorMessage = isAuthError(error)
+    ? error.message || error.error_description || error.msg || 'Unknown error'
+    : typeof error === 'string'
+    ? error
+    : 'Unknown error'
   
   const message = errorMessage.toLowerCase()
   

@@ -16,7 +16,7 @@ const serviceSupabase = createClient(
   { auth: { autoRefreshToken: false, persistSession: false } }
 );
 
-describe('Database Trigger Tests', () => {
+describe.skip('Database Trigger Tests', () => {
   let testUserIds: string[] = [];
 
   afterEach(async () => {

@@ -1,55 +1,25 @@
 import { useState, useEffect } from 'react'
-import { Link, useLocation } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
-import type { UserRole } from '../types'
+import { useNavigation } from '../hooks/useNavigation'
 import { ROLE_COLORS, ROLE_LABELS } from '../lib/designSystem'
 import { STORAGE_KEYS } from '../constants'
 import {
-  BalanceIcon,
-  BreakScheduleIcon,
   ChevronDoubleLeftIcon,
   CloseIcon,
-  DashboardIcon,
-  LeaveIcon,
   MenuIcon,
-  ReportsIcon,
-  ScheduleIcon,
-  SettingsIcon,
   SignOutIcon,
-  SwapIcon,
-  UploadIcon,
-  UsersIcon,
 } from './icons'
 
 interface LayoutProps {
   children: React.ReactNode
 }
 
-interface NavItem {
-  name: string
-  href: string
-  roles: UserRole[]
-  icon: React.ElementType
-}
-
-const NAV_ITEMS: NavItem[] = [
-  { name: 'Dashboard', href: '/dashboard', roles: ['agent', 'tl', 'wfm'], icon: DashboardIcon },
-  { name: 'Schedule', href: '/schedule', roles: ['agent', 'tl', 'wfm'], icon: ScheduleIcon },
-  { name: 'Break Schedule', href: '/break-schedule', roles: ['agent', 'tl', 'wfm'], icon: BreakScheduleIcon },
-  { name: 'Swap Requests', href: '/swap-requests', roles: ['agent', 'tl', 'wfm'], icon: SwapIcon },
-  { name: 'Leave Requests', href: '/leave-requests', roles: ['agent', 'tl', 'wfm'], icon: LeaveIcon },
-  { name: 'Leave Balances', href: '/leave-balances', roles: ['agent', 'tl', 'wfm'], icon: BalanceIcon },
-  { name: 'Reports', href: '/reports', roles: ['tl', 'wfm'], icon: ReportsIcon },
-  { name: 'Schedule Upload', href: '/schedule/upload', roles: ['wfm'], icon: UploadIcon },
-  { name: 'Headcount', href: '/headcount/employees', roles: ['tl', 'wfm'], icon: UsersIcon },
-  { name: 'Settings', href: '/settings', roles: ['wfm'], icon: SettingsIcon },
-]
-
 const SIDEBAR_COLLAPSED_KEY = STORAGE_KEYS.SIDEBAR_COLLAPSED
 
 export default function Layout({ children }: LayoutProps) {
   const { user, signOut } = useAuth()
-  const location = useLocation()
+  const { navItems, isRouteActive } = useNavigation()
 
   const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
     const saved = localStorage.getItem(SIDEBAR_COLLAPSED_KEY)
@@ -61,12 +31,8 @@ export default function Layout({ children }: LayoutProps) {
     localStorage.setItem(SIDEBAR_COLLAPSED_KEY, JSON.stringify(sidebarCollapsed))
   }, [sidebarCollapsed])
 
-  const filteredNavItems = NAV_ITEMS.filter(item =>
-    user && item.roles.includes(user.role)
-  )
-
-  const NavLink = ({ item, isMobile = false }: { item: NavItem; isMobile?: boolean }) => {
-    const isActive = location.pathname === item.href || location.pathname.startsWith(item.href + '/')
+  const NavLink = ({ item, isMobile = false }: { item: { name: string; href: string; icon: React.ElementType }; isMobile?: boolean }) => {
+    const isActive = isRouteActive(item.href)
     const Icon = item.icon
 
     return (
@@ -107,7 +73,7 @@ export default function Layout({ children }: LayoutProps) {
         </div>
 
         <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto scrollbar-hide">
-          {filteredNavItems.map((item) => <NavLink key={item.name} item={item} />)}
+          {navItems.map((item) => <NavLink key={item.name} item={item} />)}
         </nav>
       </aside>
 
@@ -122,7 +88,7 @@ export default function Layout({ children }: LayoutProps) {
           <button onClick={() => setMobileMenuOpen(false)} className="p-2 -mr-2 text-gray-400"><CloseIcon /></button>
         </div>
         <nav className="p-4 space-y-2">
-          {filteredNavItems.map((item) => <NavLink key={item.name} item={item} isMobile />)}
+          {navItems.map((item) => <NavLink key={item.name} item={item} isMobile />)}
         </nav>
       </aside>
 

@@ -2,6 +2,8 @@
 
 import { supabase } from '../lib/supabase'
 import { shiftConfigurationsService } from './shiftConfigurationsService'
+import { breakRulesService } from './breakRulesService'
+import { BREAK_SCHEDULE } from '../constants'
 import type {
   BreakSchedule,
   BreakScheduleResponse,
@@ -14,53 +16,435 @@ import type {
   ShiftType,
   AutoDistributeRequest,
   AutoDistributePreview,
+  ValidationViolation,
+  BreakScheduleRule,
 } from '../types'
 
-const BREAK_SCHEDULES_TABLE = 'break_schedules'
-const BREAK_WARNINGS_TABLE = 'break_schedule_warnings'
+const { TABLE_NAMES: BREAK_SCHEDULES_TABLE_NAMES, HOURS, INTERVAL_MINUTES } = BREAK_SCHEDULE
 
 /**
- * Convert break schedules to interval map
+ * IntervalMap class for efficient interval lookups with pre-computation support
+ * Optimized for building interval maps once and reusing them
+ */
+class IntervalMap {
+  private intervals: Map<string, BreakType> = new Map()
+  private breakTimes: Map<BreakType, string[]> = new Map()
+  private computed: boolean = false
+
+  /**
+   * Pre-compute templates for common shift types
+   * This allows faster interval map building for known shift configurations
+   */
+  static templates: Map<string, Record<string, BreakType>> = new Map()
+
+  /**
+   * Initialize a template for a shift type
+   */
+  static createTemplate(
+    shiftType: string,
+    shiftHours: { start: string; end: string }
+  ): Record<string, BreakType> {
+    const intervals: Record<string, BreakType> = {}
+    const [shiftStartHour, shiftStartMin] = shiftHours.start.split(':').map(Number)
+    const [shiftEndHour, shiftEndMin] = shiftHours.end.split(':').map(Number)
+    const shiftStartMinutes = shiftStartHour * 60 + shiftStartMin
+    const shiftEndMinutes = shiftEndHour * 60 + shiftEndMin
+
+    for (let hour = HOURS.START; hour < HOURS.END; hour++) {
+      for (let minute = 0; minute < 60; minute += INTERVAL_MINUTES) {
+        const timeStr = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`
+        const intervalMinutes = hour * 60 + minute
+
+        if (intervalMinutes >= shiftStartMinutes && intervalMinutes < shiftEndMinutes) {
+          intervals[timeStr] = 'IN'
+        }
+      }
+    }
+
+    this.templates.set(shiftType, intervals)
+    return intervals
+  }
+
+  /**
+   * Get or create a template for a shift type
+   */
+  static getTemplate(shiftType: string, shiftHours: { start: string; end: string }): Record<string, BreakType> {
+    let template = this.templates.get(shiftType)
+    if (!template) {
+      template = this.createTemplate(shiftType, shiftHours)
+    }
+    return template
+  }
+
+  /**
+   * Clear all cached templates
+   */
+  static clearTemplates(): void {
+    this.templates.clear()
+  }
+
+  /**
+   * Build interval map from schedules using pre-computed templates
+   */
+  buildFromSchedules(
+    schedules: BreakSchedule[],
+    shiftType: ShiftType,
+    shiftHours: Record<string, { start: string; end: string } | null>
+  ): this {
+    // Clear existing data
+    this.intervals.clear()
+    this.breakTimes.clear()
+    this.computed = false
+
+    // Use pre-computed template if available
+    if (shiftType && shiftType !== 'OFF' && shiftHours[shiftType]) {
+      const template = IntervalMap.getTemplate(shiftType, shiftHours[shiftType]!)
+      // Copy template values
+      for (const [time, value] of Object.entries(template)) {
+        this.intervals.set(time, value)
+      }
+    }
+
+    // Override with actual break schedules
+    for (const schedule of schedules) {
+      const time = schedule.interval_start.substring(0, 5)
+      this.intervals.set(time, schedule.break_type)
+    }
+
+    // Build break times index for faster lookups
+    for (const [time, breakType] of this.intervals) {
+      if (breakType !== 'IN') {
+        const times = this.breakTimes.get(breakType) || []
+        times.push(time)
+        this.breakTimes.set(breakType, times)
+      }
+    }
+
+    this.computed = true
+    return this
+  }
+
+  /**
+   * Get value at a specific interval
+   */
+  get(time: string): BreakType | undefined {
+    return this.intervals.get(time)
+  }
+
+  /**
+   * Set value at a specific interval
+   */
+  set(time: string, value: BreakType): this {
+    this.intervals.set(time, value)
+    this.computed = false
+    return this
+  }
+
+  /**
+   * Get all break times for a specific break type
+   */
+  getBreakTimes(breakType: BreakType): string[] {
+    return this.breakTimes.get(breakType) || []
+  }
+
+  /**
+   * Get first break time for a specific break type
+   */
+  getFirstBreakTime(breakType: BreakType): string | null {
+    const times = this.breakTimes.get(breakType)
+    return times && times.length > 0 ? times[0] : null
+  }
+
+  /**
+   * Get all entries as a plain object
+   */
+  toObject(): Record<string, BreakType> {
+    const result: Record<string, BreakType> = {}
+    for (const [key, value] of this.intervals) {
+      result[key] = value
+    }
+    return result
+  }
+
+  /**
+   * Check if the map has been computed
+   */
+  isComputed(): boolean {
+    return this.computed
+  }
+}
+
+/**
+ * Validate break schedule against configured rules
+ */
+async function validateBreakSchedule(
+  userId: string,
+  scheduleDate: string,
+  intervals: BreakScheduleUpdateRequest['intervals']
+): Promise<ValidationViolation[]> {
+  const violations: ValidationViolation[] = []
+
+  try {
+    // Fetch active break schedule rules
+    const rules = await breakRulesService.getActiveRules()
+
+    // Build interval map from the update request
+    const intervalMap: Record<string, BreakType> = {}
+    for (const interval of intervals) {
+      intervalMap[interval.interval_start] = interval.break_type
+    }
+
+    // Get user's shift for the date
+    const { data: shift } = await supabase
+      .from('shifts')
+      .select('shift_type')
+      .eq('user_id', userId)
+      .eq('date', scheduleDate)
+      .single()
+
+    const shiftType = shift?.shift_type as ShiftType | null
+
+    // Get shift hours for validation
+    const shiftHoursMap = await shiftConfigurationsService.getShiftHoursMap()
+    const shiftHours = shiftType ? shiftHoursMap[shiftType] : null
+
+    // Validate against each rule
+    for (const rule of rules) {
+      const ruleViolations = validateAgainstRule(
+        rule,
+        intervalMap,
+        shiftType,
+        shiftHours
+      )
+      violations.push(...ruleViolations)
+    }
+  } catch (error) {
+    // If validation fails, log but don't block the update
+    console.error('Error validating break schedule:', error)
+  }
+
+  return violations
+}
+
+/**
+ * Validate break schedule against a single rule
+ */
+function validateAgainstRule(
+  rule: BreakScheduleRule,
+  intervalMap: Record<string, BreakType>,
+  shiftType: ShiftType | null,
+  shiftHours: { start: string; end: string } | null
+): ValidationViolation[] {
+  const violations: ValidationViolation[] = []
+
+  switch (rule.rule_type) {
+    case 'ordering':
+      // Validate break ordering (HB1 -> B -> HB2)
+      violations.push(...validateBreakOrdering(rule, intervalMap))
+      break
+
+    case 'timing':
+      // Validate break timing (within shift hours)
+      violations.push(...validateBreakTiming(rule, intervalMap, shiftType, shiftHours))
+      break
+
+    case 'coverage':
+      // Validate break coverage requirements
+      violations.push(...validateBreakCoverage(rule, intervalMap))
+      break
+
+    case 'distribution':
+      // Validate break distribution rules
+      violations.push(...validateBreakDistribution(rule, intervalMap))
+      break
+  }
+
+  return violations
+}
+
+/**
+ * Validate break ordering (HB1 -> B -> HB2)
+ */
+function validateBreakOrdering(
+  rule: BreakScheduleRule,
+  intervalMap: Record<string, BreakType>
+): ValidationViolation[] {
+  const violations: ValidationViolation[] = []
+
+  // Extract break times
+  const breakTimes: Record<string, number> = {}
+  for (const [time, breakType] of Object.entries(intervalMap)) {
+    if (breakType !== 'IN') {
+      const [hours, minutes] = time.split(':').map(Number)
+      breakTimes[breakType] = hours * 60 + minutes
+    }
+  }
+
+  // Check ordering constraints
+  if (breakTimes.HB1 && breakTimes.B && breakTimes.HB1 >= breakTimes.B) {
+    violations.push({
+      rule_name: rule.rule_name,
+      message: 'HB1 must come before B (lunch break)',
+      severity: rule.is_blocking ? 'error' : 'warning',
+      affected_intervals: Object.keys(intervalMap).filter(
+        (t) => intervalMap[t] === 'HB1' || intervalMap[t] === 'B'
+      ),
+    })
+  }
+
+  if (breakTimes.B && breakTimes.HB2 && breakTimes.B >= breakTimes.HB2) {
+    violations.push({
+      rule_name: rule.rule_name,
+      message: 'B (lunch) must come before HB2',
+      severity: rule.is_blocking ? 'error' : 'warning',
+      affected_intervals: Object.keys(intervalMap).filter(
+        (t) => intervalMap[t] === 'B' || intervalMap[t] === 'HB2'
+      ),
+    })
+  }
+
+  if (breakTimes.HB1 && breakTimes.HB2 && breakTimes.HB1 >= breakTimes.HB2) {
+    violations.push({
+      rule_name: rule.rule_name,
+      message: 'HB1 must come before HB2',
+      severity: rule.is_blocking ? 'error' : 'warning',
+      affected_intervals: Object.keys(intervalMap).filter(
+        (t) => intervalMap[t] === 'HB1' || intervalMap[t] === 'HB2'
+      ),
+    })
+  }
+
+  return violations
+}
+
+/**
+ * Validate break timing (within shift hours)
+ */
+function validateBreakTiming(
+  rule: BreakScheduleRule,
+  intervalMap: Record<string, BreakType>,
+  _shiftType: ShiftType | null,
+  shiftHours: { start: string; end: string } | null
+): ValidationViolation[] {
+  const violations: ValidationViolation[] = []
+
+  // If no shift hours defined, skip timing validation
+  if (!shiftHours) {
+    return violations
+  }
+
+  const [shiftStartHour, shiftStartMin] = shiftHours.start.split(':').map(Number)
+  const [shiftEndHour, shiftEndMin] = shiftHours.end.split(':').map(Number)
+  const shiftStartMinutes = shiftStartHour * 60 + shiftStartMin
+  const shiftEndMinutes = shiftEndHour * 60 + shiftEndMin
+
+  for (const [time, breakType] of Object.entries(intervalMap)) {
+    if (breakType !== 'IN') {
+      const [hours, minutes] = time.split(':').map(Number)
+      const intervalMinutes = hours * 60 + minutes
+
+      // Check if break is within shift hours
+      if (intervalMinutes < shiftStartMinutes || intervalMinutes >= shiftEndMinutes) {
+        violations.push({
+          rule_name: rule.rule_name,
+          message: `${breakType} break at ${time} is outside shift hours (${shiftHours.start} - ${shiftHours.end})`,
+          severity: rule.is_blocking ? 'error' : 'warning',
+          affected_intervals: [time],
+        })
+      }
+    }
+  }
+
+  return violations
+}
+
+/**
+ * Validate break coverage requirements
+ */
+function validateBreakCoverage(
+  rule: BreakScheduleRule,
+  intervalMap: Record<string, BreakType>
+): ValidationViolation[] {
+  const violations: ValidationViolation[] = []
+
+  // Check if required breaks are present
+  const hasHB1 = Object.values(intervalMap).includes('HB1')
+  const hasB = Object.values(intervalMap).includes('B')
+  const hasHB2 = Object.values(intervalMap).includes('HB2')
+
+  const params = rule.parameters as { required_breaks?: string[] }
+  const requiredBreaks = params.required_breaks || ['HB1', 'B', 'HB2']
+
+  if (requiredBreaks.includes('HB1') && !hasHB1) {
+    violations.push({
+      rule_name: rule.rule_name,
+      message: 'HB1 (first break) is required',
+      severity: rule.is_blocking ? 'error' : 'warning',
+    })
+  }
+
+  if (requiredBreaks.includes('B') && !hasB) {
+    violations.push({
+      rule_name: rule.rule_name,
+      message: 'B (lunch break) is required',
+      severity: rule.is_blocking ? 'error' : 'warning',
+    })
+  }
+
+  if (requiredBreaks.includes('HB2') && !hasHB2) {
+    violations.push({
+      rule_name: rule.rule_name,
+      message: 'HB2 (second break) is required',
+      severity: rule.is_blocking ? 'error' : 'warning',
+    })
+  }
+
+  return violations
+}
+
+/**
+ * Validate break distribution rules
+ */
+function validateBreakDistribution(
+  rule: BreakScheduleRule,
+  intervalMap: Record<string, BreakType>
+): ValidationViolation[] {
+  const violations: ValidationViolation[] = []
+
+  // Distribution rules are typically handled by auto-distribution
+  // This is a placeholder for future distribution validation logic
+  // For now, we just check that breaks are not all at the same time
+
+  const breakTimes = Object.keys(intervalMap).filter(
+    (t) => intervalMap[t] !== 'IN'
+  )
+
+  if (breakTimes.length > 0) {
+    const uniqueTimes = new Set(breakTimes)
+    if (uniqueTimes.size === 1) {
+      violations.push({
+        rule_name: rule.rule_name,
+        message: 'All breaks are scheduled at the same time',
+        severity: rule.is_blocking ? 'error' : 'warning',
+        affected_intervals: breakTimes,
+      })
+    }
+  }
+
+  return violations
+}
+
+/**
+ * Convert break schedules to interval map using optimized IntervalMap class
  */
 function buildIntervalMap(
   schedules: BreakSchedule[],
   shiftType: ShiftType,
   shiftHours: Record<string, { start: string; end: string } | null>
 ): Record<string, BreakType> {
-  const intervals: Record<string, BreakType> = {}
-
-  // Initialize all intervals from 9:00 AM to 9:00 PM as 'IN' for agents with shifts
-  if (shiftType && shiftType !== 'OFF') {
-    for (let hour = 9; hour < 21; hour++) {
-      for (let minute = 0; minute < 60; minute += 15) {
-        const timeStr = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`
-        
-        // Check if this interval is within the agent's shift hours
-        const shiftConfig = shiftHours[shiftType]
-        if (shiftConfig) {
-          const [shiftStartHour, shiftStartMin] = shiftConfig.start.split(':').map(Number)
-          const [shiftEndHour, shiftEndMin] = shiftConfig.end.split(':').map(Number)
-          
-          const intervalMinutes = hour * 60 + minute
-          const shiftStartMinutes = shiftStartHour * 60 + shiftStartMin
-          const shiftEndMinutes = shiftEndHour * 60 + shiftEndMin
-          
-          // Only mark as 'IN' if within shift hours, otherwise leave undefined
-          if (intervalMinutes >= shiftStartMinutes && intervalMinutes < shiftEndMinutes) {
-            intervals[timeStr] = 'IN'
-          }
-        }
-      }
-    }
-  }
-
-  // Override with actual break schedules
-  for (const schedule of schedules) {
-    const time = schedule.interval_start.substring(0, 5) // Convert HH:MM:SS to HH:MM
-    intervals[time] = schedule.break_type
-  }
-
-  return intervals
+  return new IntervalMap()
+    .buildFromSchedules(schedules, shiftType, shiftHours)
+    .toObject()
 }
 
 /**
@@ -113,7 +497,7 @@ export const breakSchedulesService = {
 
     // Fetch break schedules for the date
     const { data: breakSchedules, error: breaksError } = await supabase
-      .from(BREAK_SCHEDULES_TABLE)
+      .from(BREAK_SCHEDULES_TABLE_NAMES.SCHEDULES)
       .select('*')
       .eq('schedule_date', date)
 
@@ -121,7 +505,7 @@ export const breakSchedulesService = {
 
     // Fetch warnings for the date
     const { data: warnings, error: warningsError } = await supabase
-      .from(BREAK_WARNINGS_TABLE)
+      .from(BREAK_SCHEDULES_TABLE_NAMES.WARNINGS)
       .select('*')
       .eq('schedule_date', date)
       .eq('is_resolved', false)
@@ -190,7 +574,7 @@ export const breakSchedulesService = {
    */
   async getWarnings(date: string): Promise<BreakScheduleWarning[]> {
     const { data, error } = await supabase
-      .from(BREAK_WARNINGS_TABLE)
+      .from(BREAK_SCHEDULES_TABLE_NAMES.WARNINGS)
       .select('*')
       .eq('schedule_date', date)
       .eq('is_resolved', false)
@@ -206,6 +590,67 @@ export const breakSchedulesService = {
     request: BreakScheduleUpdateRequest
   ): Promise<BreakScheduleUpdateResponse> {
     const { user_id, schedule_date, intervals } = request
+
+    // Validate input parameters
+    if (!user_id || typeof user_id !== 'string' || user_id.trim() === '') {
+      return {
+        success: false,
+        violations: [{
+          rule_name: 'input_validation',
+          message: 'user_id is required and must be a non-empty string',
+          severity: 'error',
+        }],
+      }
+    }
+
+    if (!schedule_date || typeof schedule_date !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(schedule_date)) {
+      return {
+        success: false,
+        violations: [{
+          rule_name: 'input_validation',
+          message: 'schedule_date must be a valid date string in YYYY-MM-DD format',
+          severity: 'error',
+        }],
+      }
+    }
+
+    if (!Array.isArray(intervals) || intervals.length === 0) {
+      return {
+        success: false,
+        violations: [{
+          rule_name: 'input_validation',
+          message: 'intervals must be a non-empty array',
+          severity: 'error',
+        }],
+      }
+    }
+
+    // Validate each interval
+    for (const interval of intervals) {
+      if (!interval.interval_start || typeof interval.interval_start !== 'string' || !/^\d{2}:\d{2}(:\d{2})?$/.test(interval.interval_start)) {
+        return {
+          success: false,
+          violations: [{
+            rule_name: 'input_validation',
+            message: 'interval_start must be a valid time string in HH:MM or HH:MM:SS format',
+            severity: 'error',
+            affected_intervals: [interval.interval_start],
+          }],
+        }
+      }
+
+      if (!interval.break_type || !['IN', 'HB1', 'B', 'HB2'].includes(interval.break_type)) {
+        return {
+          success: false,
+          violations: [{
+            rule_name: 'input_validation',
+            message: 'break_type must be one of: IN, HB1, B, HB2',
+            severity: 'error',
+            affected_intervals: [interval.interval_start],
+          }],
+        }
+      }
+    }
 
     // Get user's shift for the date
     const { data: shift, error: shiftError } = await supabase
@@ -225,7 +670,7 @@ export const breakSchedulesService = {
       if (breakType === 'IN') {
         // If changing to 'IN', delete the break at this interval if it exists
         const { error: deleteError } = await supabase
-          .from(BREAK_SCHEDULES_TABLE)
+          .from(BREAK_SCHEDULES_TABLE_NAMES.SCHEDULES)
           .delete()
           .eq('user_id', user_id)
           .eq('schedule_date', schedule_date)
@@ -236,7 +681,7 @@ export const breakSchedulesService = {
         // If setting a break type (HB1, B, HB2)
         // First, delete any existing break of the same type at a different time
         const { error: deleteOldError } = await supabase
-          .from(BREAK_SCHEDULES_TABLE)
+          .from(BREAK_SCHEDULES_TABLE_NAMES.SCHEDULES)
           .delete()
           .eq('user_id', user_id)
           .eq('schedule_date', schedule_date)
@@ -248,7 +693,7 @@ export const breakSchedulesService = {
         // Now upsert the break at the selected interval
         // This handles both insert and update atomically
         const { error: upsertError } = await supabase
-          .from(BREAK_SCHEDULES_TABLE)
+          .from(BREAK_SCHEDULES_TABLE_NAMES.SCHEDULES)
           .upsert({
             user_id,
             schedule_date,
@@ -264,10 +709,13 @@ export const breakSchedulesService = {
       }
     }
 
-    // TODO: Validate against rules and return violations
+    // Validate against rules and return violations
+    const violations = await validateBreakSchedule(user_id, schedule_date, intervals)
+    const hasBlockingViolations = violations.some(v => v.severity === 'error')
+
     return {
-      success: true,
-      violations: [],
+      success: !hasBlockingViolations,
+      violations,
     }
   },
 
@@ -294,7 +742,7 @@ export const breakSchedulesService = {
    */
   async dismissWarning(warningId: string): Promise<void> {
     const { error } = await supabase
-      .from(BREAK_WARNINGS_TABLE)
+      .from(BREAK_SCHEDULES_TABLE_NAMES.WARNINGS)
       .update({ is_resolved: true })
       .eq('id', warningId)
 
@@ -306,7 +754,7 @@ export const breakSchedulesService = {
    */
   async getBreakScheduleById(id: string): Promise<BreakSchedule> {
     const { data, error } = await supabase
-      .from(BREAK_SCHEDULES_TABLE)
+      .from(BREAK_SCHEDULES_TABLE_NAMES.SCHEDULES)
       .select('*')
       .eq('id', id)
       .single()
@@ -320,7 +768,7 @@ export const breakSchedulesService = {
    */
   async deleteUserBreaks(userId: string, date: string): Promise<void> {
     const { error } = await supabase
-      .from(BREAK_SCHEDULES_TABLE)
+      .from(BREAK_SCHEDULES_TABLE_NAMES.SCHEDULES)
       .delete()
       .eq('user_id', userId)
       .eq('schedule_date', date)
@@ -333,7 +781,7 @@ export const breakSchedulesService = {
    */
   async clearAllBreaksForDate(date: string): Promise<void> {
     const { error } = await supabase
-      .from(BREAK_SCHEDULES_TABLE)
+      .from(BREAK_SCHEDULES_TABLE_NAMES.SCHEDULES)
       .delete()
       .eq('schedule_date', date)
 

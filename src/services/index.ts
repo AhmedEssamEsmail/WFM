@@ -1,4 +1,7 @@
-// Central export for all services
+// Central export for all services and types
+
+// Re-export all types for convenience
+export * from '../types'
 
 export * from './authService'
 export * from './shiftsService'

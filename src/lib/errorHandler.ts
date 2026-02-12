@@ -6,6 +6,30 @@
 import { SystemCommentProtectedError } from '../types/errors'
 import { Sentry } from './sentry'
 
+// PII patterns for filtering sensitive data from error logs
+const PII_PATTERNS = [
+  { pattern: /\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b/g, type: 'email' },
+  { pattern: /\b\d{3}[-.]?\d{3}[-.]?\d{4}\b/g, type: 'phone' },
+  { pattern: /\b\d{3}-\d{2}-\d{4}\b/g, type: 'ssn' },
+]
+
+// Fields that may contain PII and should be redacted
+const PII_FIELDS = [
+  'email',
+  'name',
+  'phone',
+  'phoneNumber',
+  'mobile',
+  'address',
+  'ssn',
+  'socialSecurity',
+  'password',
+  'token',
+  'accessToken',
+  'refreshToken',
+  'apiKey',
+]
+
 interface ErrorOptions {
   userMessage?: string
   logToConsole?: boolean
@@ -25,10 +49,15 @@ class ErrorHandler {
   private static instance: ErrorHandler
   private toastFunction: ((message: string, type: 'error' | 'success' | 'warning' | 'info') => void) | null = null
   private errorLogs: ErrorLog[] = []
-  private maxLogs = 50 // Reduced from 100
+  private maxLogs = 50
   private logTTL = 1000 * 60 * 30 // 30 minutes TTL
+  private readonly STORAGE_KEY = 'wfm_error_logs'
+  private readonly MAX_STORAGE_SIZE = 1024 * 100 // 100KB max for error logs
 
   private constructor() {
+    // Load existing logs from localStorage on initialization
+    this.loadLogsFromStorage()
+    
     // Clean up old logs every 5 minutes
     if (typeof window !== 'undefined') {
       setInterval(() => this.cleanupOldLogs(), 1000 * 60 * 5)
@@ -40,6 +69,101 @@ class ErrorHandler {
       ErrorHandler.instance = new ErrorHandler()
     }
     return ErrorHandler.instance
+  }
+
+  /**
+   * Load error logs from localStorage
+   */
+  private loadLogsFromStorage(): void {
+    try {
+      const stored = localStorage.getItem(this.STORAGE_KEY)
+      if (stored) {
+        const logs = JSON.parse(stored) as ErrorLog[]
+        // Filter out expired logs
+        const now = Date.now()
+        this.errorLogs = logs.filter(log => {
+          const logTime = new Date(log.timestamp).getTime()
+          return now - logTime < this.logTTL
+        })
+      }
+    } catch (error) {
+      // Silent fail - localStorage might be unavailable
+      console.warn('Failed to load error logs from storage:', error)
+    }
+  }
+
+  /**
+   * Save error logs to localStorage with size limit
+   */
+  private saveLogsToStorage(): void {
+    try {
+      const serialized = JSON.stringify(this.errorLogs)
+      
+      // Check size limit
+      if (serialized.length > this.MAX_STORAGE_SIZE) {
+        // Remove oldest logs until under size limit
+        while (this.errorLogs.length > 0 && JSON.stringify(this.errorLogs).length > this.MAX_STORAGE_SIZE) {
+          this.errorLogs.shift()
+        }
+      }
+      
+      localStorage.setItem(this.STORAGE_KEY, JSON.stringify(this.errorLogs))
+    } catch (error) {
+      // Handle QuotaExceededError or other storage errors
+      console.warn('Failed to save error logs to storage:', error)
+      // Clear old logs and retry
+      this.errorLogs = this.errorLogs.slice(-10) // Keep only last 10
+      try {
+        localStorage.setItem(this.STORAGE_KEY, JSON.stringify(this.errorLogs))
+      } catch {
+        // Give up silently
+      }
+    }
+  }
+
+  /**
+   * Sanitize a value to remove PII
+   */
+  private sanitizeValue(value: unknown): unknown {
+    if (typeof value === 'string') {
+      let sanitized = value
+      for (const { pattern } of PII_PATTERNS) {
+        sanitized = sanitized.replace(pattern, '[REDACTED]')
+      }
+      return sanitized
+    }
+    if (typeof value === 'object' && value !== null) {
+      return this.sanitizeObject(value as Record<string, unknown>)
+    }
+    return value
+  }
+
+  /**
+   * Sanitize an object to remove PII from values
+   */
+  private sanitizeObject(obj: Record<string, unknown>): Record<string, unknown> {
+    const sanitized: Record<string, unknown> = {}
+    
+    for (const [key, value] of Object.entries(obj)) {
+      // Redact entire value if field name suggests PII
+      if (PII_FIELDS.some(field => key.toLowerCase().includes(field.toLowerCase()))) {
+        sanitized[key] = '[REDACTED]'
+      } else {
+        sanitized[key] = this.sanitizeValue(value)
+      }
+    }
+    
+    return sanitized
+  }
+
+  /**
+   * Sanitize error log to remove PII
+   */
+  private sanitizeErrorLog(log: ErrorLog): ErrorLog {
+    return {
+      ...log,
+      context: this.sanitizeObject(log.context),
+    }
   }
 
   /**
@@ -78,20 +202,23 @@ class ErrorHandler {
       errorMessage = userMessage || error
     }
 
-    // Create error log entry
-    const errorLog: ErrorLog = {
+    // Create error log entry and sanitize PII
+    const errorLog = this.sanitizeErrorLog({
       timestamp: new Date().toISOString(),
       error,
       userMessage,
       context,
       stack
-    }
+    })
 
-    // Store error log (keep last 100 errors)
+    // Store error log (keep last maxLogs errors)
     this.errorLogs.push(errorLog)
     if (this.errorLogs.length > this.maxLogs) {
       this.errorLogs.shift()
     }
+    
+    // Persist to localStorage with size limits
+    this.saveLogsToStorage()
 
     // Log to console in development
     if (logToConsole && import.meta.env.DEV) {
@@ -152,6 +279,11 @@ class ErrorHandler {
    */
   clearLogs(): void {
     this.errorLogs = []
+    try {
+      localStorage.removeItem(this.STORAGE_KEY)
+    } catch (error) {
+      console.warn('Failed to clear error logs from storage:', error)
+    }
   }
 
   /**

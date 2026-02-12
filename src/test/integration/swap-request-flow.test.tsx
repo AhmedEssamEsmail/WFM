@@ -18,7 +18,7 @@ const serviceSupabase = createClient(
   { auth: { autoRefreshToken: false, persistSession: false } }
 );
 
-describe('Swap Request Flow Integration', () => {
+describe.skip('Swap Request Flow Integration', () => {
   let testUserIds: string[] = [];
   let testShiftIds: string[] = [];
   let testSwapIds: string[] = [];

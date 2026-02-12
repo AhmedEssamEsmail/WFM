@@ -1,9 +1,57 @@
 // Application-wide constants
 
 // ============================================
+// REQUIRED ENVIRONMENT VARIABLES
+// ============================================
+export const REQUIRED_ENV_VARS = [
+  'VITE_ALLOWED_EMAIL_DOMAIN',
+  'VITE_SUPABASE_URL',
+  'VITE_SUPABASE_ANON_KEY',
+] as const
+
+export type RequiredEnvVar = typeof REQUIRED_ENV_VARS[number]
+
+/**
+ * Validates that all required environment variables are set
+ * Throws an error if any required env var is missing
+ * 
+ * Note: This is called lazily to avoid issues in test environments
+ */
+export function validateEnvironment(): void {
+  const missing: string[] = []
+  
+  for (const envVar of REQUIRED_ENV_VARS) {
+    if (!import.meta.env[envVar]) {
+      missing.push(envVar)
+    }
+  }
+  
+  if (missing.length > 0) {
+    throw new Error(
+      `Missing required environment variables: ${missing.join(', ')}. ` +
+      `Please set these in your .env file.`
+    )
+  }
+}
+
+// ============================================
 // DOMAIN & AUTH
 // ============================================
-export const ALLOWED_EMAIL_DOMAIN = import.meta.env.VITE_ALLOWED_EMAIL_DOMAIN || '@dabdoob.com'
+
+// Lazy getters for environment variables to avoid module-load-time validation
+let _allowedEmailDomain: string | undefined
+
+export function getAllowedEmailDomain(): string {
+  if (!_allowedEmailDomain) {
+    validateEnvironment()
+    _allowedEmailDomain = import.meta.env.VITE_ALLOWED_EMAIL_DOMAIN as string
+  }
+  return _allowedEmailDomain!
+}
+
+// For backward compatibility, export as constant
+// In production, this should always be set. In tests, it may be empty string.
+export const ALLOWED_EMAIL_DOMAIN: string = (import.meta.env.VITE_ALLOWED_EMAIL_DOMAIN as string) || ''
 export const SESSION_STORAGE_KEY = 'wfm_session'
 
 // ============================================
@@ -95,6 +143,25 @@ export const API_ENDPOINTS = {
   HEADCOUNT_PROFILES: 'headcount_profiles',
   HEADCOUNT_AUDIT_LOG: 'headcount_audit_log',
   OVERTIME_SETTINGS: 'overtime_settings',
+  BREAK_SCHEDULES: 'break_schedules',
+  BREAK_SCHEDULE_WARNINGS: 'break_schedule_warnings',
+  BREAK_SCHEDULE_RULES: 'break_schedule_rules',
+} as const
+
+// ============================================
+// BREAK SCHEDULE TIME RANGES
+// ============================================
+export const BREAK_SCHEDULE = {
+  HOURS: {
+    START: 9,  // 9 AM
+    END: 21,   // 9 PM
+  },
+  INTERVAL_MINUTES: 15,
+  TABLE_NAMES: {
+    SCHEDULES: 'break_schedules',
+    WARNINGS: 'break_schedule_warnings',
+    RULES: 'break_schedule_rules',
+  },
 } as const
 
 // ============================================

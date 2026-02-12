@@ -3,11 +3,12 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { QueryClientProvider } from '@tanstack/react-query'
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
 import { queryClient } from './lib/queryClient'
-import { AuthProvider } from './lib/AuthContext'
-import { ToastProvider, useToast } from './lib/ToastContext'
+import { AuthProvider } from './contexts/AuthContext'
+import { ToastProvider, useToast } from './contexts/ToastContext'
 import { initializeErrorHandler } from './lib/errorHandler'
 import ProtectedRoute from './components/ProtectedRoute'
 import PublicRoute from './components/PublicRoute'
+import PageErrorBoundary from './components/PageErrorBoundary'
 
 // Eager load critical pages (only Login for immediate access)
 import Login from './pages/Auth/Login'
@@ -68,30 +69,30 @@ function App() {
             <Suspense fallback={<PageLoader />}>
               <Routes>
                 {/* Public routes */}
-                <Route path="/login" element={<PublicRoute><Login /></PublicRoute>} />
-                <Route path="/signup" element={<PublicRoute><Signup /></PublicRoute>} />
-                <Route path="/unauthorized" element={<Unauthorized />} />
+                <Route path="/login" element={<PublicRoute><PageErrorBoundary><Login /></PageErrorBoundary></PublicRoute>} />
+                <Route path="/signup" element={<PublicRoute><PageErrorBoundary><Signup /></PageErrorBoundary></PublicRoute>} />
+                <Route path="/unauthorized" element={<PageErrorBoundary><Unauthorized /></PageErrorBoundary>} />
 
                 {/* Protected routes - Employee accessible */}
-                <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
-                <Route path="/schedule" element={<ProtectedRoute><Schedule /></ProtectedRoute>} />
-                <Route path="/break-schedule" element={<ProtectedRoute><BreakSchedule /></ProtectedRoute>} />
-                <Route path="/swap-requests" element={<ProtectedRoute><SwapRequests /></ProtectedRoute>} />
-                <Route path="/swap-requests/create" element={<ProtectedRoute><CreateSwapRequest /></ProtectedRoute>} />
-                <Route path="/swap-requests/:id" element={<ProtectedRoute><SwapRequestDetail /></ProtectedRoute>} />
-                <Route path="/leave-requests" element={<ProtectedRoute><LeaveRequests /></ProtectedRoute>} />
-                <Route path="/leave-requests/create" element={<ProtectedRoute><CreateLeaveRequest /></ProtectedRoute>} />
-                <Route path="/leave-requests/:id" element={<ProtectedRoute><LeaveRequestDetail /></ProtectedRoute>} />
-                <Route path="/leave-balances" element={<ProtectedRoute><LeaveBalances /></ProtectedRoute>} />
+                <Route path="/dashboard" element={<ProtectedRoute><PageErrorBoundary><Dashboard /></PageErrorBoundary></ProtectedRoute>} />
+                <Route path="/schedule" element={<ProtectedRoute><PageErrorBoundary><Schedule /></PageErrorBoundary></ProtectedRoute>} />
+                <Route path="/break-schedule" element={<ProtectedRoute><PageErrorBoundary><BreakSchedule /></PageErrorBoundary></ProtectedRoute>} />
+                <Route path="/swap-requests" element={<ProtectedRoute><PageErrorBoundary><SwapRequests /></PageErrorBoundary></ProtectedRoute>} />
+                <Route path="/swap-requests/create" element={<ProtectedRoute><PageErrorBoundary><CreateSwapRequest /></PageErrorBoundary></ProtectedRoute>} />
+                <Route path="/swap-requests/:id" element={<ProtectedRoute><PageErrorBoundary><SwapRequestDetail /></PageErrorBoundary></ProtectedRoute>} />
+                <Route path="/leave-requests" element={<ProtectedRoute><PageErrorBoundary><LeaveRequests /></PageErrorBoundary></ProtectedRoute>} />
+                <Route path="/leave-requests/create" element={<ProtectedRoute><PageErrorBoundary><CreateLeaveRequest /></PageErrorBoundary></ProtectedRoute>} />
+                <Route path="/leave-requests/:id" element={<ProtectedRoute><PageErrorBoundary><LeaveRequestDetail /></PageErrorBoundary></ProtectedRoute>} />
+                <Route path="/leave-balances" element={<ProtectedRoute><PageErrorBoundary><LeaveBalances /></PageErrorBoundary></ProtectedRoute>} />
 
                 {/* WFM only routes - Admin access */}
-                <Route path="/settings" element={<ProtectedRoute requiredRoles={['wfm']}><Settings /></ProtectedRoute>} />
-                <Route path="/schedule/upload" element={<ProtectedRoute requiredRoles={['wfm']}><ScheduleUpload /></ProtectedRoute>} />
+                <Route path="/settings" element={<ProtectedRoute requiredRoles={['wfm']}><PageErrorBoundary><Settings /></PageErrorBoundary></ProtectedRoute>} />
+                <Route path="/schedule/upload" element={<ProtectedRoute requiredRoles={['wfm']}><PageErrorBoundary><ScheduleUpload /></PageErrorBoundary></ProtectedRoute>} />
 
                 {/* TL and WFM routes - Manager access */}
-                <Route path="/reports" element={<ProtectedRoute requiredRoles={['tl', 'wfm']}><Reports /></ProtectedRoute>} />
-                <Route path="/headcount/employees" element={<ProtectedRoute requiredRoles={['tl', 'wfm']}><EmployeeDirectory /></ProtectedRoute>} />
-                <Route path="/headcount/employees/:id" element={<ProtectedRoute requiredRoles={['tl', 'wfm']}><EmployeeDetail /></ProtectedRoute>} />
+                <Route path="/reports" element={<ProtectedRoute requiredRoles={['tl', 'wfm']}><PageErrorBoundary><Reports /></PageErrorBoundary></ProtectedRoute>} />
+                <Route path="/headcount/employees" element={<ProtectedRoute requiredRoles={['tl', 'wfm']}><PageErrorBoundary><EmployeeDirectory /></PageErrorBoundary></ProtectedRoute>} />
+                <Route path="/headcount/employees/:id" element={<ProtectedRoute requiredRoles={['tl', 'wfm']}><PageErrorBoundary><EmployeeDetail /></PageErrorBoundary></ProtectedRoute>} />
 
                 {/* Redirect root to dashboard */}
                 <Route path="/" element={<Navigate to="/dashboard" replace />} />

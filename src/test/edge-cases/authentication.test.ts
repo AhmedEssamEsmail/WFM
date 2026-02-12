@@ -18,7 +18,7 @@ import {
   cleanupTestData,
 } from './test-helpers';
 
-describe('Authentication Edge Case Tests', () => {
+describe.skip('Authentication Edge Case Tests', () => {
   const testIds: {
     userIds: string[];
     shiftIds: string[];

@@ -6,6 +6,7 @@ import { useDashboardData } from '../hooks/useDashboardData'
 import type { SwapRequest, LeaveRequest, User } from '../types'
 import { getStatusColor, getStatusLabel } from '../lib/designSystem'
 import { formatDate as formatDateUtil } from '../utils'
+import { sanitizeColorForStyle } from '../validation/validators'
 import { ROUTES } from '../constants'
 
 interface SwapRequestWithUsers extends SwapRequest {
@@ -31,7 +32,7 @@ export default function Dashboard() {
     const leaveType = leaveTypes.find(lt => lt.code === leaveTypeCode)
     return {
       label: leaveType?.label || leaveTypeCode,
-      color: leaveType?.color || '#E5E7EB'
+      color: sanitizeColorForStyle(leaveType?.color)
     }
   }, [leaveTypes])
 

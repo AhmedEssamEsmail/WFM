@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { useToast } from '../../lib/ToastContext'
+import { useToast } from '../../contexts/ToastContext'
 import { shiftConfigurationsService } from '../../services'
 import type { ShiftConfiguration } from '../../types'
 import { handleDatabaseError } from '../../lib/errorHandler'

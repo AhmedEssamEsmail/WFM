@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '../lib/supabase'
-import { useToast } from '../lib/ToastContext'
+import { useToast } from '../contexts/ToastContext'
 import { STALE_TIMES, QUERY_KEYS } from '../constants/cache'
 
 interface Setting {

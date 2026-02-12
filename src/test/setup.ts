@@ -13,3 +13,4 @@ afterEach(() => {
 // Mock environment variables
 vi.stubEnv('VITE_SUPABASE_URL', 'https://test.supabase.co')
 vi.stubEnv('VITE_SUPABASE_ANON_KEY', 'test-anon-key')
+vi.stubEnv('VITE_ALLOWED_EMAIL_DOMAIN', 'dabdoob.com')

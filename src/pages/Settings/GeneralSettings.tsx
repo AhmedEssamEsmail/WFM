@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useToast } from '../../lib/ToastContext'
+import { useToast } from '../../contexts/ToastContext'
 import { settingsService } from '../../services'
 import { SUCCESS_MESSAGES, ERROR_MESSAGES } from '../../constants'
 

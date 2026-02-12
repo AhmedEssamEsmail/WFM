@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { leaveTypesService } from '../services/leaveTypesService'
 import type { LeaveTypeConfig } from '../types'
-import { useToast } from '../lib/ToastContext'
+import { useToast } from '../contexts/ToastContext'
 import { QUERY_KEYS, STALE_TIMES } from '../constants/cache'
 
 export function useLeaveTypes() {

@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
-import { useToast } from '../../lib/ToastContext'
+import { useToast } from '../../contexts/ToastContext'
 import { leaveTypesService } from '../../services'
 import type { LeaveTypeConfig, LeaveType } from '../../types'
 import { handleDatabaseError } from '../../lib/errorHandler'

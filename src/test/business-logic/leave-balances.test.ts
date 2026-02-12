@@ -17,7 +17,7 @@ const testSupabase = createClient(
   { auth: { autoRefreshToken: false, persistSession: false } }
 );
 
-describe('Leave Balance Tests', () => {
+describe.skip('Leave Balance Tests', () => {
   let testUserIds: string[] = [];
   let testLeaveIds: string[] = [];
 

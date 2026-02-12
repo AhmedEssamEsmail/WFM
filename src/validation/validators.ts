@@ -209,6 +209,20 @@ export interface LeaveRequestValidationData {
   requestedDays: number
 }
 
+/**
+ * Type-safe field accessor for validation errors
+ * Safely retrieves a field value from an object using a path from Zod error
+ */
+function getFieldValue<T extends object, K extends keyof T>(
+  data: T,
+  field: string | number | symbol
+): T[K] | undefined {
+  if (typeof field === 'string' && field in data) {
+    return data[field as K]
+  }
+  return undefined
+}
+
 export function validateLeaveRequestData(
   data: LeaveRequestValidationData
 ): void {
@@ -216,7 +230,8 @@ export function validateLeaveRequestData(
   if (!result.success) {
     const error = result.error.issues[0]
     const fieldName = String(error.path[0])
-    throw new ValidationError(fieldName, (data as any)[fieldName], error.message)
+    const fieldValue = getFieldValue(data, fieldName)
+    throw new ValidationError(fieldName, fieldValue, error.message)
   }
 }
 
@@ -276,7 +291,8 @@ export function validateSwapRequestData(data: SwapRequestValidationData): void {
   if (!result.success) {
     const error = result.error.issues[0]
     const fieldName = String(error.path[0])
-    throw new ValidationError(fieldName, (data as any)[fieldName], error.message)
+    const fieldValue = getFieldValue(data, fieldName)
+    throw new ValidationError(fieldName, fieldValue, error.message)
   }
 }
 
@@ -379,4 +395,64 @@ export function validateBreakOrdering(
  */
 export function calculateBreakGap(time1: string, time2: string): number {
   return Math.abs(timeToMinutes(time2) - timeToMinutes(time1))
+}
+
+// ============================================
+// Color Validation for Inline Styles
+// ============================================
+
+/**
+ * Validates that a string is a valid hex color format
+ * Accepts: #RGB, #RRGGBB, #RRGGBBAA (with or without hash)
+ */
+export function isValidHexColor(color: string): boolean {
+  if (!color || typeof color !== 'string') {
+    return false
+  }
+
+  // Remove leading hash if present
+  const normalizedColor = color.replace(/^#/, '')
+
+  // Check for 3, 4, 6, or 8 digit hex colors
+  const isValidLength = normalizedColor.length === 3 || 
+                        normalizedColor.length === 4 || 
+                        normalizedColor.length === 6 || 
+                        normalizedColor.length === 8
+
+  if (!isValidLength) {
+    return false
+  }
+
+  // Check that all characters are valid hex digits
+  return /^[0-9A-Fa-f]+$/.test(normalizedColor)
+}
+
+/**
+ * Sanitizes a color value for use in inline styles
+ * Returns a safe default if the color is invalid
+ */
+export function sanitizeColorForStyle(color: unknown): string {
+  if (typeof color !== 'string') {
+    return '#E5E7EB' // Default gray
+  }
+
+  if (isValidHexColor(color)) {
+    // Ensure the color has a leading hash
+    return color.startsWith('#') ? color : `#${color}`
+  }
+
+  // If the color is a named CSS color, allow it
+  const namedColors = [
+    'red', 'blue', 'green', 'yellow', 'orange', 'purple', 'pink', 'brown',
+    'gray', 'grey', 'black', 'white', 'cyan', 'magenta', 'lime', 'navy',
+    'teal', 'olive', 'maroon', 'silver', 'aqua', 'fuchsia',
+  ]
+
+  if (namedColors.includes(color.toLowerCase())) {
+    return color
+  }
+
+  // Return default for invalid colors
+  console.warn(`Invalid color value: ${color}, using default`)
+  return '#E5E7EB'
 }

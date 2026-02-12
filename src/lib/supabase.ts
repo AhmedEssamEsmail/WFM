@@ -22,11 +22,23 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
     headers: {
       'x-application-name': 'wfm-system',
     },
+    // Configure fetch timeout (30 seconds) using Supabase's native configuration
+    // This is safer than overriding globalThis.fetch as it only affects Supabase requests
+    fetch: (url: RequestInfo | URL, init?: RequestInit) => {
+      const controller = new AbortController()
+      const timeoutId = setTimeout(() => controller.abort(), 30000)
+
+      return fetch(url, {
+        ...init,
+        signal: init?.signal || controller.signal,
+      }).finally(() => {
+        clearTimeout(timeoutId)
+      })
+    },
   },
   db: {
     schema: 'public',
   },
-  // Retry failed requests with exponential backoff
   realtime: {
     params: {
       eventsPerSecond: 10,

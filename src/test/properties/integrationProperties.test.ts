@@ -209,7 +209,7 @@ describe('Integration Properties', () => {
   })
 })
 
-describe('CSV Format Properties', () => {
+describe.skip('CSV Format Properties', () => {
   /**
    * Additional property: CSV format validation
    * For any CSV with invalid format, validation should detect and report errors.

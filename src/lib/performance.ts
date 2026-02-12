@@ -184,12 +184,16 @@ export function useLocalStorage<T>(key: string, initialValue: T): readonly [T, (
   const setValue = useCallback(
     (value: T | ((val: T) => T)) => {
       try {
-        const valueToStore = value instanceof Function ? value(storedValue) : value
-        setStoredValue(valueToStore)
-        window.localStorage.setItem(key, JSON.stringify(valueToStore))
-        
-        // Dispatch custom event for cross-tab sync
-        window.dispatchEvent(new CustomEvent('local-storage', { detail: { key, value: valueToStore } }))
+        // Get the latest value from state to avoid stale closures
+        setStoredValue((currentValue) => {
+          const valueToStore = value instanceof Function ? value(currentValue) : value
+          window.localStorage.setItem(key, JSON.stringify(valueToStore))
+          
+          // Dispatch custom event for cross-tab sync
+          window.dispatchEvent(new CustomEvent('local-storage', { detail: { key, value: valueToStore } }))
+          
+          return valueToStore
+        })
       } catch (error) {
         // Silent fail in production, log in development
         if (import.meta.env.DEV) {
@@ -197,7 +201,7 @@ export function useLocalStorage<T>(key: string, initialValue: T): readonly [T, (
         }
       }
     },
-    [key, storedValue]
+    [key]
   )
 
   // Listen for changes from other tabs

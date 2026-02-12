@@ -1,137 +1,107 @@
 /**
- * Pagination types and utilities for cursor-based pagination
+ * Pagination types and interfaces for consistent pagination across the application
  */
 
 /**
- * Pagination parameters for cursor-based pagination
+ * Parameters for paginated queries
  */
 export interface PaginationParams {
-  /** Number of items per page (default: 20, max: 100) */
-  limit?: number
-  /** Cursor for the next page (opaque string) */
-  cursor?: string
+  /** Number of items per page (default: 10) */
+  pageSize?: number
+  /** Current page number (1-indexed, default: 1) */
+  page?: number
+  /** Sort field */
+  sortBy?: string
+  /** Sort direction */
+  sortOrder?: 'asc' | 'desc'
 }
 
 /**
- * Pagination metadata returned with paginated responses
+ * Default pagination parameters
  */
-export interface PaginationMeta {
-  /** Total number of items (if available) */
-  total?: number
-  /** Number of items in current page */
-  count: number
-  /** Cursor for the next page (null if no more pages) */
-  nextCursor: string | null
-  /** Cursor for the previous page (null if first page) */
-  prevCursor: string | null
-  /** Whether there are more pages */
-  hasMore: boolean
+export const DEFAULT_PAGINATION_PARAMS: PaginationParams = {
+  pageSize: 10,
+  page: 1,
+  sortBy: 'created_at',
+  sortOrder: 'desc',
 }
 
 /**
- * Generic paginated response wrapper
+ * Result of a paginated query
  */
-export interface PaginatedResponse<T> {
-  /** Array of items for current page */
+export interface PaginatedResult<T> {
+  /** Array of items for the current page */
   data: T[]
-  /** Pagination metadata */
-  meta: PaginationMeta
+  /** Total number of items across all pages */
+  total: number
+  /** Current page number (1-indexed) */
+  page: number
+  /** Number of items per page */
+  pageSize: number
+  /** Total number of pages */
+  totalPages: number
+  /** Whether there is a next page */
+  hasNextPage: boolean
+  /** Whether there is a previous page */
+  hasPreviousPage: boolean
 }
 
 /**
- * Cursor data structure (internal representation)
+ * State for pagination UI components
  */
-interface CursorData {
-  /** Timestamp or ID for cursor position */
-  value: string
-  /** Direction of pagination */
-  direction: 'next' | 'prev'
+export interface PaginationState {
+  /** Current page number (1-indexed) */
+  currentPage: number
+  /** Number of items per page */
+  pageSize: number
+  /** Total number of items */
+  totalItems: number
+  /** Total number of pages */
+  totalPages: number
 }
 
 /**
- * Encode cursor data to opaque string
- * Uses base64 encoding for URL safety
+ * Actions for pagination UI components
  */
-export function encodeCursor(value: string, direction: 'next' | 'prev' = 'next'): string {
-  const cursorData: CursorData = { value, direction }
-  const jsonString = JSON.stringify(cursorData)
-  return btoa(jsonString)
+export interface PaginationActions {
+  /** Go to next page */
+  nextPage: () => void
+  /** Go to previous page */
+  prevPage: () => void
+  /** Go to specific page */
+  goToPage: (page: number) => void
+  /** Change page size */
+  setPageSize: (size: number) => void
+  /** Reset to first page */
+  reset: () => void
 }
 
 /**
- * Decode cursor string to cursor data
- * Returns null if cursor is invalid
+ * Calculate pagination metadata from params and total count
  */
-export function decodeCursor(cursor: string): CursorData | null {
-  try {
-    const jsonString = atob(cursor)
-    const cursorData = JSON.parse(jsonString) as CursorData
-    
-    // Validate cursor structure
-    if (!cursorData.value || !cursorData.direction) {
-      return null
-    }
-    
-    if (cursorData.direction !== 'next' && cursorData.direction !== 'prev') {
-      return null
-    }
-    
-    return cursorData
-  } catch {
-    // Invalid cursor format
-    return null
-  }
-}
+export function calculatePagination(
+  params: PaginationParams,
+  total: number
+): Omit<PaginatedResult<unknown>, 'data'> {
+  const page = params.page ?? DEFAULT_PAGINATION_PARAMS.page!
+  const pageSize = params.pageSize ?? DEFAULT_PAGINATION_PARAMS.pageSize!
+  const totalPages = Math.ceil(total / pageSize)
 
-/**
- * Create pagination metadata from query results
- */
-export function createPaginationMeta<T>(
-  items: T[],
-  limit: number,
-  getCursorValue: (item: T) => string,
-  total?: number
-): PaginationMeta {
-  const count = items.length
-  const hasMore = count === limit
-  
-  // Generate next cursor from last item
-  const nextCursor = hasMore && items.length > 0
-    ? encodeCursor(getCursorValue(items[items.length - 1]), 'next')
-    : null
-  
-  // Previous cursor is not typically used in infinite scroll
-  // but can be implemented if needed
-  const prevCursor = null
-  
   return {
     total,
-    count,
-    nextCursor,
-    prevCursor,
-    hasMore,
+    page,
+    pageSize,
+    totalPages,
+    hasNextPage: page < totalPages,
+    hasPreviousPage: page > 1,
   }
 }
 
 /**
- * Default pagination limit
+ * Calculate offset for database queries
  */
-export const DEFAULT_PAGE_LIMIT = 20
-
-/**
- * Maximum pagination limit
- */
-export const MAX_PAGE_LIMIT = 100
-
-/**
- * Validate and normalize pagination parameters
- */
-export function normalizePaginationParams(params?: PaginationParams): Required<PaginationParams> {
-  const limit = params?.limit 
-    ? Math.min(Math.max(1, params.limit), MAX_PAGE_LIMIT)
-    : DEFAULT_PAGE_LIMIT
-  
-  const cursor = params?.cursor || ''
-  
-  return { limit, cursor }
+export function calculateOffset(params: PaginationParams): number {
+  const page = params.page ?? DEFAULT_PAGINATION_PARAMS.page!
+  const pageSize = params.pageSize ?? DEFAULT_PAGINATION_PARAMS.pageSize!
+  return (page - 1) * pageSize
 }

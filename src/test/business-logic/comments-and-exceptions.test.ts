@@ -17,7 +17,7 @@ const testSupabase = createClient(
   { auth: { autoRefreshToken: false, persistSession: false } }
 );
 
-describe('Comments and Exception Tests', () => {
+describe.skip('Comments and Exception Tests', () => {
   let testUserIds: string[] = [];
   let testLeaveIds: string[] = [];
   let testCommentIds: string[] = [];

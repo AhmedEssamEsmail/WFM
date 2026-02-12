@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { overtimeRequestsService } from '../services/overtimeRequestsService'
 import type { OvertimeRequestFilters, CreateOvertimeRequestInput } from '../types/overtime'
-import { useToast } from '../lib/ToastContext'
+import { useToast } from '../contexts/ToastContext'
 import { STALE_TIMES, QUERY_KEYS } from '../constants/cache'
 
 export function useOvertimeRequests(filters?: OvertimeRequestFilters) {

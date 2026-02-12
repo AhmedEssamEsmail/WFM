@@ -63,40 +63,68 @@ export function logUnauthorizedAccess(
 
 /**
  * Store security log entry in local storage for debugging
- * Maintains a rolling buffer of the last 50 security events
+ * Maintains a rolling buffer of the last 50 security events with TTL and size limits
  */
 function storeSecurityLog(entry: SecurityLogEntry): void {
   try {
-    const key = 'security_logs'
+    const key = 'wfm_security_logs'
+    const maxLogs = 50
+    const maxSize = 1024 * 50 // 50KB max
+    const ttl = 1000 * 60 * 60 * 24 // 24 hours
+    
     const stored = localStorage.getItem(key)
     const logs: SecurityLogEntry[] = stored ? JSON.parse(stored) : []
 
-    // Add new entry
-    logs.push(entry)
+    // Filter out expired logs
+    const now = Date.now()
+    const validLogs = logs.filter(log => {
+      const logTime = new Date(log.timestamp).getTime()
+      return now - logTime < ttl
+    })
 
-    // Keep only last 50 entries
-    if (logs.length > 50) {
-      logs.shift()
+    // Add new entry
+    validLogs.push(entry)
+
+    // Keep only last maxLogs entries
+    const trimmedLogs = validLogs.slice(-maxLogs)
+    
+    // Check size and trim further if needed
+    let serialized = JSON.stringify(trimmedLogs)
+    let finalLogs = trimmedLogs
+    
+    while (serialized.length > maxSize && finalLogs.length > 10) {
+      finalLogs = finalLogs.slice(-Math.floor(finalLogs.length * 0.8))
+      serialized = JSON.stringify(finalLogs)
     }
 
-    localStorage.setItem(key, JSON.stringify(logs))
+    localStorage.setItem(key, serialized)
   } catch (error) {
-    // Silently fail if localStorage is not available
-    console.error('Failed to store security log:', error)
+    // Silently fail if localStorage is not available or quota exceeded
+    if (import.meta.env.DEV) {
+      console.error('Failed to store security log:', error)
+    }
   }
 }
 
 /**
  * Retrieve recent security logs for debugging
- * Returns the last N security log entries
+ * Returns the last N security log entries (automatically filters expired logs)
  */
 export function getSecurityLogs(limit: number = 50): SecurityLogEntry[] {
   try {
-    const key = 'security_logs'
+    const key = 'wfm_security_logs'
+    const ttl = 1000 * 60 * 60 * 24 // 24 hours
     const stored = localStorage.getItem(key)
     const logs: SecurityLogEntry[] = stored ? JSON.parse(stored) : []
 
-    return logs.slice(-limit)
+    // Filter out expired logs
+    const now = Date.now()
+    const validLogs = logs.filter(log => {
+      const logTime = new Date(log.timestamp).getTime()
+      return now - logTime < ttl
+    })
+
+    return validLogs.slice(-limit)
   } catch (error) {
     console.error('Failed to retrieve security logs:', error)
     return []
@@ -108,7 +136,7 @@ export function getSecurityLogs(limit: number = 50): SecurityLogEntry[] {
  */
 export function clearSecurityLogs(): void {
   try {
-    localStorage.removeItem('security_logs')
+    localStorage.removeItem('wfm_security_logs')
   } catch (error) {
     console.error('Failed to clear security logs:', error)
   }

@@ -1,5 +1,5 @@
 import { useContext, useCallback } from 'react'
-import { AuthContext } from '../lib/AuthContext'
+import { AuthContext } from '../contexts/AuthContext'
 import type { UserRole } from '../types'
 
 export function useAuth() {

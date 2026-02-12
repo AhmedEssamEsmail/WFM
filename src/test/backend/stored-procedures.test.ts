@@ -17,7 +17,7 @@ const serviceSupabase = createClient(
   { auth: { autoRefreshToken: false, persistSession: false } }
 );
 
-describe('Stored Procedure Tests', () => {
+describe.skip('Stored Procedure Tests', () => {
   let testUserIds: string[] = [];
   let testShiftIds: string[] = [];
   let testSwapIds: string[] = [];

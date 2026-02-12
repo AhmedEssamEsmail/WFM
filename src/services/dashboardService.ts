@@ -22,6 +22,7 @@ export const dashboardService = {
   /**
    * Get pending items for the dashboard
    * Fetches recent swap and leave requests, filtered and sorted by user role
+   * Limited to 10 most recent items for performance
    * 
    * @param userId - Current user's ID
    * @param isManager - Whether the user is a manager (TL or WFM)
@@ -49,9 +50,12 @@ export const dashboardService = {
       })
     }
 
+    // Limit to 10 most recent items
+    const limitedSwaps = filteredSwaps.slice(0, 10)
+
     // Map the data to match the expected interface structure
     // Service returns 'target' but interface expects 'target_user'
-    const mappedSwaps = filteredSwaps.slice(0, 5).map(swap => ({
+    const mappedSwaps = limitedSwaps.map(swap => ({
       ...swap,
       requester: (swap as SwapRequestWithUsers).requester,
       target_user: (swap as SwapRequestWithUsers & { target?: User }).target || (swap as SwapRequestWithUsers).target_user
@@ -72,9 +76,12 @@ export const dashboardService = {
       })
     }
 
+    // Limit to 10 most recent items
+    const limitedLeaves = filteredLeaves.slice(0, 10)
+
     // Map the data to match the expected interface structure
     // Service returns 'users' (plural) but interface expects 'user' (singular)
-    const mappedLeaves = filteredLeaves.slice(0, 5).map(leave => ({
+    const mappedLeaves = limitedLeaves.map(leave => ({
       ...leave,
       user: (leave as LeaveRequestWithUser & { users?: User }).users || (leave as LeaveRequestWithUser).user
     })) as LeaveRequestWithUser[]

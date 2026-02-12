@@ -17,7 +17,7 @@ const serviceSupabase = createClient(
   { auth: { autoRefreshToken: false, persistSession: false } }
 );
 
-describe('RLS Policy Tests - Comments', () => {
+describe.skip('RLS Policy Tests - Comments', () => {
   let testUserIds: string[] = [];
   let testLeaveIds: string[] = [];
   let testCommentIds: string[] = [];

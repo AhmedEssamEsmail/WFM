@@ -1,11 +1,113 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { breakSchedulesService } from '../../services/breakSchedulesService'
 import type { BreakSchedule, BreakScheduleWarning } from '../../types'
+import { BREAK_SCHEDULE } from '../../constants'
 
-// Mock Supabase
+// Define the same constants as the service file
+const { TABLE_NAMES: BREAK_SCHEDULES_TABLE_NAMES, HOURS, INTERVAL_MINUTES } = BREAK_SCHEDULE
+
+const createMockQuery = (data: any, error: any = null) => ({
+  select: vi.fn().mockReturnThis(),
+  eq: vi.fn().mockReturnThis(),
+  neq: vi.fn().mockReturnThis(),
+  order: vi.fn().mockReturnThis(),
+  then: (resolve: any, reject: any) => {
+    if (error) reject(error)
+    else resolve({ data, error })
+    return Promise.resolve({ data, error })
+  },
+})
+
+const createMockQueryWithSingle = (data: any, error: any = null) => ({
+  select: vi.fn().mockReturnThis(),
+  eq: vi.fn().mockReturnThis(),
+  neq: vi.fn().mockReturnThis(),
+  order: vi.fn().mockReturnThis(),
+  single: vi.fn().mockResolvedValue({ data, error }),
+  then: (resolve: any, reject: any) => {
+    if (error) reject(error)
+    else resolve({ data, error })
+    return Promise.resolve({ data, error })
+  },
+})
+
+// Create a mock delete chain that supports eq().eq().eq().neq()
+const createMockDeleteChain = (error: any = null) => {
+  // Create a chainable object that supports eq().eq().eq().neq()
+  const chain: any = {
+    then: (resolve: any, reject: any) => {
+      if (error) reject(error)
+      else resolve({ data: null, error })
+      return Promise.resolve({ data: null, error })
+    },
+  }
+  
+  // Create a recursive eq function that returns the chain
+  const eqFn = vi.fn().mockImplementation(() => chain)
+  chain.eq = eqFn
+  chain.neq = vi.fn().mockReturnValue(chain)
+  
+  return {
+    eq: eqFn,
+  }
+}
+
+const createMockInsert = (error: any = null) => ({
+  select: vi.fn().mockReturnThis(),
+  then: (resolve: any, reject: any) => {
+    if (error) reject(error)
+    else resolve({ data: [{ id: 'new-id' }], error })
+    return Promise.resolve({ data: [{ id: 'new-id' }], error })
+  },
+})
+
+const createMockUpdate = (error: any = null) => ({
+  eq: vi.fn().mockReturnThis(),
+  then: (resolve: any, reject: any) => {
+    if (error) reject(error)
+    else resolve({ data: null, error })
+    return Promise.resolve({ data: null, error })
+  },
+})
+
+// Mock Supabase before importing the service
 vi.mock('../../lib/supabase', () => ({
   supabase: {
-    from: vi.fn(),
+    from: vi.fn((table: string) => {
+      if (table === 'shifts') {
+        return createMockQueryWithSingle({ id: 'shift1', shift_type: 'AM' })
+      }
+      if (table === 'break_schedules') {
+        return {
+          ...createMockQuery([]),
+          delete: vi.fn().mockImplementation(() => createMockDeleteChain()),
+          insert: vi.fn().mockReturnValue(createMockInsert()),
+          upsert: vi.fn().mockResolvedValue({ error: null }),
+        }
+      }
+      if (table === 'break_schedule_warnings') {
+        return createMockQuery([])
+      }
+      return createMockQuery(null)
+    }),
+  },
+}))
+
+// Mock shift configurations service
+vi.mock('../../services/shiftConfigurationsService', () => ({
+  shiftConfigurationsService: {
+    getShiftHoursMap: vi.fn().mockResolvedValue({
+      AM: { start: '09:00:00', end: '17:00:00' },
+      PM: { start: '13:00:00', end: '21:00:00' },
+      BET: { start: '11:00:00', end: '19:00:00' },
+      OFF: null,
+    }),
+    getActiveShiftConfigurations: vi.fn().mockResolvedValue([
+      { shift_code: 'AM', start_time: '09:00:00', end_time: '17:00:00' },
+      { shift_code: 'PM', start_time: '13:00:00', end_time: '21:00:00' },
+      { shift_code: 'BET', start_time: '11:00:00', end_time: '19:00:00' },
+      { shift_code: 'OFF', start_time: '00:00:00', end_time: '00:00:00' },
+    ]),
   },
 }))
 
@@ -247,10 +349,15 @@ describe('breakSchedulesService', () => {
           return {
             delete: vi.fn().mockReturnValue({
               eq: vi.fn().mockReturnValue({
-                eq: vi.fn().mockResolvedValue({ error: null }),
+                eq: vi.fn().mockReturnValue({
+                  eq: vi.fn().mockReturnValue({
+                    neq: vi.fn().mockResolvedValue({ error: null }),
+                  }),
+                }),
               }),
             }),
             insert: vi.fn().mockResolvedValue({ error: null }),
+            upsert: vi.fn().mockResolvedValue({ error: null }),
           } as any
         }
         return {} as any
@@ -286,10 +393,10 @@ describe('breakSchedulesService', () => {
       const request = {
         user_id: 'user1',
         schedule_date: '2024-01-01',
-        intervals: [],
+        intervals: [{ interval_start: '10:00:00', break_type: 'HB1' as const }],
       }
 
-      await expect(breakSchedulesService.updateBreakSchedule(request)).rejects.toThrow()
+      await expect(breakSchedulesService.updateBreakSchedule(request)).rejects.toThrow('Shift not found')
     })
   })
 
@@ -314,10 +421,15 @@ describe('breakSchedulesService', () => {
           return {
             delete: vi.fn().mockReturnValue({
               eq: vi.fn().mockReturnValue({
-                eq: vi.fn().mockResolvedValue({ error: null }),
+                eq: vi.fn().mockReturnValue({
+                  eq: vi.fn().mockReturnValue({
+                    neq: vi.fn().mockResolvedValue({ error: null }),
+                  }),
+                }),
               }),
             }),
             insert: vi.fn().mockResolvedValue({ error: null }),
+            upsert: vi.fn().mockResolvedValue({ error: null }),
           } as any
         }
         return {} as any
