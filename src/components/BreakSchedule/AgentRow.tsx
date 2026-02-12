@@ -83,11 +83,26 @@ export default function AgentRow({
       <td className="px-4 py-3 text-center text-sm text-gray-900">
         {formatTime(schedule.breaks?.HB2 || null)}
       </td>
-      {intervals.map((intervalStart) => {
+      {intervals.map((intervalStart, index) => {
         const breakType = schedule.intervals[intervalStart] || null
         
+        // Skip rendering if this interval is the second part of a 30-minute break
+        if (index > 0) {
+          const prevInterval = intervals[index - 1]
+          const prevBreakType = schedule.intervals[prevInterval]
+          if (prevBreakType === 'B' && breakType === 'B') {
+            return null
+          }
+        }
+        
+        // Check if this is the start of a 30-minute break (Break B)
+        const isBreakBStart = breakType === 'B' && index < intervals.length - 1
+        const nextInterval = isBreakBStart ? intervals[index + 1] : null
+        const nextBreakType = nextInterval ? schedule.intervals[nextInterval] : null
+        const colspan = isBreakBStart && nextBreakType === 'B' ? 2 : 1
+        
         return (
-          <td key={intervalStart} className="px-2 py-3 text-center">
+          <td key={intervalStart} className="px-2 py-3 text-center" colSpan={colspan}>
             <BreakCell
               breakType={breakType}
               onClick={(selectedBreakType) => onBreakClick?.(intervalStart, selectedBreakType)}
