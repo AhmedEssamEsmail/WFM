@@ -94,7 +94,7 @@ export function CoverageChart({ data }: CoverageChartProps) {
       <div className="mt-6 flex flex-wrap items-center justify-center gap-4 text-sm">
         <div className="flex items-center gap-2">
           <div className="w-4 h-4 bg-green-500 rounded" aria-hidden="true"></div>
-          <span className="text-gray-700">Adequate (>12)</span>
+          <span className="text-gray-700">Adequate (&gt;12)</span>
         </div>
         <div className="flex items-center gap-2">
           <div className="w-4 h-4 bg-yellow-500 rounded" aria-hidden="true"></div>

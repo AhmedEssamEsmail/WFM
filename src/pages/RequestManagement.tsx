@@ -88,6 +88,7 @@ export default function RequestManagement() {
       'pending_acceptance': 3,
       'approved': 4,
       'rejected': 5,
+      'denied': 5, // Same as rejected
     }
     return priority[status] || 999
   }
@@ -349,6 +350,5 @@ export default function RequestManagement() {
           Showing {filteredRequests.length} of {unifiedRequests.length} requests
         </div>
       </div>
-    </div>
   )
 }
