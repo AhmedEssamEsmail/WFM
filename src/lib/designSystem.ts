@@ -71,13 +71,13 @@ export const SEMANTIC_COLORS = {
 } as const
 
 // ============================================
-// SHIFT TYPE COLORS
+// SHIFT TYPE COLORS (WFM v2 style - with borders)
 // ============================================
 export const SHIFT_COLORS: Record<ShiftType, string> = {
-  AM: 'bg-blue-100 text-blue-900 dark:bg-blue-900/30 dark:text-blue-300',
-  PM: 'bg-purple-100 text-purple-900 dark:bg-purple-900/30 dark:text-purple-300',
-  BET: 'bg-orange-100 text-orange-900 dark:bg-orange-900/30 dark:text-orange-300',
-  OFF: 'bg-slate-200 text-slate-900 dark:bg-slate-700 dark:text-slate-300',
+  AM: 'bg-sky-100 text-sky-700 border-sky-200 dark:bg-sky-900/30 dark:text-sky-300 dark:border-sky-800',
+  PM: 'bg-purple-100 text-purple-700 border-purple-200 dark:bg-purple-900/30 dark:text-purple-300 dark:border-purple-800',
+  BET: 'bg-orange-100 text-orange-700 border-orange-200 dark:bg-orange-900/30 dark:text-orange-300 dark:border-orange-800',
+  OFF: 'bg-slate-200 text-slate-700 border-slate-300 dark:bg-slate-700 dark:text-slate-300 dark:border-slate-600',
 } as const
 
 export const SHIFT_LABELS: Record<ShiftType, string> = {
@@ -85,6 +85,13 @@ export const SHIFT_LABELS: Record<ShiftType, string> = {
   PM: 'PM',
   BET: 'BET',
   OFF: 'OFF',
+} as const
+
+export const SHIFT_TIMES: Record<ShiftType, { start: string; end: string }> = {
+  AM: { start: '08:00', end: '16:00' },
+  PM: { start: '16:00', end: '00:00' },
+  BET: { start: '12:00', end: '20:00' },
+  OFF: { start: '', end: '' },
 } as const
 
 export const SHIFT_DESCRIPTIONS: Record<ShiftType, string> = {

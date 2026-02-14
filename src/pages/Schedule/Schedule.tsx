@@ -4,7 +4,7 @@ import { useAuth } from '../../hooks/useAuth'
 import { useLeaveTypes } from '../../hooks/useLeaveTypes'
 import { User, Shift, ShiftType, LeaveType, LeaveRequest } from '../../types'
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, addMonths, subMonths, isWithinInterval, parseISO } from 'date-fns'
-import { SHIFT_COLORS, SHIFT_LABELS, SHIFT_DESCRIPTIONS } from '../../lib/designSystem'
+import { SHIFT_COLORS, SHIFT_LABELS, SHIFT_DESCRIPTIONS, SHIFT_TIMES } from '../../lib/designSystem'
 import { shiftsService, leaveRequestsService } from '../../services'
 import { formatDateISO } from '../../utils'
 import { handleDatabaseError } from '../../lib/errorHandler'
@@ -425,15 +425,20 @@ export default function Schedule() {
                                 </span>
                               </div>
                             ) : shift ? (
-                              <div className="relative">
-                                <span className={`inline-flex items-center px-2 py-1 rounded text-xs font-medium ${SHIFT_COLORS[shift.shift_type]}`}>
-                                  {SHIFT_LABELS[shift.shift_type]}
-                                </span>
-                                {shift.swapped_with_user_id && (
-                                  <div className="text-xs text-slate-500 dark:text-slate-400 mt-1 truncate" title={`Swapped with ${swappedUserNames[shift.swapped_with_user_id] || 'Unknown'}`}>
-                                    â {swappedUserNames[shift.swapped_with_user_id]?.split(' ')[0] || '?'}
-                                  </div>
-                                )}
+                              <div className="relative h-full min-h-[60px] p-1">
+                                <div className={`h-full rounded-md p-2 text-xs border ${SHIFT_COLORS[shift.shift_type]} ${canEdit ? 'cursor-pointer hover:brightness-95' : ''} transition-all flex flex-col justify-between`}>
+                                  <div className="font-bold">{SHIFT_LABELS[shift.shift_type]}</div>
+                                  {shift.shift_type !== 'OFF' && SHIFT_TIMES[shift.shift_type].start && (
+                                    <div className="opacity-80 text-[10px]">
+                                      {SHIFT_TIMES[shift.shift_type].start} - {SHIFT_TIMES[shift.shift_type].end}
+                                    </div>
+                                  )}
+                                  {shift.swapped_with_user_id && (
+                                    <div className="text-[10px] opacity-70 mt-1 truncate" title={`Swapped with ${swappedUserNames[shift.swapped_with_user_id] || 'Unknown'}`}>
+                                       {swappedUserNames[shift.swapped_with_user_id]?.split(' ')[0] || '?'}
+                                    </div>
+                                  )}
+                                </div>
                               </div>
                             ) : canEdit ? (
                               <span className="text-slate-300 dark:text-slate-600 text-xs">+</span>
@@ -460,7 +465,7 @@ export default function Schedule() {
                 <div className="flex flex-wrap gap-4">
                   {Object.entries(SHIFT_COLORS).map(([type, color]) => (
                     <div key={type} className="flex items-center gap-2">
-                      <span className={`inline-flex items-center px-2 py-1 rounded text-xs font-medium ${color}`}>
+                      <span className={`inline-flex items-center px-2 py-1 rounded-md text-xs font-medium border ${color}`}>
                         {SHIFT_LABELS[type as ShiftType]}
                       </span>
                       <span className="text-sm text-slate-600 dark:text-slate-300">
@@ -530,7 +535,7 @@ export default function Schedule() {
                           : 'border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600'
                       }`}
                     >
-                      <span className={`inline-flex items-center px-2 py-1 rounded text-xs font-medium ${SHIFT_COLORS[type]}`}>
+                      <span className={`inline-flex items-center px-2 py-1 rounded-md text-xs font-medium border ${SHIFT_COLORS[type]}`}>
                         {SHIFT_LABELS[type]}
                       </span>
                     </button>
