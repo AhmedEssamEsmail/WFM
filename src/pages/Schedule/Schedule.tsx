@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'
+﻿import { useState, useEffect, useCallback } from 'react'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../hooks/useAuth'
 import { useLeaveTypes } from '../../hooks/useLeaveTypes'
@@ -352,7 +352,7 @@ export default function Schedule() {
     : format(currentDate, 'MMMM yyyy')
 
   return (
-    <div className="space-y-6 w-full max-w-[90%] mx-auto">
+    <div className="space-y-6 w-full max-w-[90%] mx-auto ml-[5%]">
       <div className="space-y-4">
         <div className="sm:flex sm:items-center sm:justify-between">
           <div>
@@ -519,17 +519,25 @@ export default function Schedule() {
                                 {getLeaveTypeLabel(leave.leave_type as LeaveType)}
                               </div>
                             ) : shift ? (
-                              <div className="h-full w-full min-h-[60px]">
-                                <div className={`h-full w-full flex flex-col items-center justify-center px-2 py-2 rounded text-xs border ${getShiftDisplay(shift.shift_type).color}`}>
-                                  <span className="font-bold">{getShiftDisplay(shift.shift_type).name}</span>
-                                  <span className="text-[10px] mt-1">{getShiftDisplay(shift.shift_type).timeRange}</span>
+                              shift.shift_type === 'OFF' ? (
+                                <div 
+                                  className="h-full w-full flex items-center justify-center rounded px-2 py-3 text-xs font-bold border min-h-[60px] bg-gray-200 text-gray-900 border-gray-300"
+                                >
+                                  {getShiftDisplay(shift.shift_type).name}
                                 </div>
-                                {shift.swapped_with_user_id && (
-                                  <div className="text-xs text-gray-500 mt-1 truncate" title={`Swapped with ${swappedUserNames[shift.swapped_with_user_id] || 'Unknown'}`}>
-                                    â {swappedUserNames[shift.swapped_with_user_id]?.split(' ')[0] || '?'}
+                              ) : (
+                                <div className="h-full w-full min-h-[60px]">
+                                  <div className={`h-full w-full flex flex-col items-center justify-center px-2 py-2 rounded text-xs border ${getShiftDisplay(shift.shift_type).color}`}>
+                                    <span className="font-bold">{getShiftDisplay(shift.shift_type).name}</span>
+                                    <span className="text-[10px] mt-1">{getShiftDisplay(shift.shift_type).timeRange}</span>
                                   </div>
-                                )}
-                              </div>
+                                  {shift.swapped_with_user_id && (
+                                    <div className="text-xs text-gray-500 mt-1 truncate" title={`Swapped with ${swappedUserNames[shift.swapped_with_user_id] || 'Unknown'}`}>
+                                      ↔ {swappedUserNames[shift.swapped_with_user_id]?.split(' ')[0] || '?'}
+                                    </div>
+                                  )}
+                                </div>
+                              )
                             ) : canEdit ? (
                               <span className="text-gray-300 text-xs">+</span>
                             ) : (
