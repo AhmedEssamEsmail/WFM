@@ -59,7 +59,7 @@ export default function RequestManagement() {
   // Determine available actions based on user role and request status
   const getAvailableActions = (
     status: SwapRequestStatus | LeaveRequestStatus,
-    requesterId: string
+    _requesterId: string
   ): RequestAction[] => {
     const actions: RequestAction[] = []
 
