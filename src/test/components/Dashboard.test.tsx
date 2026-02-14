@@ -3,9 +3,10 @@ import { render, screen, waitFor } from '@testing-library/react'
 import { BrowserRouter } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import Dashboard from '../../pages/Dashboard'
-import { AuthContext } from '../../lib/AuthContext'
-import { ToastProvider } from '../../lib/ToastContext'
+import { AuthContext } from '../../contexts/AuthContext'
+import { ToastProvider } from '../../contexts/ToastContext'
 import { dashboardService } from '../../services/dashboardService'
+import { useDashboardStats } from '../../hooks/useDashboardStats'
 import type { User, SwapRequest, LeaveRequest } from '../../types'
 
 // Mock dashboard service
@@ -13,6 +14,11 @@ vi.mock('../../services/dashboardService', () => ({
   dashboardService: {
     getPendingItems: vi.fn()
   }
+}))
+
+// Mock useDashboardStats hook
+vi.mock('../../hooks/useDashboardStats', () => ({
+  useDashboardStats: vi.fn()
 }))
 
 // Mock useLeaveTypes hook
@@ -92,6 +98,19 @@ describe('Dashboard Component', () => {
       created_at: '2024-01-01T00:00:00Z'
     }
 
+    // Mock useDashboardStats to return default stats
+    vi.mocked(useDashboardStats).mockReturnValue({
+      data: {
+        totalStaff: 10,
+        activeShifts: 5,
+        pendingRequests: 3,
+        openSwaps: 2
+      },
+      isLoading: false,
+      error: null,
+      refetch: vi.fn()
+    } as any)
+
     vi.clearAllMocks()
   })
 
@@ -121,6 +140,46 @@ describe('Dashboard Component', () => {
       expect(screen.getByText(/Welcome back, John Doe!/i)).toBeInTheDocument()
     })
 
+    it('should render stat cards with correct values', async () => {
+      vi.mocked(dashboardService.getPendingItems).mockResolvedValue({
+        swapRequests: [],
+        leaveRequests: []
+      })
+
+      renderDashboard()
+
+      await waitFor(() => {
+        expect(screen.getByText('Total Staff')).toBeInTheDocument()
+        expect(screen.getByText('10')).toBeInTheDocument()
+        expect(screen.getByText('Active Shifts')).toBeInTheDocument()
+        expect(screen.getByText('5')).toBeInTheDocument()
+        expect(screen.getByText('Pending Requests')).toBeInTheDocument()
+        expect(screen.getByText('3')).toBeInTheDocument()
+        expect(screen.getByText('Open Swaps')).toBeInTheDocument()
+        expect(screen.getByText('2')).toBeInTheDocument()
+      })
+    })
+
+    it('should show loading skeleton for stat cards when loading', () => {
+      vi.mocked(useDashboardStats).mockReturnValue({
+        data: undefined,
+        isLoading: true,
+        error: null,
+        refetch: vi.fn()
+      } as any)
+
+      vi.mocked(dashboardService.getPendingItems).mockResolvedValue({
+        swapRequests: [],
+        leaveRequests: []
+      })
+
+      renderDashboard()
+
+      // Check for loading skeleton by class name
+      const skeletons = document.querySelectorAll('.animate-pulse')
+      expect(skeletons.length).toBeGreaterThan(0)
+    })
+
     it('should render action cards', async () => {
       vi.mocked(dashboardService.getPendingItems).mockResolvedValue({
         swapRequests: [],
@@ -144,6 +203,8 @@ describe('Dashboard Component', () => {
       await waitFor(() => {
         expect(screen.getByText('John Requester')).toBeInTheDocument()
         expect(screen.getByText('→ Jane Target')).toBeInTheDocument()
+        // Check for TypeBadge and StatusBadge
+        expect(screen.getByText('Swap')).toBeInTheDocument()
       })
     })
 
@@ -157,7 +218,70 @@ describe('Dashboard Component', () => {
 
       await waitFor(() => {
         expect(screen.getByText('John Doe')).toBeInTheDocument()
-        expect(screen.getByText('Annual Leave')).toBeInTheDocument()
+        // Check for TypeBadge using aria-label
+        expect(screen.getByLabelText('Request type: Leave')).toBeInTheDocument()
+      })
+    })
+
+    it('should render unified recent requests with both swap and leave requests', async () => {
+      vi.mocked(dashboardService.getPendingItems).mockResolvedValue({
+        swapRequests: mockSwapRequests as any,
+        leaveRequests: mockLeaveRequests as any
+      })
+
+      renderDashboard()
+
+      await waitFor(() => {
+        // Check for unified section title
+        expect(screen.getByText('Recent Requests')).toBeInTheDocument()
+        // Check both request types are displayed
+        expect(screen.getByText('John Requester')).toBeInTheDocument()
+        expect(screen.getByText('John Doe')).toBeInTheDocument()
+        // Check for type badges using aria-labels
+        expect(screen.getByLabelText('Request type: Swap')).toBeInTheDocument()
+        expect(screen.getByLabelText('Request type: Leave')).toBeInTheDocument()
+      })
+    })
+
+    it('should limit recent requests to 10 items', async () => {
+      // Create 15 swap requests
+      const manySwapRequests = Array.from({ length: 15 }, (_, i) => ({
+        id: `swap-${i}`,
+        requester_id: 'user-1',
+        target_user_id: 'user-2',
+        requester_shift_id: 'shift-1',
+        target_shift_id: 'shift-2',
+        status: 'pending_acceptance',
+        created_at: new Date(2024, 0, i + 1).toISOString(),
+        updated_at: new Date(2024, 0, i + 1).toISOString(),
+        requester: {
+          id: 'user-1',
+          email: 'requester@dabdoob.com',
+          name: `Requester ${i}`,
+          role: 'agent',
+          created_at: '2024-01-01T00:00:00Z'
+        },
+        target_user: {
+          id: 'user-2',
+          email: 'target@dabdoob.com',
+          name: 'Jane Target',
+          role: 'agent',
+          created_at: '2024-01-01T00:00:00Z'
+        }
+      }))
+
+      vi.mocked(dashboardService.getPendingItems).mockResolvedValue({
+        swapRequests: manySwapRequests as any,
+        leaveRequests: []
+      })
+
+      renderDashboard()
+
+      await waitFor(() => {
+        // Count the number of request items (each has a unique requester name)
+        const requestItems = document.querySelectorAll('[class*="hover:bg-gray-50"]')
+        // Should be 10 or fewer (10 requests + action cards)
+        expect(requestItems.length).toBeLessThanOrEqual(12) // 10 requests + 2 action cards
       })
     })
   })
@@ -221,7 +345,7 @@ describe('Dashboard Component', () => {
       expect(screen.getByText(/Welcome back, John Doe!/i)).toBeInTheDocument()
     })
 
-    it('should show empty state when no swap requests', async () => {
+    it('should show empty state when no requests', async () => {
       vi.mocked(dashboardService.getPendingItems).mockResolvedValue({
         swapRequests: [],
         leaveRequests: []
@@ -230,20 +354,7 @@ describe('Dashboard Component', () => {
       renderDashboard()
 
       await waitFor(() => {
-        expect(screen.getByText('No swap requests found')).toBeInTheDocument()
-      })
-    })
-
-    it('should show empty state when no leave requests', async () => {
-      vi.mocked(dashboardService.getPendingItems).mockResolvedValue({
-        swapRequests: [],
-        leaveRequests: []
-      })
-
-      renderDashboard()
-
-      await waitFor(() => {
-        expect(screen.getByText('No leave requests found')).toBeInTheDocument()
+        expect(screen.getByText('No recent requests found')).toBeInTheDocument()
       })
     })
   })

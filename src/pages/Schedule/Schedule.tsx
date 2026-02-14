@@ -2,12 +2,14 @@ import { useState, useEffect, useCallback } from 'react'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../hooks/useAuth'
 import { useLeaveTypes } from '../../hooks/useLeaveTypes'
+import { useScheduleView } from '../../hooks/useScheduleView'
 import { User, Shift, ShiftType, LeaveType, LeaveRequest } from '../../types'
-import { format, startOfMonth, endOfMonth, eachDayOfInterval, addMonths, subMonths, isWithinInterval, parseISO } from 'date-fns'
-import { SHIFT_COLORS, SHIFT_LABELS, SHIFT_DESCRIPTIONS } from '../../lib/designSystem'
+import { format, startOfMonth, endOfMonth, eachDayOfInterval, addMonths, subMonths, isWithinInterval, parseISO, startOfWeek, endOfWeek, addWeeks, subWeeks } from 'date-fns'
+import { SHIFT_COLORS, SHIFT_LABELS, SHIFT_DESCRIPTIONS, SHIFT_TYPE_DISPLAY, getShiftDisplay } from '../../lib/designSystem'
 import { shiftsService, leaveRequestsService } from '../../services'
 import { formatDateISO } from '../../utils'
 import { handleDatabaseError } from '../../lib/errorHandler'
+import { ViewToggle } from '../../components/ViewToggle'
 
 interface ShiftWithSwap extends Shift {
   swapped_with_user_id?: string | null
@@ -18,6 +20,7 @@ interface ShiftWithSwap extends Shift {
 export default function Schedule() {
   const { user } = useAuth()
   const { leaveTypes, isLoading: loadingLeaveTypes } = useLeaveTypes()
+  const { view, setView } = useScheduleView()
   const [currentDate, setCurrentDate] = useState(new Date())
   const [users, setUsers] = useState<User[]>([])
   const [shifts, setShifts] = useState<ShiftWithSwap[]>([])
@@ -33,14 +36,34 @@ export default function Schedule() {
   
   // Filter state
   const [selectedUserId, setSelectedUserId] = useState<string>('all')
+  const [selectedDepartment, setSelectedDepartment] = useState<string>('all')
 
   const canEdit = user?.role === 'tl' || user?.role === 'wfm'
+  
+  // Calculate date ranges based on view
   const monthStart = startOfMonth(currentDate)
   const monthEnd = endOfMonth(currentDate)
+  const weekStart = startOfWeek(currentDate, { weekStartsOn: 1 }) // Monday
+  const weekEnd = endOfWeek(currentDate, { weekStartsOn: 1 }) // Sunday
+  
   const daysInMonth = eachDayOfInterval({ start: monthStart, end: monthEnd })
+  const daysInWeek = eachDayOfInterval({ start: weekStart, end: weekEnd })
+  
+  // Use appropriate days array based on view
+  const displayDays = view === 'weekly' ? daysInWeek : daysInMonth
   
   // Filter users based on selection
-  const filteredUsers = selectedUserId === 'all' ? users : users.filter(u => u.id === selectedUserId)
+  // First filter by department, then by specific user if selected
+  let filteredUsers = users
+  if (selectedDepartment !== 'all') {
+    filteredUsers = filteredUsers.filter(u => u.department === selectedDepartment)
+  }
+  if (selectedUserId !== 'all') {
+    filteredUsers = filteredUsers.filter(u => u.id === selectedUserId)
+  }
+  
+  // Get unique departments for the filter dropdown
+  const departments = Array.from(new Set(users.map(u => u.department).filter(Boolean))).sort()
 
   const fetchScheduleData = useCallback(async () => {
     if (!user) return
@@ -64,9 +87,19 @@ export default function Schedule() {
 
       setUsers(usersData || [])
 
-      // Calculate dates inside the callback to ensure they're fresh
-      const startDate = formatDateISO(startOfMonth(currentDate))
-      const endDate = formatDateISO(endOfMonth(currentDate))
+      // Calculate dates based on current view
+      let startDate: string
+      let endDate: string
+      
+      if (view === 'weekly') {
+        const weekStartDate = startOfWeek(currentDate, { weekStartsOn: 1 })
+        const weekEndDate = endOfWeek(currentDate, { weekStartsOn: 1 })
+        startDate = formatDateISO(weekStartDate)
+        endDate = formatDateISO(weekEndDate)
+      } else {
+        startDate = formatDateISO(startOfMonth(currentDate))
+        endDate = formatDateISO(endOfMonth(currentDate))
+      }
 
       let shiftsQuery = supabase
         .from('shifts')
@@ -83,7 +116,7 @@ export default function Schedule() {
       const { data: shiftsData, error: shiftsError } = await shiftsQuery
       if (shiftsError) throw shiftsError
 
-      // Fetch approved leave requests that overlap with this month
+      // Fetch approved leave requests that overlap with this period
       let leavesQuery = supabase
         .from('leave_requests')
         .select('*, users!inner(role)')
@@ -127,7 +160,7 @@ export default function Schedule() {
     } finally {
       setLoading(false)
     }
-  }, [user, currentDate])
+  }, [user, currentDate, view])
 
   useEffect(() => {
     fetchScheduleData()
@@ -294,6 +327,28 @@ export default function Schedule() {
     )
   }
 
+  // Navigation handlers
+  const handlePrevious = () => {
+    if (view === 'weekly') {
+      setCurrentDate(subWeeks(currentDate, 1))
+    } else {
+      setCurrentDate(subMonths(currentDate, 1))
+    }
+  }
+
+  const handleNext = () => {
+    if (view === 'weekly') {
+      setCurrentDate(addWeeks(currentDate, 1))
+    } else {
+      setCurrentDate(addMonths(currentDate, 1))
+    }
+  }
+
+  // Format period label based on view
+  const periodLabel = view === 'weekly'
+    ? `${format(weekStart, 'MMM d')} - ${format(weekEnd, 'MMM d, yyyy')}`
+    : format(currentDate, 'MMMM yyyy')
+
   return (
     <div className="space-y-6 w-full">
       <div className="sm:flex sm:items-center sm:justify-between">
@@ -304,47 +359,76 @@ export default function Schedule() {
           </p>
         </div>
         
-        {/* Agent Filter - Only show for TL/WFM */}
-        {canEdit && (
-          <div className="mt-4 sm:mt-0">
-            <label htmlFor="agent-filter" className="sr-only">Filter by agent</label>
-            <select
-              id="agent-filter"
-              value={selectedUserId}
-              onChange={(e) => setSelectedUserId(e.target.value)}
-              className="block w-full sm:w-64 rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 text-sm"
-            >
-              <option value="all">All Agents</option>
-              {users.map(u => (
-                <option key={u.id} value={u.id}>{u.name}</option>
-              ))}
-            </select>
-          </div>
-        )}
+        <div className="mt-4 sm:mt-0 flex flex-col sm:flex-row gap-3">
+          {/* View Toggle */}
+          <ViewToggle value={view} onChange={setView} />
+          
+          {/* Team Filter - Only show for TL/WFM */}
+          {canEdit && (
+            <div>
+              <label htmlFor="team-filter" className="sr-only">Filter by team</label>
+              <select
+                id="team-filter"
+                value={selectedDepartment}
+                onChange={(e) => {
+                  setSelectedDepartment(e.target.value)
+                  // Reset agent filter when team changes
+                  setSelectedUserId('all')
+                }}
+                className="block w-full sm:w-48 rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 text-sm"
+              >
+                <option value="all">All Teams</option>
+                {departments.map(dept => (
+                  <option key={dept} value={dept}>{dept}</option>
+                ))}
+              </select>
+            </div>
+          )}
+          
+          {/* Agent Filter - Only show for TL/WFM */}
+          {canEdit && (
+            <div>
+              <label htmlFor="agent-filter" className="sr-only">Filter by agent</label>
+              <select
+                id="agent-filter"
+                value={selectedUserId}
+                onChange={(e) => setSelectedUserId(e.target.value)}
+                className="block w-full sm:w-64 rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 text-sm"
+              >
+                <option value="all">All Agents</option>
+                {filteredUsers.map(u => (
+                  <option key={u.id} value={u.id}>{u.name}</option>
+                ))}
+              </select>
+            </div>
+          )}
+        </div>
       </div>
 
-      {/* Month navigation */}
-          <div className="flex items-center justify-between bg-white rounded-lg shadow px-4 py-3">
-            <button
-              onClick={() => setCurrentDate(subMonths(currentDate, 1))}
-              className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-            >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-              </svg>
-            </button>
-            <h2 className="text-lg font-semibold text-gray-900">
-              {format(currentDate, 'MMMM yyyy')}
-            </h2>
-            <button
-              onClick={() => setCurrentDate(addMonths(currentDate, 1))}
-              className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-            >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-              </svg>
-            </button>
-          </div>
+      {/* Period navigation */}
+      <div className="flex items-center justify-between bg-white rounded-lg shadow px-4 py-3">
+        <button
+          onClick={handlePrevious}
+          className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+          aria-label={view === 'weekly' ? 'Previous week' : 'Previous month'}
+        >
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+          </svg>
+        </button>
+        <h2 className="text-lg font-semibold text-gray-900">
+          {periodLabel}
+        </h2>
+        <button
+          onClick={handleNext}
+          className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+          aria-label={view === 'weekly' ? 'Next week' : 'Next month'}
+        >
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+          </svg>
+        </button>
+      </div>
 
           {/* Schedule grid */}
           <div className="bg-white rounded-lg shadow overflow-hidden">
@@ -359,7 +443,7 @@ export default function Schedule() {
                     >
                       Name
                     </th>
-                    {daysInMonth.map(day => (
+                    {displayDays.map(day => (
                       <th
                         key={day.toISOString()}
                         scope="col"
@@ -381,7 +465,7 @@ export default function Schedule() {
                       >
                         {u.name}
                       </th>
-                      {daysInMonth.map(day => {
+                      {displayDays.map(day => {
                         const shift = getShiftForUserAndDate(u.id, day)
                         const leave = getLeaveForUserAndDate(u.id, day)
                         const isOnLeave = !!leave
@@ -404,7 +488,7 @@ export default function Schedule() {
                               isOnLeave 
                                 ? `${u.name} on ${leave.leave_type} leave on ${dateStr}${canEdit ? ', press Enter to edit' : ''}`
                                 : shift
-                                ? `${u.name} has ${shift.shift_type} shift on ${dateStr}${canEdit ? ', press Enter to edit' : ''}`
+                                ? `${u.name} has ${getShiftDisplay(shift.shift_type).name} shift (${getShiftDisplay(shift.shift_type).timeRange}) on ${dateStr}${canEdit ? ', press Enter to edit' : ''}`
                                 : canEdit
                                 ? `No shift for ${u.name} on ${dateStr}, press Enter to add`
                                 : `No shift for ${u.name} on ${dateStr}`
@@ -426,9 +510,10 @@ export default function Schedule() {
                               </div>
                             ) : shift ? (
                               <div className="relative">
-                                <span className={`inline-flex items-center px-2 py-1 rounded text-xs font-medium ${SHIFT_COLORS[shift.shift_type]}`}>
-                                  {SHIFT_LABELS[shift.shift_type]}
-                                </span>
+                                <div className={`inline-flex flex-col items-center px-2 py-1 rounded text-xs font-medium border ${getShiftDisplay(shift.shift_type).color}`}>
+                                  <span className="font-semibold">{getShiftDisplay(shift.shift_type).name}</span>
+                                  <span className="text-[10px] mt-0.5">{getShiftDisplay(shift.shift_type).timeRange}</span>
+                                </div>
                                 {shift.swapped_with_user_id && (
                                   <div className="text-xs text-gray-500 mt-1 truncate" title={`Swapped with ${swappedUserNames[shift.swapped_with_user_id] || 'Unknown'}`}>
                                     â {swappedUserNames[shift.swapped_with_user_id]?.split(' ')[0] || '?'}
@@ -458,11 +543,12 @@ export default function Schedule() {
               <div>
                 <h4 className="text-xs font-medium text-gray-500 uppercase mb-2">Shifts</h4>
                 <div className="flex flex-wrap gap-4">
-                  {Object.entries(SHIFT_COLORS).map(([type, color]) => (
+                  {Object.entries(SHIFT_TYPE_DISPLAY).map(([type, display]) => (
                     <div key={type} className="flex items-center gap-2">
-                      <span className={`inline-flex items-center px-2 py-1 rounded text-xs font-medium ${color}`}>
-                        {SHIFT_LABELS[type as ShiftType]}
-                      </span>
+                      <div className={`inline-flex flex-col items-center px-2 py-1 rounded text-xs font-medium border ${display.color}`}>
+                        <span className="font-semibold">{display.name}</span>
+                        <span className="text-[10px] mt-0.5">{display.timeRange}</span>
+                      </div>
                       <span className="text-sm text-gray-600">
                         {SHIFT_DESCRIPTIONS[type as ShiftType]}
                       </span>

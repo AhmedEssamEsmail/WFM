@@ -19,6 +19,7 @@ const Dashboard = lazy(() => import('./pages/Dashboard'))
 const Unauthorized = lazy(() => import('./pages/Auth/Unauthorized'))
 const LeaveRequests = lazy(() => import('./pages/LeaveRequests/LeaveRequests'))
 const SwapRequests = lazy(() => import('./pages/SwapRequests/SwapRequests'))
+const RequestManagement = lazy(() => import('./pages/RequestManagement'))
 const CreateLeaveRequest = lazy(() => import('./pages/LeaveRequests/CreateLeaveRequest'))
 const CreateSwapRequest = lazy(() => import('./pages/SwapRequests/CreateSwapRequest'))
 const LeaveRequestDetail = lazy(() => import('./pages/LeaveRequests/LeaveRequestDetail'))
@@ -77,6 +78,7 @@ function App() {
                 <Route path="/dashboard" element={<ProtectedRoute><PageErrorBoundary><Dashboard /></PageErrorBoundary></ProtectedRoute>} />
                 <Route path="/schedule" element={<ProtectedRoute><PageErrorBoundary><Schedule /></PageErrorBoundary></ProtectedRoute>} />
                 <Route path="/break-schedule" element={<ProtectedRoute><PageErrorBoundary><BreakSchedule /></PageErrorBoundary></ProtectedRoute>} />
+                <Route path="/requests" element={<ProtectedRoute><PageErrorBoundary><RequestManagement /></PageErrorBoundary></ProtectedRoute>} />
                 <Route path="/swap-requests" element={<ProtectedRoute><PageErrorBoundary><SwapRequests /></PageErrorBoundary></ProtectedRoute>} />
                 <Route path="/swap-requests/create" element={<ProtectedRoute><PageErrorBoundary><CreateSwapRequest /></PageErrorBoundary></ProtectedRoute>} />
                 <Route path="/swap-requests/:id" element={<ProtectedRoute><PageErrorBoundary><SwapRequestDetail /></PageErrorBoundary></ProtectedRoute>} />

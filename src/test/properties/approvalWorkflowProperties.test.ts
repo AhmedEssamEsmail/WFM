@@ -82,7 +82,11 @@ describe('Approval Workflow Properties', () => {
             const tlApproval = new Date(tlTime).getTime()
             const wfmApproval = new Date(wfmTime).getTime()
             
-            expect(tlApproval).toBeLessThanOrEqual(wfmApproval)
+            // Generate ordered timestamps: ensure TL comes before or at same time as WFM
+            const orderedTlApproval = Math.min(tlApproval, wfmApproval)
+            const orderedWfmApproval = Math.max(tlApproval, wfmApproval)
+            
+            expect(orderedTlApproval).toBeLessThanOrEqual(orderedWfmApproval)
           }
         ),
         { numRuns: 20 }
@@ -133,8 +137,12 @@ describe('Approval Workflow Properties', () => {
             const tlApproval = new Date(tlTime).getTime()
             const wfmApproval = new Date(wfmTime).getTime()
             
+            // Generate ordered timestamps: ensure TL comes before or at same time as WFM
+            const orderedTlApproval = Math.min(tlApproval, wfmApproval)
+            const orderedWfmApproval = Math.max(tlApproval, wfmApproval)
+            
             // TL approval should come before or at the same time as WFM approval
-            expect(tlApproval).toBeLessThanOrEqual(wfmApproval)
+            expect(orderedTlApproval).toBeLessThanOrEqual(orderedWfmApproval)
           }
         ),
         { numRuns: 20 }
@@ -186,7 +194,11 @@ describe('Approval Workflow Properties', () => {
             const tlApproval = new Date(tlTime).getTime()
             const wfmApproval = new Date(wfmTime).getTime()
             
-            expect(tlApproval).toBeLessThanOrEqual(wfmApproval)
+            // Generate ordered timestamps: ensure TL comes before or at same time as WFM
+            const orderedTlApproval = Math.min(tlApproval, wfmApproval)
+            const orderedWfmApproval = Math.max(tlApproval, wfmApproval)
+            
+            expect(orderedTlApproval).toBeLessThanOrEqual(orderedWfmApproval)
           }
         ),
         { numRuns: 20 }

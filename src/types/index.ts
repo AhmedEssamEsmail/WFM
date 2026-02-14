@@ -22,6 +22,7 @@ export interface User {
   name: string
   role: UserRole
   created_at: string
+  department?: string
 }
 
 export interface Shift {

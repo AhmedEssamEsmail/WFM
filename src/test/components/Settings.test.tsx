@@ -3,7 +3,7 @@ import { render, screen, waitFor } from '@testing-library/react'
 import { BrowserRouter } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import Settings from '../../pages/Settings'
-import { AuthContext } from '../../lib/AuthContext'
+import { AuthContext } from '../../contexts/AuthContext'
 import { ToastProvider } from '../../lib/ToastContext'
 import type { User } from '../../types'
 
