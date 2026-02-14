@@ -34,10 +34,10 @@ export default function AutoDistributionSettings({
   return (
     <div className="space-y-6">
       <div>
-        <h3 className="text-lg font-medium text-gray-900 mb-4">
+        <h3 className="text-lg font-medium text-slate-900 dark:text-white mb-4">
           Auto-Distribution Default Settings
         </h3>
-        <p className="text-sm text-gray-600 mb-6">
+        <p className="text-sm text-slate-600 dark:text-slate-300 mb-6">
           Configure default settings for the auto-distribution feature. These will be pre-selected
           when opening the auto-distribution modal.
         </p>
@@ -45,11 +45,11 @@ export default function AutoDistributionSettings({
 
       {/* Default Strategy */}
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-3">
+        <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-3">
           Default Distribution Strategy
         </label>
         <div className="space-y-2">
-          <label className="flex items-start gap-3 p-3 border rounded-lg cursor-pointer hover:bg-gray-50">
+          <label className="flex items-start gap-3 p-3 border rounded-lg cursor-pointer hover:bg-slate-50 dark:bg-slate-950">
             <input
               type="radio"
               name="strategy"
@@ -60,12 +60,12 @@ export default function AutoDistributionSettings({
             />
             <div>
               <div className="font-medium text-sm">Balanced Coverage</div>
-              <div className="text-xs text-gray-600">
+              <div className="text-xs text-slate-600 dark:text-slate-300">
                 Minimizes variance in coverage across all intervals
               </div>
             </div>
           </label>
-          <label className="flex items-start gap-3 p-3 border rounded-lg cursor-pointer hover:bg-gray-50">
+          <label className="flex items-start gap-3 p-3 border rounded-lg cursor-pointer hover:bg-slate-50 dark:bg-slate-950">
             <input
               type="radio"
               name="strategy"
@@ -76,7 +76,7 @@ export default function AutoDistributionSettings({
             />
             <div>
               <div className="font-medium text-sm">Staggered Timing</div>
-              <div className="text-xs text-gray-600">
+              <div className="text-xs text-slate-600 dark:text-slate-300">
                 Spreads breaks evenly throughout shift thirds
               </div>
             </div>
@@ -86,11 +86,11 @@ export default function AutoDistributionSettings({
 
       {/* Default Apply Mode */}
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-3">
+        <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-3">
           Default Apply Mode
         </label>
         <div className="space-y-2">
-          <label className="flex items-start gap-3 p-3 border rounded-lg cursor-pointer hover:bg-gray-50">
+          <label className="flex items-start gap-3 p-3 border rounded-lg cursor-pointer hover:bg-slate-50 dark:bg-slate-950">
             <input
               type="radio"
               name="applyMode"
@@ -101,12 +101,12 @@ export default function AutoDistributionSettings({
             />
             <div>
               <div className="font-medium text-sm">Only Unscheduled</div>
-              <div className="text-xs text-gray-600">
+              <div className="text-xs text-slate-600 dark:text-slate-300">
                 Only assign breaks to agents without existing schedules
               </div>
             </div>
           </label>
-          <label className="flex items-start gap-3 p-3 border rounded-lg cursor-pointer hover:bg-gray-50">
+          <label className="flex items-start gap-3 p-3 border rounded-lg cursor-pointer hover:bg-slate-50 dark:bg-slate-950">
             <input
               type="radio"
               name="applyMode"
@@ -117,7 +117,7 @@ export default function AutoDistributionSettings({
             />
             <div>
               <div className="font-medium text-sm">All Agents</div>
-              <div className="text-xs text-gray-600">
+              <div className="text-xs text-slate-600 dark:text-slate-300">
                 Clear and reassign breaks for all agents
               </div>
             </div>
@@ -137,3 +137,6 @@ export default function AutoDistributionSettings({
     </div>
   )
 }
+
+
+

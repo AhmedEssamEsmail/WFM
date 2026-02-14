@@ -24,20 +24,20 @@ export function Pagination({
   pageSize,
 }: PaginationProps) {
   return (
-    <div className="flex items-center justify-between border-t border-gray-200 bg-white px-4 py-3 sm:px-6">
+    <div className="flex items-center justify-between border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-4 py-3 sm:px-6">
       <div className="flex flex-1 justify-between sm:hidden">
         {/* Mobile pagination */}
         <button
           onClick={onPrevPage}
           disabled={!hasPrevious || isLoading}
-          className="relative inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
+          className="relative inline-flex items-center rounded-md border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 px-4 py-2 text-sm font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:bg-slate-950 disabled:cursor-not-allowed disabled:opacity-50"
         >
           Previous
         </button>
         <button
           onClick={onNextPage}
           disabled={!hasMore || isLoading}
-          className="relative ml-3 inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
+          className="relative ml-3 inline-flex items-center rounded-md border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 px-4 py-2 text-sm font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:bg-slate-950 disabled:cursor-not-allowed disabled:opacity-50"
         >
           Next
         </button>
@@ -46,7 +46,7 @@ export function Pagination({
       <div className="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
         {/* Desktop pagination info */}
         <div>
-          <p className="text-sm text-gray-700">
+          <p className="text-sm text-slate-700 dark:text-slate-300">
             {totalItems !== undefined && pageSize !== undefined && currentPage !== undefined ? (
               <>
                 Showing{' '}
@@ -75,7 +75,7 @@ export function Pagination({
             <button
               onClick={onPrevPage}
               disabled={!hasPrevious || isLoading}
-              className="relative inline-flex items-center rounded-l-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0 disabled:cursor-not-allowed disabled:opacity-50"
+              className="relative inline-flex items-center rounded-l-md px-2 py-2 text-slate-400 dark:text-slate-500 ring-1 ring-inset ring-gray-300 hover:bg-slate-50 dark:bg-slate-950 focus:z-20 focus:outline-offset-0 disabled:cursor-not-allowed disabled:opacity-50"
               aria-label="Previous page"
             >
               <span className="sr-only">Previous</span>
@@ -89,7 +89,7 @@ export function Pagination({
             </button>
             
             {isLoading && (
-              <span className="relative inline-flex items-center px-4 py-2 text-sm font-semibold text-gray-700 ring-1 ring-inset ring-gray-300">
+              <span className="relative inline-flex items-center px-4 py-2 text-sm font-semibold text-slate-700 dark:text-slate-300 ring-1 ring-inset ring-gray-300">
                 Loading...
               </span>
             )}
@@ -97,7 +97,7 @@ export function Pagination({
             <button
               onClick={onNextPage}
               disabled={!hasMore || isLoading}
-              className="relative inline-flex items-center rounded-r-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0 disabled:cursor-not-allowed disabled:opacity-50"
+              className="relative inline-flex items-center rounded-r-md px-2 py-2 text-slate-400 dark:text-slate-500 ring-1 ring-inset ring-gray-300 hover:bg-slate-50 dark:bg-slate-950 focus:z-20 focus:outline-offset-0 disabled:cursor-not-allowed disabled:opacity-50"
               aria-label="Next page"
             >
               <span className="sr-only">Next</span>
@@ -115,3 +115,6 @@ export function Pagination({
     </div>
   )
 }
+
+
+

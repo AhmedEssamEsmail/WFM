@@ -67,7 +67,7 @@ export default function Reports() {
   if (!isManager) {
     return (
       <div className="text-center py-12">
-        <p className="text-gray-500">You don't have permission to view reports.</p>
+        <p className="text-slate-500 dark:text-slate-400">You don't have permission to view reports.</p>
       </div>
     )
   }
@@ -75,7 +75,7 @@ export default function Reports() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
       </div>
     )
   }
@@ -85,14 +85,14 @@ export default function Reports() {
       {/* Header */}
       <div className="sm:flex sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Reports & Analytics</h1>
-          <p className="mt-1 text-sm text-gray-500">
+          <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Reports & Analytics</h1>
+          <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
             View team performance and request statistics
           </p>
         </div>
         <button
           onClick={exportToCSV}
-          className="mt-4 sm:mt-0 inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
+          className="mt-4 sm:mt-0 inline-flex items-center px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-md shadow-sm text-sm font-medium text-slate-700 dark:text-slate-300 bg-white dark:bg-slate-900 hover:bg-slate-50 dark:bg-slate-950"
         >
           <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
@@ -126,3 +126,6 @@ export default function Reports() {
     </div>
   )
 }
+
+
+

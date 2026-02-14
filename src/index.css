@@ -73,6 +73,6 @@ body {
 
 @layer base {
   html {
-    @apply bg-gray-50;
+    @apply bg-slate-50 dark:bg-slate-950;
   }
 }

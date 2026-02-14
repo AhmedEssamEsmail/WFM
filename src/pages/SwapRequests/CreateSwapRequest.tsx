@@ -203,9 +203,9 @@ export default function CreateSwapRequest() {
 
   return (
     <div className="max-w-2xl mx-auto">
-      <div className="bg-white shadow rounded-lg">
-        <div className="px-6 py-4 border-b border-gray-200">
-          <h1 className="text-xl font-semibold text-gray-900">New Swap Request</h1>
+      <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm rounded-lg">
+        <div className="px-6 py-4 border-b border-slate-200 dark:border-slate-800">
+          <h1 className="text-xl font-semibold text-slate-900 dark:text-white">New Swap Request</h1>
         </div>
 
         <form onSubmit={handleSubmit} className="p-6 space-y-6">
@@ -218,14 +218,14 @@ export default function CreateSwapRequest() {
           {/* Requester selector for WFM/TL roles */}
           {canSubmitOnBehalf && (
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
                 Submit on behalf of
               </label>
               <select
                 value={requesterUserId}
                 onChange={(e) => setRequesterUserId(e.target.value)}
                 disabled={loadingAllUsers}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                className="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
               >
                 {loadingAllUsers ? (
                   <option>Loading users...</option>
@@ -237,20 +237,20 @@ export default function CreateSwapRequest() {
                   ))
                 )}
               </select>
-              <p className="mt-1 text-sm text-gray-500">
+              <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
                 As a {user?.role?.toUpperCase()}, you can submit swap requests on behalf of any user.
               </p>
             </div>
           )}
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
               {getRequesterName()}'s Shift to Swap
             </label>
             <select
               value={myShiftId}
               onChange={(e) => setMyShiftId(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+              className="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
             >
               <option value="">Select a shift</option>
               {myShifts.map((shift) => (
@@ -260,19 +260,19 @@ export default function CreateSwapRequest() {
               ))}
             </select>
             {myShifts.length === 0 && (
-              <p className="mt-1 text-sm text-gray-500">No upcoming shifts found</p>
+              <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">No upcoming shifts found</p>
             )}
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
               Swap With Agent
             </label>
             <select
               value={targetUserId}
               onChange={(e) => setTargetUserId(e.target.value)}
               disabled={loadingAgents}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+              className="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
             >
               <option value="">Select an agent</option>
               {agents.map((agent) => (
@@ -282,20 +282,20 @@ export default function CreateSwapRequest() {
               ))}
             </select>
             {loadingAgents && (
-              <p className="mt-1 text-sm text-gray-500">Loading agents...</p>
+              <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">Loading agents...</p>
             )}
           </div>
 
           {targetUserId && (
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
                 Target Agent's Shift
               </label>
               <select
                 value={targetShiftId}
                 onChange={(e) => setTargetShiftId(e.target.value)}
                 disabled={loadingShifts}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                className="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
               >
                 <option value="">Select a shift</option>
                 {targetShifts.map((shift) => (
@@ -305,9 +305,9 @@ export default function CreateSwapRequest() {
                 ))}
               </select>
               {loadingShifts ? (
-                <p className="mt-1 text-sm text-gray-500">Loading shifts...</p>
+                <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">Loading shifts...</p>
               ) : targetShifts.length === 0 ? (
-                <p className="mt-1 text-sm text-gray-500">No upcoming shifts found</p>
+                <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">No upcoming shifts found</p>
               ) : null}
             </div>
           )}
@@ -316,7 +316,7 @@ export default function CreateSwapRequest() {
             <button
               type="button"
               onClick={() => navigate(ROUTES.DASHBOARD)}
-              className="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
+              className="px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-md shadow-sm text-sm font-medium text-slate-700 dark:text-slate-300 bg-white dark:bg-slate-900 hover:bg-slate-50 dark:bg-slate-950"
             >
               Cancel
             </button>
@@ -333,3 +333,6 @@ export default function CreateSwapRequest() {
     </div>
   )
 }
+
+
+

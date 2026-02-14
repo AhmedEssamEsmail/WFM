@@ -160,9 +160,9 @@ export default function CreateLeaveRequest() {
 
   return (
     <div className="max-w-2xl mx-auto">
-      <div className="bg-white shadow rounded-lg">
-        <div className="px-6 py-4 border-b border-gray-200">
-          <h1 className="text-xl font-semibold text-gray-900">New Leave Request</h1>
+      <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm rounded-lg">
+        <div className="px-6 py-4 border-b border-slate-200 dark:border-slate-800">
+          <h1 className="text-xl font-semibold text-slate-900 dark:text-white">New Leave Request</h1>
         </div>
 
         <form onSubmit={handleSubmit} className="p-6 space-y-6">
@@ -175,14 +175,14 @@ export default function CreateLeaveRequest() {
           {/* Submit on behalf of dropdown (only for WFM/TL) */}
           {canSubmitOnBehalf && (
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
                 Submit on behalf of
               </label>
               <select
                 value={selectedUserId}
                 onChange={(e) => setSelectedUserId(e.target.value)}
                 disabled={loadingAgents}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                className="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
               >
                 {loadingAgents ? (
                   <option>Loading...</option>
@@ -198,16 +198,16 @@ export default function CreateLeaveRequest() {
           )}
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
               Leave Type
             </label>
             {loadingLeaveTypes ? (
-              <div className="text-sm text-gray-500">Loading leave types...</div>
+              <div className="text-sm text-slate-500 dark:text-slate-400">Loading leave types...</div>
             ) : (
               <select
                 value={leaveType}
                 onChange={(e) => setLeaveType(e.target.value as LeaveType)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                className="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
               >
                 {leaveTypes.filter(lt => lt.is_active).map((type) => (
                   <option key={type.id} value={type.code}>
@@ -217,7 +217,7 @@ export default function CreateLeaveRequest() {
               </select>
             )}
             {!loadingBalance && leaveBalance !== null && (
-              <p className="mt-1 text-sm text-gray-500">
+              <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
                 Available balance: {leaveBalance} days
               </p>
             )}
@@ -225,34 +225,34 @@ export default function CreateLeaveRequest() {
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
                 Start Date
               </label>
               <input
                 type="date"
                 value={startDate}
                 onChange={(e) => setStartDate(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                className="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
                 required
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
                 End Date
               </label>
               <input
                 type="date"
                 value={endDate}
                 onChange={(e) => setEndDate(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                className="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
                 required
               />
             </div>
           </div>
 
           {requestedDays > 0 && (
-            <div className={`p-3 rounded-md ${exceedsBalance ? 'bg-orange-50 border border-orange-200' : 'bg-gray-50'}`}>
-              <p className="text-sm text-gray-700">
+            <div className={`p-3 rounded-md ${exceedsBalance ? 'bg-orange-50 border border-orange-200' : 'bg-slate-50 dark:bg-slate-950'}`}>
+              <p className="text-sm text-slate-700 dark:text-slate-300">
                 Requested days: <span className="font-medium">{requestedDays}</span>
               </p>
               {exceedsBalance && (
@@ -265,14 +265,14 @@ export default function CreateLeaveRequest() {
           )}
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
               Notes (Optional)
             </label>
             <textarea
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               rows={3}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+              className="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
               placeholder="Add any additional notes..."
             />
           </div>
@@ -281,7 +281,7 @@ export default function CreateLeaveRequest() {
             <button
               type="button"
               onClick={() => navigate(ROUTES.LEAVE_REQUESTS)}
-              className="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
+              className="px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-md shadow-sm text-sm font-medium text-slate-700 dark:text-slate-300 bg-white dark:bg-slate-900 hover:bg-slate-50 dark:bg-slate-950"
             >
               Cancel
             </button>
@@ -298,3 +298,6 @@ export default function CreateLeaveRequest() {
     </div>
   )
 }
+
+
+

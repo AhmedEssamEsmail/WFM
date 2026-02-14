@@ -262,47 +262,47 @@ export default function LeaveRequestDetail() {
         {/* Header Skeleton */}
         <div className="flex items-center justify-between">
           <div className="flex-1">
-            <div className="h-6 w-16 bg-gray-200 rounded mb-2 animate-pulse"></div>
-            <div className="h-8 w-64 bg-gray-200 rounded animate-pulse"></div>
+            <div className="h-6 w-16 bg-slate-200 dark:bg-slate-700 rounded mb-2 animate-pulse"></div>
+            <div className="h-8 w-64 bg-slate-200 dark:bg-slate-700 rounded animate-pulse"></div>
           </div>
-          <div className="h-8 w-32 bg-gray-200 rounded-full animate-pulse"></div>
+          <div className="h-8 w-32 bg-slate-200 dark:bg-slate-700 rounded-full animate-pulse"></div>
         </div>
 
         {/* Request Details Skeleton */}
-        <div className="bg-white rounded-lg shadow-sm p-6">
-          <div className="h-6 w-40 bg-gray-200 rounded mb-4 animate-pulse"></div>
+        <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm p-6">
+          <div className="h-6 w-40 bg-slate-200 dark:bg-slate-700 rounded mb-4 animate-pulse"></div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <div className="h-4 w-20 bg-gray-200 rounded mb-2 animate-pulse"></div>
-              <div className="h-6 w-40 bg-gray-200 rounded mb-1 animate-pulse"></div>
-              <div className="h-4 w-48 bg-gray-200 rounded animate-pulse"></div>
+              <div className="h-4 w-20 bg-slate-200 dark:bg-slate-700 rounded mb-2 animate-pulse"></div>
+              <div className="h-6 w-40 bg-slate-200 dark:bg-slate-700 rounded mb-1 animate-pulse"></div>
+              <div className="h-4 w-48 bg-slate-200 dark:bg-slate-700 rounded animate-pulse"></div>
             </div>
             <div>
-              <div className="h-4 w-24 bg-gray-200 rounded mb-2 animate-pulse"></div>
-              <div className="h-6 w-32 bg-gray-200 rounded animate-pulse"></div>
+              <div className="h-4 w-24 bg-slate-200 dark:bg-slate-700 rounded mb-2 animate-pulse"></div>
+              <div className="h-6 w-32 bg-slate-200 dark:bg-slate-700 rounded animate-pulse"></div>
             </div>
             <div>
-              <div className="h-4 w-16 bg-gray-200 rounded mb-2 animate-pulse"></div>
-              <div className="h-6 w-56 bg-gray-200 rounded mb-1 animate-pulse"></div>
-              <div className="h-4 w-24 bg-gray-200 rounded animate-pulse"></div>
+              <div className="h-4 w-16 bg-slate-200 dark:bg-slate-700 rounded mb-2 animate-pulse"></div>
+              <div className="h-6 w-56 bg-slate-200 dark:bg-slate-700 rounded mb-1 animate-pulse"></div>
+              <div className="h-4 w-24 bg-slate-200 dark:bg-slate-700 rounded animate-pulse"></div>
             </div>
             <div>
-              <div className="h-4 w-20 bg-gray-200 rounded mb-2 animate-pulse"></div>
-              <div className="h-6 w-44 bg-gray-200 rounded animate-pulse"></div>
+              <div className="h-4 w-20 bg-slate-200 dark:bg-slate-700 rounded mb-2 animate-pulse"></div>
+              <div className="h-6 w-44 bg-slate-200 dark:bg-slate-700 rounded animate-pulse"></div>
             </div>
           </div>
         </div>
 
         {/* Timeline Skeleton */}
-        <div className="bg-white rounded-lg shadow-sm p-6">
-          <div className="h-6 w-40 bg-gray-200 rounded mb-4 animate-pulse"></div>
+        <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm p-6">
+          <div className="h-6 w-40 bg-slate-200 dark:bg-slate-700 rounded mb-4 animate-pulse"></div>
           <div className="space-y-4">
             {[1, 2, 3].map((i) => (
               <div key={i} className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-full bg-gray-200 animate-pulse"></div>
+                <div className="w-8 h-8 rounded-full bg-slate-200 dark:bg-slate-700 animate-pulse"></div>
                 <div className="flex-1">
-                  <div className="h-5 w-32 bg-gray-200 rounded mb-1 animate-pulse"></div>
-                  <div className="h-4 w-48 bg-gray-200 rounded animate-pulse"></div>
+                  <div className="h-5 w-32 bg-slate-200 dark:bg-slate-700 rounded mb-1 animate-pulse"></div>
+                  <div className="h-4 w-48 bg-slate-200 dark:bg-slate-700 rounded animate-pulse"></div>
                 </div>
               </div>
             ))}
@@ -310,13 +310,13 @@ export default function LeaveRequestDetail() {
         </div>
 
         {/* Comments Skeleton */}
-        <div className="bg-white rounded-lg shadow-sm p-6">
-          <div className="h-6 w-32 bg-gray-200 rounded mb-4 animate-pulse"></div>
+        <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm p-6">
+          <div className="h-6 w-32 bg-slate-200 dark:bg-slate-700 rounded mb-4 animate-pulse"></div>
           <div className="space-y-4">
             {[1, 2].map((i) => (
-              <div key={i} className="p-3 bg-gray-100 rounded-lg">
-                <div className="h-4 w-24 bg-gray-200 rounded mb-2 animate-pulse"></div>
-                <div className="h-4 w-full bg-gray-200 rounded animate-pulse"></div>
+              <div key={i} className="p-3 bg-slate-100 dark:bg-slate-800 rounded-lg">
+                <div className="h-4 w-24 bg-slate-200 dark:bg-slate-700 rounded mb-2 animate-pulse"></div>
+                <div className="h-4 w-full bg-slate-200 dark:bg-slate-700 rounded animate-pulse"></div>
               </div>
             ))}
           </div>
@@ -328,7 +328,7 @@ export default function LeaveRequestDetail() {
   if (!request || !requester) {
     return (
       <div className="text-center py-12">
-        <p className="text-gray-500">{error || 'Request not found'}</p>
+        <p className="text-slate-500 dark:text-slate-400">{error || 'Request not found'}</p>
       </div>
     )
   }
@@ -340,14 +340,14 @@ export default function LeaveRequestDetail() {
         <div>
           <button
             onClick={() => navigate(ROUTES.LEAVE_REQUESTS)}
-            className="text-gray-500 hover:text-gray-700 mb-2 flex items-center gap-1"
+            className="text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:text-slate-300 mb-2 flex items-center gap-1"
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
             </svg>
             Back
           </button>
-          <h1 className="text-2xl font-bold text-gray-900">Leave Request Details</h1>
+          <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Leave Request Details</h1>
         </div>
         <span className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(request.status)}`}>
           {getStatusLabel(request.status)}
@@ -369,42 +369,42 @@ export default function LeaveRequestDetail() {
       )}
 
       {/* Request Details */}
-      <div className="bg-white rounded-lg shadow-sm p-6">
-        <h2 className="text-lg font-semibold text-gray-900 mb-4">Request Details</h2>
+      <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm p-6">
+        <h2 className="text-lg font-semibold text-slate-900 dark:text-white mb-4">Request Details</h2>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
-            <h3 className="text-sm font-medium text-gray-500">Requester</h3>
-            <p className="text-lg text-gray-900">{requester.name}</p>
-            <p className="text-sm text-gray-500">{requester.email}</p>
+            <h3 className="text-sm font-medium text-slate-500 dark:text-slate-400">Requester</h3>
+            <p className="text-lg text-slate-900 dark:text-white">{requester.name}</p>
+            <p className="text-sm text-slate-500 dark:text-slate-400">{requester.email}</p>
           </div>
 
           <div>
-            <h3 className="text-sm font-medium text-gray-500">Leave Type</h3>
-            <p className="text-lg text-gray-900">{LEAVE_DESCRIPTIONS[request.leave_type]}</p>
+            <h3 className="text-sm font-medium text-slate-500 dark:text-slate-400">Leave Type</h3>
+            <p className="text-lg text-slate-900 dark:text-white">{LEAVE_DESCRIPTIONS[request.leave_type]}</p>
           </div>
 
           <div>
-            <h3 className="text-sm font-medium text-gray-500">Dates</h3>
-            <p className="text-lg text-gray-900">
+            <h3 className="text-sm font-medium text-slate-500 dark:text-slate-400">Dates</h3>
+            <p className="text-lg text-slate-900 dark:text-white">
               {formatDate(request.start_date)} - {formatDate(request.end_date)}
             </p>
-            <p className="text-sm text-gray-500">
+            <p className="text-sm text-slate-500 dark:text-slate-400">
               {calculateDays(request.start_date, request.end_date)} day(s)
             </p>
           </div>
 
           <div>
-            <h3 className="text-sm font-medium text-gray-500">Submitted</h3>
-            <p className="text-lg text-gray-900">
+            <h3 className="text-sm font-medium text-slate-500 dark:text-slate-400">Submitted</h3>
+            <p className="text-lg text-slate-900 dark:text-white">
               {formatDateTime(request.created_at)}
             </p>
           </div>
 
           {request.notes && (
             <div className="md:col-span-2">
-              <h3 className="text-sm font-medium text-gray-500">Notes</h3>
-              <p className="text-gray-900">{request.notes}</p>
+              <h3 className="text-sm font-medium text-slate-500 dark:text-slate-400">Notes</h3>
+              <p className="text-slate-900 dark:text-white">{request.notes}</p>
             </div>
           )}
         </div>
@@ -422,8 +422,8 @@ export default function LeaveRequestDetail() {
 
       {/* Action Buttons */}
       {(canApprove() || canReject() || canAskForException() || canCancel()) && (
-        <div className="bg-white rounded-lg shadow-sm p-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">Actions</h2>
+        <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm p-6">
+          <h2 className="text-lg font-semibold text-slate-900 dark:text-white mb-4">Actions</h2>
           <div className="flex flex-wrap gap-3">
             {canApprove() && (
               <button
@@ -456,7 +456,7 @@ export default function LeaveRequestDetail() {
               <button
                 onClick={handleCancel}
                 disabled={submitting}
-                className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="px-4 py-2 bg-slate-600 dark:bg-slate-700 text-white rounded-lg hover:bg-slate-700 dark:hover:bg-slate-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {submitting ? 'Processing...' : 'Cancel Request'}
               </button>
@@ -466,8 +466,8 @@ export default function LeaveRequestDetail() {
       )}
 
       {/* Approval Timeline */}
-      <div className="bg-white rounded-lg shadow-sm p-6">
-        <h2 className="text-lg font-semibold text-gray-900 mb-4">Approval Timeline</h2>
+      <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm p-6">
+        <h2 className="text-lg font-semibold text-slate-900 dark:text-white mb-4">Approval Timeline</h2>
         <div className="space-y-4">
           {/* Created Step */}
           <div className="flex items-center gap-3">
@@ -477,8 +477,8 @@ export default function LeaveRequestDetail() {
               </svg>
             </div>
             <div>
-              <p className="font-medium text-gray-900">Created</p>
-              <p className="text-sm text-gray-500">
+              <p className="font-medium text-slate-900 dark:text-white">Created</p>
+              <p className="text-sm text-slate-500 dark:text-slate-400">
                 Created on {formatDateTime(request.created_at)}
               </p>
             </div>
@@ -494,7 +494,7 @@ export default function LeaveRequestDetail() {
               </div>
               <div>
                 <p className="font-medium text-orange-800">Auto-Denied</p>
-                <p className="text-sm text-gray-500">
+                <p className="text-sm text-slate-500 dark:text-slate-400">
                   Insufficient leave balance
                 </p>
               </div>
@@ -508,7 +508,7 @@ export default function LeaveRequestDetail() {
                 request.status === 'rejected' ? 'bg-red-100 text-red-600' :
                 request.tl_approved_at ? 'bg-green-100 text-green-600' :
                 request.status === 'pending_tl' ? 'bg-yellow-100 text-yellow-600' :
-                'bg-gray-100 text-gray-400'
+                'bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500'
               }`}>
                 {request.status === 'rejected' && !request.tl_approved_at ? (
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -529,9 +529,9 @@ export default function LeaveRequestDetail() {
               <div>
                 <p className={`font-medium ${
                   request.status === 'rejected' && !request.tl_approved_at ? 'text-red-800' :
-                  request.tl_approved_at ? 'text-gray-900' :
+                  request.tl_approved_at ? 'text-slate-900 dark:text-white' :
                   request.status === 'pending_tl' ? 'text-yellow-800' :
-                  'text-gray-400'
+                  'text-slate-400 dark:text-slate-500'
                 }`}>
                   {request.status === 'rejected' && !request.tl_approved_at ? 'Rejected by TL' :
                    request.tl_approved_at ? 'TL Approved' :
@@ -539,7 +539,7 @@ export default function LeaveRequestDetail() {
                    'TL Approval'}
                 </p>
                 {request.tl_approved_at && (
-                  <p className="text-sm text-gray-500">
+                  <p className="text-sm text-slate-500 dark:text-slate-400">
                     Approved on {formatDateTime(request.tl_approved_at)}
                   </p>
                 )}
@@ -554,7 +554,7 @@ export default function LeaveRequestDetail() {
                 request.status === 'rejected' && request.tl_approved_at ? 'bg-red-100 text-red-600' :
                 request.status === 'approved' ? 'bg-green-100 text-green-600' :
                 request.status === 'pending_wfm' ? 'bg-blue-100 text-blue-600' :
-                'bg-gray-100 text-gray-400'
+                'bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500'
               }`}>
                 {request.status === 'rejected' && request.tl_approved_at ? (
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -575,9 +575,9 @@ export default function LeaveRequestDetail() {
               <div>
                 <p className={`font-medium ${
                   request.status === 'rejected' && request.tl_approved_at ? 'text-red-800' :
-                  request.status === 'approved' ? 'text-gray-900' :
+                  request.status === 'approved' ? 'text-slate-900 dark:text-white' :
                   request.status === 'pending_wfm' ? 'text-blue-800' :
-                  'text-gray-400'
+                  'text-slate-400 dark:text-slate-500'
                 }`}>
                   {request.status === 'rejected' && request.tl_approved_at ? 'Rejected by WFM' :
                    request.status === 'approved' ? 'WFM Approved' :
@@ -585,7 +585,7 @@ export default function LeaveRequestDetail() {
                    'WFM Approval'}
                 </p>
                 {request.wfm_approved_at && (
-                  <p className="text-sm text-gray-500">
+                  <p className="text-sm text-slate-500 dark:text-slate-400">
                     Approved on {formatDateTime(request.wfm_approved_at)}
                   </p>
                 )}
@@ -596,27 +596,27 @@ export default function LeaveRequestDetail() {
       </div>
 
       {/* Comments Section */}
-      <div className="bg-white rounded-lg shadow-sm p-6">
-        <h2 className="text-lg font-semibold text-gray-900 mb-4">Comments</h2>
+      <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm p-6">
+        <h2 className="text-lg font-semibold text-slate-900 dark:text-white mb-4">Comments</h2>
 
         <div className="space-y-4 mb-6">
           {comments.length === 0 ? (
-            <p className="text-gray-500 text-sm">No comments yet</p>
+            <p className="text-slate-500 dark:text-slate-400 text-sm">No comments yet</p>
           ) : (
             comments.map((comment) => (
               <div
                 key={comment.id}
-                className={`p-3 rounded-lg ${comment.is_system ? 'bg-gray-100' : 'bg-blue-50'}`}
+                className={`p-3 rounded-lg ${comment.is_system ? 'bg-slate-100 dark:bg-slate-800' : 'bg-blue-50'}`}
               >
                 <div className="flex justify-between items-start mb-1">
-                  <span className={`text-sm font-medium ${comment.is_system ? 'text-gray-700' : 'text-blue-800'}`}>
+                  <span className={`text-sm font-medium ${comment.is_system ? 'text-slate-700 dark:text-slate-300' : 'text-blue-800'}`}>
                     {comment.is_system ? 'System' : (comment as CommentWithSystem).users?.name || 'Unknown User'}
                   </span>
-                  <span className="text-xs text-gray-500">
+                  <span className="text-xs text-slate-500 dark:text-slate-400">
                     {formatDateTime(comment.created_at)}
                   </span>
                 </div>
-                <p className="text-sm text-gray-800">{comment.content}</p>
+                <p className="text-sm text-slate-800 dark:text-slate-200">{comment.content}</p>
               </div>
             ))
           )}
@@ -629,12 +629,12 @@ export default function LeaveRequestDetail() {
             value={newComment}
             onChange={(e) => setNewComment(e.target.value)}
             placeholder="Add a comment..."
-            className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+            className="flex-1 px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
           />
           <button
             type="submit"
             disabled={submitting || !newComment.trim()}
-            className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {submitting ? 'Sending...' : 'Send'}
           </button>
@@ -643,3 +643,6 @@ export default function LeaveRequestDetail() {
     </div>
   )
 }
+
+
+

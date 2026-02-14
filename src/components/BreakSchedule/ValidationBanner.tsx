@@ -59,7 +59,7 @@ export default function ValidationBanner({ violations, onSaveAnyway, onDismiss }
             {onDismiss && (
               <button
                 onClick={onDismiss}
-                className="flex-shrink-0 text-gray-400 hover:text-gray-600"
+                className="flex-shrink-0 text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:text-slate-300"
                 aria-label="Dismiss"
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -131,3 +131,6 @@ export default function ValidationBanner({ violations, onSaveAnyway, onDismiss }
     </div>
   )
 }
+
+
+

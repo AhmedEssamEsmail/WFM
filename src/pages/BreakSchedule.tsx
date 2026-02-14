@@ -188,7 +188,7 @@ export default function BreakSchedule() {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
       </div>
     )
   }
@@ -197,8 +197,8 @@ export default function BreakSchedule() {
     <div className="space-y-6 w-full">
       <div className="sm:flex sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Break Schedule</h1>
-          <p className="mt-1 text-sm text-gray-500">
+          <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Break Schedule</h1>
+          <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
             {isWFM
               ? 'Manage team break schedules'
               : user?.role === 'tl'
@@ -297,3 +297,6 @@ export default function BreakSchedule() {
     </div>
   )
 }
+
+
+

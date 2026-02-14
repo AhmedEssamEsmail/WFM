@@ -392,7 +392,7 @@ export default function LeaveBalances() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
       </div>
     )
   }
@@ -402,8 +402,8 @@ export default function LeaveBalances() {
       {/* Header */}
       <div className="sm:flex sm:items-start sm:justify-between">
         <div className="mb-4 sm:mb-0">
-          <h1 className="text-2xl font-bold text-gray-900">Leave Balances</h1>
-          <p className="text-gray-600 mt-1 text-sm">
+          <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Leave Balances</h1>
+          <p className="text-slate-600 dark:text-slate-300 mt-1 text-sm">
             {user?.role === 'wfm' 
               ? 'View and edit leave balances for all users' 
               : user?.role === 'tl'
@@ -443,8 +443,8 @@ export default function LeaveBalances() {
 
       {/* Search Filter - Show for TL and WFM */}
       {(user?.role === 'tl' || user?.role === 'wfm') && (
-        <div className="bg-white rounded-lg shadow p-4">
-          <label htmlFor="search-agent" className="block text-sm font-medium text-gray-700 mb-2">
+        <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm p-4">
+          <label htmlFor="search-agent" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
             Search by Name or Email
           </label>
           <div className="relative">
@@ -454,10 +454,10 @@ export default function LeaveBalances() {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Type to filter users..."
-              className="block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 text-sm pl-10"
+              className="block w-full rounded-md border-slate-300 dark:border-slate-600 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm pl-10"
             />
             <svg 
-              className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" 
+              className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-400 dark:text-slate-500" 
               fill="none" 
               stroke="currentColor" 
               viewBox="0 0 24 24"
@@ -467,7 +467,7 @@ export default function LeaveBalances() {
             {searchQuery && (
               <button
                 onClick={() => setSearchQuery('')}
-                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:text-slate-300"
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -476,7 +476,7 @@ export default function LeaveBalances() {
             )}
           </div>
           {searchQuery && (
-            <p className="mt-2 text-xs text-gray-500">
+            <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">
               Showing {filteredUsers.length} of {usersWithBalances.length} users
             </p>
           )}
@@ -485,27 +485,27 @@ export default function LeaveBalances() {
 
       {/* Import Preview/Results */}
       {parsedImport && (
-        <div className="bg-white rounded-lg shadow p-4 space-y-3">
+        <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm p-4 space-y-3">
           <div className="flex items-center justify-between">
-            <h3 className="font-medium text-gray-900 text-sm">
+            <h3 className="font-medium text-slate-900 dark:text-white text-sm">
               Import Preview ({parsedImport.length} users)
             </h3>
-            <button onClick={resetImport} className="text-xs text-gray-600 hover:text-gray-800">
+            <button onClick={resetImport} className="text-xs text-slate-600 dark:text-slate-300 hover:text-slate-800 dark:hover:text-slate-100">
               Clear
             </button>
           </div>
           
           <div className="overflow-x-auto max-h-60 overflow-y-auto">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
+            <table className="min-w-full divide-y divide-slate-100 dark:divide-slate-800">
+              <thead className="bg-slate-50 dark:bg-slate-950">
                 <tr>
-                  <th className="px-3 py-2 text-left text-xs font-medium text-gray-500">Status</th>
-                  <th className="px-3 py-2 text-left text-xs font-medium text-gray-500">Email</th>
-                  <th className="px-3 py-2 text-left text-xs font-medium text-gray-500">User</th>
-                  <th className="px-3 py-2 text-left text-xs font-medium text-gray-500">Balances</th>
+                  <th className="px-3 py-2 text-left text-xs font-medium text-slate-500 dark:text-slate-400">Status</th>
+                  <th className="px-3 py-2 text-left text-xs font-medium text-slate-500 dark:text-slate-400">Email</th>
+                  <th className="px-3 py-2 text-left text-xs font-medium text-slate-500 dark:text-slate-400">User</th>
+                  <th className="px-3 py-2 text-left text-xs font-medium text-slate-500 dark:text-slate-400">Balances</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-200">
+              <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
                 {parsedImport.map((row, i) => (
                   <tr key={i} className={row.error ? 'bg-red-50' : ''}>
                     <td className="px-3 py-2">
@@ -523,7 +523,7 @@ export default function LeaveBalances() {
                     <td className="px-3 py-2 text-xs">
                       {row.userName || <span className="text-red-600">{row.error}</span>}
                     </td>
-                    <td className="px-3 py-2 text-xs text-gray-600">
+                    <td className="px-3 py-2 text-xs text-slate-600 dark:text-slate-300">
                       {Object.keys(row.balances).length} type(s)
                     </td>
                   </tr>
@@ -537,7 +537,7 @@ export default function LeaveBalances() {
               <button
                 onClick={handleImportUpload}
                 disabled={importing}
-                className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:opacity-50 flex items-center gap-2 text-sm"
+                className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:opacity-50 flex items-center gap-2 text-sm"
               >
                 {importing ? (
                   <>
@@ -586,13 +586,13 @@ export default function LeaveBalances() {
           const total = leaveTypeOrder.reduce((acc, lt) => acc + (u.balances[lt] || 0), 0)
           
           return (
-            <div key={u.id} className="bg-white rounded-lg shadow overflow-hidden">
+            <div key={u.id} className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
               {/* User Header */}
-              <div className="px-4 py-3 bg-gray-50 border-b border-gray-200">
+              <div className="px-4 py-3 bg-slate-50 dark:bg-slate-950 border-b border-slate-200 dark:border-slate-800">
                 <div className="flex items-center justify-between">
                   <div className="min-w-0 flex-1">
-                    <p className="text-sm font-medium text-gray-900 truncate">{u.name}</p>
-                    <p className="text-xs text-gray-500 truncate">{u.email}</p>
+                    <p className="text-sm font-medium text-slate-900 dark:text-white truncate">{u.name}</p>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 truncate">{u.email}</p>
                   </div>
                   <span className={`ml-2 inline-flex px-2 py-0.5 rounded text-xs font-medium whitespace-nowrap ${
                     u.role === 'wfm' ? 'bg-purple-100 text-purple-800' :
@@ -615,10 +615,10 @@ export default function LeaveBalances() {
                     return (
                       <div 
                         key={lt}
-                        className={`bg-gray-50 rounded-lg p-2 ${canEdit && !isEditing ? 'cursor-pointer hover:bg-blue-50' : ''}`}
+                        className={`bg-slate-50 dark:bg-slate-950 rounded-lg p-2 ${canEdit && !isEditing ? 'cursor-pointer hover:bg-blue-50' : ''}`}
                         onClick={() => !isEditing && canEdit && startEditing(u.id, lt, balance)}
                       >
-                        <p className="text-xs text-gray-500 mb-1">{leaveTypeLabels[lt]}</p>
+                        <p className="text-xs text-slate-500 dark:text-slate-400 mb-1">{leaveTypeLabels[lt]}</p>
                         {isEditing ? (
                           <div className="flex items-center gap-1">
                             <input
@@ -649,7 +649,7 @@ export default function LeaveBalances() {
                             </button>
                           </div>
                         ) : (
-                          <p className={`text-base font-semibold ${balance > 0 ? 'text-gray-900' : 'text-gray-400'}`}>
+                          <p className={`text-base font-semibold ${balance > 0 ? 'text-slate-900 dark:text-white' : 'text-slate-400 dark:text-slate-500'}`}>
                             {balance.toFixed(2)}
                           </p>
                         )}
@@ -659,10 +659,10 @@ export default function LeaveBalances() {
                 </div>
 
                 {/* Total */}
-                <div className="pt-2 border-t border-gray-200">
+                <div className="pt-2 border-t border-slate-200 dark:border-slate-800">
                   <div className="flex items-center justify-between">
-                    <span className="text-xs font-medium text-gray-700">Total Balance</span>
-                    <span className="text-base font-bold text-primary-600">
+                    <span className="text-xs font-medium text-slate-700 dark:text-slate-300">Total Balance</span>
+                    <span className="text-base font-bold text-indigo-600">
                       {total.toFixed(2)}
                     </span>
                   </div>
@@ -674,20 +674,20 @@ export default function LeaveBalances() {
       </div>
 
       {filteredUsers.length === 0 && !loading && (
-        <div className="text-center py-12 bg-white rounded-lg shadow">
-          <p className="text-gray-500 text-sm">
+        <div className="text-center py-12 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
+          <p className="text-slate-500 dark:text-slate-400 text-sm">
             {searchQuery ? 'No users match your search' : 'No users found'}
           </p>
         </div>
       )}
 
       {/* Accrual Info */}
-      <div className="bg-gray-50 border border-gray-200 rounded-lg p-3">
-        <h3 className="font-medium text-gray-900 mb-2 text-sm">Monthly Accrual Information</h3>
-        <p className="text-xs text-gray-600 mb-2">
+      <div className="bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-lg p-3">
+        <h3 className="font-medium text-slate-900 dark:text-white mb-2 text-sm">Monthly Accrual Information</h3>
+        <p className="text-xs text-slate-600 dark:text-slate-300 mb-2">
           Leave balances are accrued monthly on the 1st of each month:
         </p>
-        <ul className="text-xs text-gray-600 space-y-1">
+        <ul className="text-xs text-slate-600 dark:text-slate-300 space-y-1">
           <li>• Annual Leave: +1.25 days per month (15 days per year)</li>
           <li>• Casual Leave: +0.5 days per month (6 days per year)</li>
           <li>• Sick, Public Holiday, and Bereavement leave are typically allocated manually</li>
@@ -696,3 +696,6 @@ export default function LeaveBalances() {
     </div>
   )
 }
+
+
+

@@ -9,7 +9,7 @@ interface EmployeeTableProps {
 
 const STATUS_COLORS: Record<string, string> = {
   active: 'bg-green-100 text-green-800',
-  inactive: 'bg-gray-100 text-gray-800',
+  inactive: 'bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200',
   on_leave: 'bg-yellow-100 text-yellow-800',
   terminated: 'bg-red-100 text-red-800',
   suspended: 'bg-orange-100 text-orange-800',
@@ -26,7 +26,7 @@ export default function EmployeeTable({ employees, loading }: EmployeeTableProps
     return (
       <div className="animate-pulse">
         {[...Array(5)].map((_, i) => (
-          <div key={i} className="h-16 bg-gray-100 rounded mb-2"></div>
+          <div key={i} className="h-16 bg-slate-100 dark:bg-slate-800 rounded mb-2"></div>
         ))}
       </div>
     )
@@ -34,7 +34,7 @@ export default function EmployeeTable({ employees, loading }: EmployeeTableProps
 
   if (employees.length === 0) {
     return (
-      <div className="text-center py-12 text-gray-500">
+      <div className="text-center py-12 text-slate-500 dark:text-slate-400">
         No employees found matching your criteria.
       </div>
     )
@@ -42,35 +42,35 @@ export default function EmployeeTable({ employees, loading }: EmployeeTableProps
 
   return (
     <div className="overflow-x-auto">
-      <table className="min-w-full divide-y divide-gray-200">
-        <thead className="bg-gray-50">
+      <table className="min-w-full divide-y divide-slate-100 dark:divide-slate-800">
+        <thead className="bg-slate-50 dark:bg-slate-950">
           <tr>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Employee</th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Department</th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Role</th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Manager</th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">Employee</th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">ID</th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">Department</th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">Role</th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">Status</th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">Manager</th>
           </tr>
         </thead>
-        <tbody className="bg-white divide-y divide-gray-200">
+        <tbody className="bg-white dark:bg-slate-900 divide-y divide-slate-100 dark:divide-slate-800">
           {employees.map((employee) => (
-            <tr key={employee.id} className="hover:bg-gray-50">
+            <tr key={employee.id} className="hover:bg-slate-50 dark:bg-slate-950">
               <td className="px-6 py-4 whitespace-nowrap">
                 <Link to={ROUTES.HEADCOUNT_EMPLOYEE_DETAIL(employee.id)} className="flex items-center">
-                  <div className="h-10 w-10 rounded-full bg-primary-100 flex items-center justify-center text-primary-600 font-semibold">
+                  <div className="h-10 w-10 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 font-semibold">
                     {employee.name.charAt(0).toUpperCase()}
                   </div>
                   <div className="ml-4">
-                    <div className="text-sm font-medium text-gray-900">{employee.name}</div>
-                    <div className="text-sm text-gray-500">{employee.email}</div>
+                    <div className="text-sm font-medium text-slate-900 dark:text-white">{employee.name}</div>
+                    <div className="text-sm text-slate-500 dark:text-slate-400">{employee.email}</div>
                   </div>
                 </Link>
               </td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+              <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-500 dark:text-slate-400">
                 {employee.employee_id || '-'}
               </td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+              <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-900 dark:text-white">
                 {employee.department || 'Unassigned'}
               </td>
               <td className="px-6 py-4 whitespace-nowrap">
@@ -83,7 +83,7 @@ export default function EmployeeTable({ employees, loading }: EmployeeTableProps
                   {employee.status.replace('_', ' ')}
                 </span>
               </td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+              <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-500 dark:text-slate-400">
                 {employee.manager_name || '-'}
               </td>
             </tr>
@@ -93,3 +93,6 @@ export default function EmployeeTable({ employees, loading }: EmployeeTableProps
     </div>
   )
 }
+
+
+

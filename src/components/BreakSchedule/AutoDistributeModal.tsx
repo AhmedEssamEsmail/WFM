@@ -76,18 +76,18 @@ export default function AutoDistributeModal({
   }
 
   return (
-    <div className="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center z-[100]">
-      <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full mx-4 p-6 max-h-[90vh] overflow-y-auto relative z-[101]">
-        <h3 className="text-lg font-medium text-gray-900 mb-4">Auto-Distribute Breaks</h3>
+    <div className="fixed inset-0 bg-slate-500 dark:bg-slate-900 bg-opacity-75 dark:bg-opacity-75 backdrop-blur-sm flex items-center justify-center z-[100]">
+      <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-xl max-w-2xl w-full mx-4 p-6 max-h-[90vh] overflow-y-auto relative z-[101]">
+        <h3 className="text-lg font-medium text-slate-900 dark:text-white mb-4">Auto-Distribute Breaks</h3>
 
         <div className="space-y-4">
           {/* Strategy selection */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
               Distribution Strategy
             </label>
             <div className="space-y-2">
-              <label className="flex items-start gap-3 p-3 border rounded-lg cursor-pointer hover:bg-gray-50">
+              <label className="flex items-start gap-3 p-3 border rounded-lg cursor-pointer hover:bg-slate-50 dark:bg-slate-950">
                 <input
                   type="radio"
                   name="strategy"
@@ -98,12 +98,12 @@ export default function AutoDistributeModal({
                 />
                 <div>
                   <div className="font-medium text-sm">Balanced Coverage</div>
-                  <div className="text-xs text-gray-600">
+                  <div className="text-xs text-slate-600 dark:text-slate-300">
                     Minimizes variance in coverage across all intervals
                   </div>
                 </div>
               </label>
-              <label className="flex items-start gap-3 p-3 border rounded-lg cursor-pointer hover:bg-gray-50">
+              <label className="flex items-start gap-3 p-3 border rounded-lg cursor-pointer hover:bg-slate-50 dark:bg-slate-950">
                 <input
                   type="radio"
                   name="strategy"
@@ -114,7 +114,7 @@ export default function AutoDistributeModal({
                 />
                 <div>
                   <div className="font-medium text-sm">Staggered Timing</div>
-                  <div className="text-xs text-gray-600">
+                  <div className="text-xs text-slate-600 dark:text-slate-300">
                     Spreads breaks evenly throughout shift thirds
                   </div>
                 </div>
@@ -124,9 +124,9 @@ export default function AutoDistributeModal({
 
           {/* Apply mode selection */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Apply Mode</label>
+            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Apply Mode</label>
             <div className="space-y-2">
-              <label className="flex items-start gap-3 p-3 border rounded-lg cursor-pointer hover:bg-gray-50">
+              <label className="flex items-start gap-3 p-3 border rounded-lg cursor-pointer hover:bg-slate-50 dark:bg-slate-950">
                 <input
                   type="radio"
                   name="applyMode"
@@ -137,12 +137,12 @@ export default function AutoDistributeModal({
                 />
                 <div>
                   <div className="font-medium text-sm">Only Unscheduled</div>
-                  <div className="text-xs text-gray-600">
+                  <div className="text-xs text-slate-600 dark:text-slate-300">
                     Only assign breaks to agents without existing schedules
                   </div>
                 </div>
               </label>
-              <label className="flex items-start gap-3 p-3 border rounded-lg cursor-pointer hover:bg-gray-50">
+              <label className="flex items-start gap-3 p-3 border rounded-lg cursor-pointer hover:bg-slate-50 dark:bg-slate-950">
                 <input
                   type="radio"
                   name="applyMode"
@@ -153,7 +153,7 @@ export default function AutoDistributeModal({
                 />
                 <div>
                   <div className="font-medium text-sm">All Agents</div>
-                  <div className="text-xs text-gray-600">
+                  <div className="text-xs text-slate-600 dark:text-slate-300">
                     Clear and reassign breaks for all agents
                   </div>
                 </div>
@@ -163,7 +163,7 @@ export default function AutoDistributeModal({
 
           {/* Department filter */}
           <div>
-            <label htmlFor="department-filter" className="block text-sm font-medium text-gray-700 mb-2">
+            <label htmlFor="department-filter" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
               Department Filter (Optional)
             </label>
             <select
@@ -184,11 +184,11 @@ export default function AutoDistributeModal({
           {/* Preview */}
           {isLoadingPreview ? (
             <div className="flex items-center justify-center py-8">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
             </div>
           ) : preview ? (
-            <div className="border rounded-lg p-4 bg-gray-50">
-              <h4 className="text-sm font-medium text-gray-900 mb-3">Preview</h4>
+            <div className="border rounded-lg p-4 bg-slate-50 dark:bg-slate-950">
+              <h4 className="text-sm font-medium text-slate-900 dark:text-white mb-3">Preview</h4>
               
               {/* Show error if no breaks assigned */}
               {preview.proposed_schedules.length === 0 && preview.failed_agents.length > 0 && (
@@ -209,19 +209,19 @@ export default function AutoDistributeModal({
               
               <div className="grid grid-cols-2 gap-4 text-sm">
                 <div>
-                  <span className="text-gray-600">Agents Affected:</span>
+                  <span className="text-slate-600 dark:text-slate-300">Agents Affected:</span>
                   <span className="ml-2 font-medium">{preview.proposed_schedules.length}</span>
                 </div>
                 <div>
-                  <span className="text-gray-600">Coverage Variance:</span>
+                  <span className="text-slate-600 dark:text-slate-300">Coverage Variance:</span>
                   <span className="ml-2 font-medium">{preview.coverage_stats.variance.toFixed(2)}</span>
                 </div>
                 <div>
-                  <span className="text-gray-600">Total Violations:</span>
+                  <span className="text-slate-600 dark:text-slate-300">Total Violations:</span>
                   <span className="ml-2 font-medium">{preview.rule_compliance.total_violations}</span>
                 </div>
                 <div>
-                  <span className="text-gray-600">Blocking Violations:</span>
+                  <span className="text-slate-600 dark:text-slate-300">Blocking Violations:</span>
                   <span className="ml-2 font-medium">{preview.rule_compliance.blocking_violations}</span>
                 </div>
               </div>
@@ -234,7 +234,7 @@ export default function AutoDistributeModal({
                   <div className="space-y-2 max-h-64 overflow-y-auto">
                     {preview.failed_agents.map((agent, idx) => (
                       <div key={idx} className="text-xs bg-red-50 border border-red-200 rounded p-3">
-                        <div className="font-medium text-gray-900 mb-1">{agent.name}</div>
+                        <div className="font-medium text-slate-900 dark:text-white mb-1">{agent.name}</div>
                         {agent.blockedBy && agent.blockedBy.length > 0 ? (
                           <div className="space-y-1">
                             <div className="text-red-800 font-medium">Blocked by validation rules:</div>
@@ -245,10 +245,10 @@ export default function AutoDistributeModal({
                                 </span>
                               ))}
                             </div>
-                            <div className="text-gray-700 mt-2 leading-relaxed">{agent.reason}</div>
+                            <div className="text-slate-700 dark:text-slate-300 mt-2 leading-relaxed">{agent.reason}</div>
                           </div>
                         ) : (
-                          <div className="text-gray-700 leading-relaxed">{agent.reason}</div>
+                          <div className="text-slate-700 dark:text-slate-300 leading-relaxed">{agent.reason}</div>
                         )}
                       </div>
                     ))}
@@ -275,3 +275,6 @@ export default function AutoDistributeModal({
     </div>
   )
 }
+
+
+

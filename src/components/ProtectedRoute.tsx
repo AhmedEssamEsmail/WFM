@@ -25,7 +25,7 @@ export default function ProtectedRoute({ children, requiredRoles }: ProtectedRou
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
       </div>
     )
   }
@@ -92,3 +92,6 @@ export default function ProtectedRoute({ children, requiredRoles }: ProtectedRou
   // User is authenticated, has valid domain, and has required role
   return <Layout>{children}</Layout>
 }
+
+
+

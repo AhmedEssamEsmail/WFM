@@ -53,28 +53,28 @@ export class ErrorBoundary extends Component<Props, State> {
       }
 
       return (
-        <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
-          <div className="max-w-md w-full bg-white rounded-lg shadow-lg p-8">
+        <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-950 px-4">
+          <div className="max-w-md w-full bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-lg p-8">
             <div className="flex items-center justify-center w-12 h-12 mx-auto bg-red-100 rounded-full mb-4">
               <svg className="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
               </svg>
             </div>
             
-            <h1 className="text-2xl font-bold text-gray-900 text-center mb-2">
+            <h1 className="text-2xl font-bold text-slate-900 dark:text-white text-center mb-2">
               Something went wrong
             </h1>
             
-            <p className="text-gray-600 text-center mb-6">
+            <p className="text-slate-600 dark:text-slate-300 text-center mb-6">
               We're sorry, but something unexpected happened. Please try refreshing the page or return to the dashboard.
             </p>
 
             {import.meta.env.DEV && this.state.error && (
-              <details className="mb-6 p-4 bg-gray-50 rounded border border-gray-200">
-                <summary className="cursor-pointer text-sm font-medium text-gray-700 mb-2">
+              <details className="mb-6 p-4 bg-slate-50 dark:bg-slate-950 rounded border border-slate-200 dark:border-slate-800">
+                <summary className="cursor-pointer text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
                   Error Details (Development Only)
                 </summary>
-                <div className="text-xs text-gray-600 space-y-2">
+                <div className="text-xs text-slate-600 dark:text-slate-300 space-y-2">
                   <div>
                     <strong>Error:</strong>
                     <pre className="mt-1 whitespace-pre-wrap break-words">{this.state.error.toString()}</pre>
@@ -94,13 +94,13 @@ export class ErrorBoundary extends Component<Props, State> {
             <div className="flex gap-3">
               <button
                 onClick={() => window.location.reload()}
-                className="flex-1 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors font-medium"
+                className="flex-1 px-4 py-2 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 rounded-lg hover:bg-slate-200 dark:bg-slate-700 transition-colors font-medium"
               >
                 Refresh Page
               </button>
               <button
                 onClick={this.handleReset}
-                className="flex-1 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors font-medium"
+                className="flex-1 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors font-medium"
               >
                 Go to Dashboard
               </button>
@@ -113,3 +113,6 @@ export class ErrorBoundary extends Component<Props, State> {
     return this.props.children
   }
 }
+
+
+

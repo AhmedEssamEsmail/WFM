@@ -22,10 +22,10 @@ export default function DateNavigation({ currentDate, onDateChange }: DateNaviga
   const isToday = format(currentDate, 'yyyy-MM-dd') === format(new Date(), 'yyyy-MM-dd')
 
   return (
-    <div className="flex items-center justify-between bg-white rounded-lg shadow px-4 py-3">
+    <div className="flex items-center justify-between bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm px-4 py-3">
       <button
         onClick={handlePrevious}
-        className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+        className="p-2 hover:bg-slate-100 dark:bg-slate-800 rounded-lg transition-colors"
         aria-label="Previous day"
       >
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -34,7 +34,7 @@ export default function DateNavigation({ currentDate, onDateChange }: DateNaviga
       </button>
 
       <div className="flex items-center gap-3">
-        <h2 className="text-lg font-semibold text-gray-900">
+        <h2 className="text-lg font-semibold text-slate-900 dark:text-white">
           {format(currentDate, 'EEEE, MMMM d, yyyy')}
         </h2>
         {!isToday && (
@@ -49,7 +49,7 @@ export default function DateNavigation({ currentDate, onDateChange }: DateNaviga
 
       <button
         onClick={handleNext}
-        className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+        className="p-2 hover:bg-slate-100 dark:bg-slate-800 rounded-lg transition-colors"
         aria-label="Next day"
       >
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -59,3 +59,6 @@ export default function DateNavigation({ currentDate, onDateChange }: DateNaviga
     </div>
   )
 }
+
+
+

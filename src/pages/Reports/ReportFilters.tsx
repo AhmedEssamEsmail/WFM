@@ -16,15 +16,15 @@ export default function ReportFilters({
   onEndDateChange,
 }: ReportFiltersProps) {
   return (
-    <div className="bg-white rounded-lg shadow p-4">
+    <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm p-4">
       <div className="flex flex-col sm:flex-row gap-4">
         <div className="flex gap-2">
           <button
             onClick={() => onDateRangeChange('current')}
             className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
               dateRange === 'current'
-                ? 'bg-primary-600 text-white'
-                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                ? 'bg-indigo-600 text-white'
+                : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:bg-slate-700'
             }`}
           >
             Current Month
@@ -33,8 +33,8 @@ export default function ReportFilters({
             onClick={() => onDateRangeChange('last')}
             className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
               dateRange === 'last'
-                ? 'bg-primary-600 text-white'
-                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                ? 'bg-indigo-600 text-white'
+                : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:bg-slate-700'
             }`}
           >
             Last Month
@@ -43,8 +43,8 @@ export default function ReportFilters({
             onClick={() => onDateRangeChange('custom')}
             className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
               dateRange === 'custom'
-                ? 'bg-primary-600 text-white'
-                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                ? 'bg-indigo-600 text-white'
+                : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:bg-slate-700'
             }`}
           >
             Custom
@@ -57,14 +57,14 @@ export default function ReportFilters({
               type="date"
               value={startDate}
               onChange={(e) => onStartDateChange(e.target.value)}
-              className="rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 text-sm"
+              className="rounded-md border-slate-300 dark:border-slate-600 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm"
             />
-            <span className="text-gray-500">to</span>
+            <span className="text-slate-500 dark:text-slate-400">to</span>
             <input
               type="date"
               value={endDate}
               onChange={(e) => onEndDateChange(e.target.value)}
-              className="rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 text-sm"
+              className="rounded-md border-slate-300 dark:border-slate-600 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm"
             />
           </div>
         )}
@@ -72,3 +72,6 @@ export default function ReportFilters({
     </div>
   )
 }
+
+
+

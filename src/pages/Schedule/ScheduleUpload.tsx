@@ -74,8 +74,8 @@ export default function ScheduleUpload() {
   if (user?.role !== 'wfm') {
     return (
       <div className="text-center py-12">
-        <h1 className="text-2xl font-bold text-gray-900 mb-4">Access Denied</h1>
-        <p className="text-gray-600">Only WFM users can access the schedule upload feature.</p>
+        <h1 className="text-2xl font-bold text-slate-900 dark:text-white mb-4">Access Denied</h1>
+        <p className="text-slate-600 dark:text-slate-300">Only WFM users can access the schedule upload feature.</p>
       </div>
     )
   }
@@ -399,8 +399,8 @@ export default function ScheduleUpload() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Upload Schedule</h1>
-          <p className="text-gray-600 mt-1">Bulk upload shifts via CSV file</p>
+          <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Upload Schedule</h1>
+          <p className="text-slate-600 dark:text-slate-300 mt-1">Bulk upload shifts via CSV file</p>
         </div>
         <button
           onClick={() => setShowExportModal(true)}
@@ -444,19 +444,19 @@ email,1,2,3,4,5{String.fromCharCode(10)}agent@example.com,AM,PM,ANNUAL,OFF,BET{S
       </div>
 
       {/* File Upload */}
-      <div className="bg-white rounded-lg shadow-sm p-6">
+      <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm p-6">
         <div className="flex items-center gap-4">
           <input
             ref={fileInputRef}
             type="file"
             accept=".csv"
             onChange={handleFileChange}
-            className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-primary-50 file:text-primary-700 hover:file:bg-primary-100"
+            className="block w-full text-sm text-slate-500 dark:text-slate-400 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100"
           />
           {file && (
             <button
               onClick={resetForm}
-              className="px-4 py-2 text-sm text-gray-600 hover:text-gray-800"
+              className="px-4 py-2 text-sm text-slate-600 dark:text-slate-300 hover:text-slate-800 dark:hover:text-slate-100"
             >
               Clear
             </button>
@@ -487,23 +487,23 @@ email,1,2,3,4,5{String.fromCharCode(10)}agent@example.com,AM,PM,ANNUAL,OFF,BET{S
 
           {/* Preview Table */}
           {parseResult.rows.length > 0 && (
-            <div className="bg-white rounded-lg shadow-sm overflow-hidden">
+            <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
               <div className="px-6 py-4 border-b">
-                <h3 className="font-medium text-gray-900">
+                <h3 className="font-medium text-slate-900 dark:text-white">
                   Preview ({parseResult.rows.length} users, {parseResult.rows.reduce((acc, r) => acc + r.shifts.length, 0)} shifts)
                 </h3>
               </div>
               <div className="overflow-x-auto">
-                <table className="min-w-full divide-y divide-gray-200">
-                  <thead className="bg-gray-50">
+                <table className="min-w-full divide-y divide-slate-100 dark:divide-slate-800">
+                  <thead className="bg-slate-50 dark:bg-slate-950">
                     <tr>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Email</th>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">User</th>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Shifts</th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase">Status</th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase">Email</th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase">User</th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase">Shifts</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-gray-200">
+                  <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
                     {parseResult.rows.map((row, i) => (
                       <tr key={i} className={row.error ? 'bg-red-50' : ''}>
                         <td className="px-4 py-3 whitespace-nowrap">
@@ -517,11 +517,11 @@ email,1,2,3,4,5{String.fromCharCode(10)}agent@example.com,AM,PM,ANNUAL,OFF,BET{S
                             </span>
                           )}
                         </td>
-                        <td className="px-4 py-3 text-sm text-gray-900">{row.email}</td>
-                        <td className="px-4 py-3 text-sm text-gray-900">
+                        <td className="px-4 py-3 text-sm text-slate-900 dark:text-white">{row.email}</td>
+                        <td className="px-4 py-3 text-sm text-slate-900 dark:text-white">
                           {row.userName || <span className="text-red-600">{row.error}</span>}
                         </td>
-                        <td className="px-4 py-3 text-sm text-gray-500">
+                        <td className="px-4 py-3 text-sm text-slate-500 dark:text-slate-400">
                           {row.shifts.length} shift(s)
                         </td>
                       </tr>
@@ -538,7 +538,7 @@ email,1,2,3,4,5{String.fromCharCode(10)}agent@example.com,AM,PM,ANNUAL,OFF,BET{S
               <button
                 onClick={handleUpload}
                 disabled={uploading}
-                className="px-6 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                className="px-6 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
               >
                 {uploading ? (
                   <>
@@ -570,13 +570,13 @@ email,1,2,3,4,5{String.fromCharCode(10)}agent@example.com,AM,PM,ANNUAL,OFF,BET{S
               <div className="mt-4 flex gap-3">
                 <button
                   onClick={resetForm}
-                  className="px-4 py-2 text-sm bg-white border border-gray-300 rounded-lg hover:bg-gray-50"
+                  className="px-4 py-2 text-sm bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-lg hover:bg-slate-50 dark:bg-slate-950"
                 >
                   Upload Another
                 </button>
                 <button
                   onClick={() => navigate(ROUTES.SCHEDULE)}
-                  className="px-4 py-2 text-sm bg-primary-600 text-white rounded-lg hover:bg-primary-700"
+                  className="px-4 py-2 text-sm bg-indigo-600 text-white rounded-lg hover:bg-indigo-700"
                 >
                   View Schedule
                 </button>
@@ -588,31 +588,31 @@ email,1,2,3,4,5{String.fromCharCode(10)}agent@example.com,AM,PM,ANNUAL,OFF,BET{S
 
       {/* Export Modal */}
       {showExportModal && (
-        <div className="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
-            <h3 className="text-lg font-medium text-gray-900 mb-4">Export Schedule</h3>
-            <p className="text-sm text-gray-600 mb-4">
+        <div className="fixed inset-0 bg-slate-500 dark:bg-slate-900 bg-opacity-75 dark:bg-opacity-75 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-xl max-w-md w-full p-6">
+            <h3 className="text-lg font-medium text-slate-900 dark:text-white mb-4">Export Schedule</h3>
+            <p className="text-sm text-slate-600 dark:text-slate-300 mb-4">
               Select the date range for the schedule export. The CSV will include shifts, leaves, and swapped shifts.
             </p>
             
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Start Date</label>
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Start Date</label>
                 <input
                   type="date"
                   value={exportStartDate}
                   onChange={(e) => setExportStartDate(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
+                  className="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
                 />
               </div>
               
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">End Date</label>
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">End Date</label>
                 <input
                   type="date"
                   value={exportEndDate}
                   onChange={(e) => setExportEndDate(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
+                  className="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
                 />
               </div>
             </div>
@@ -631,7 +631,7 @@ email,1,2,3,4,5{String.fromCharCode(10)}agent@example.com,AM,PM,ANNUAL,OFF,BET{S
                   setExportEndDate('')
                   setError('')
                 }}
-                className="px-4 py-2 text-sm text-gray-700 hover:text-gray-900"
+                className="px-4 py-2 text-sm text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:text-white"
               >
                 Cancel
               </button>
@@ -661,3 +661,6 @@ email,1,2,3,4,5{String.fromCharCode(10)}agent@example.com,AM,PM,ANNUAL,OFF,BET{S
     </div>
   )
 }
+
+
+

@@ -43,3 +43,6 @@ export default function CoverageCell({ count, thresholds = DEFAULT_THRESHOLDS }:
     </div>
   )
 }
+
+
+

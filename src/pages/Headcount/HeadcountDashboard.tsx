@@ -36,12 +36,12 @@ export default function HeadcountDashboard() {
       {/* Header - Stack on mobile */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Headcount Management</h1>
-          <p className="text-sm text-gray-600">Workforce overview and analytics</p>
+          <h1 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white">Headcount Management</h1>
+          <p className="text-sm text-slate-600 dark:text-slate-300">Workforce overview and analytics</p>
         </div>
         <Link
           to={ROUTES.HEADCOUNT_EMPLOYEES}
-          className="w-full sm:w-auto bg-primary-600 text-white px-4 py-2 rounded-lg hover:bg-primary-700 transition-colors text-center text-sm"
+          className="w-full sm:w-auto bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors text-center text-sm"
         >
           View All Employees
         </Link>
@@ -70,35 +70,35 @@ export default function HeadcountDashboard() {
       </div>
 
       {/* Department Breakdown - Card layout on mobile, table on desktop */}
-      <div className="bg-white rounded-lg shadow overflow-hidden">
-        <div className="px-4 sm:px-6 py-4 border-b border-gray-200">
-          <h2 className="text-lg font-semibold text-gray-900">Department Breakdown</h2>
+      <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
+        <div className="px-4 sm:px-6 py-4 border-b border-slate-200 dark:border-slate-800">
+          <h2 className="text-lg font-semibold text-slate-900 dark:text-white">Department Breakdown</h2>
         </div>
         
         {/* Desktop Table */}
         <div className="hidden md:block overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
+          <table className="min-w-full divide-y divide-slate-100 dark:divide-slate-800">
+            <thead className="bg-slate-50 dark:bg-slate-950">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Department</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Headcount</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Active</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">On Leave</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase">Department</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase">Headcount</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase">Active</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase">On Leave</th>
               </tr>
             </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
+            <tbody className="bg-white dark:bg-slate-900 divide-y divide-slate-100 dark:divide-slate-800">
               {deptSummary.map((dept) => (
-                <tr key={dept.department} className="hover:bg-gray-50">
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                <tr key={dept.department} className="hover:bg-slate-50 dark:bg-slate-950">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-slate-900 dark:text-white">
                     {dept.department}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-500 dark:text-slate-400">
                     {dept.total_headcount}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-500 dark:text-slate-400">
                     {dept.active_count}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-500 dark:text-slate-400">
                     {dept.on_leave_count}
                   </td>
                 </tr>
@@ -108,20 +108,20 @@ export default function HeadcountDashboard() {
         </div>
 
         {/* Mobile Cards */}
-        <div className="md:hidden divide-y divide-gray-200">
+        <div className="md:hidden divide-y divide-slate-100 dark:divide-slate-800">
           {deptSummary.map((dept) => (
-            <div key={dept.department} className="p-4 hover:bg-gray-50">
+            <div key={dept.department} className="p-4 hover:bg-slate-50 dark:bg-slate-950">
               <div className="flex justify-between items-start mb-2">
-                <h3 className="font-medium text-gray-900">{dept.department}</h3>
-                <span className="text-sm text-gray-500">{dept.total_headcount} employees</span>
+                <h3 className="font-medium text-slate-900 dark:text-white">{dept.department}</h3>
+                <span className="text-sm text-slate-500 dark:text-slate-400">{dept.total_headcount} employees</span>
               </div>
               <div className="grid grid-cols-2 gap-2 text-sm">
                 <div>
-                  <span className="text-gray-500 block text-xs">Active</span>
+                  <span className="text-slate-500 dark:text-slate-400 block text-xs">Active</span>
                   <span className="font-medium text-green-600">{dept.active_count}</span>
                 </div>
                 <div>
-                  <span className="text-gray-500 block text-xs">On Leave</span>
+                  <span className="text-slate-500 dark:text-slate-400 block text-xs">On Leave</span>
                   <span className="font-medium text-yellow-600">{dept.on_leave_count}</span>
                 </div>
               </div>
@@ -151,8 +151,11 @@ function StatCard({ title, value, color, loading }: { title: string, value: stri
     <div className={`${colors[color]} border rounded-lg p-3 sm:p-6`}>
       <div className="text-xs sm:text-sm font-medium opacity-75">{title}</div>
       <div className="text-xl sm:text-3xl font-bold mt-1">
-        {loading ? <div className="h-6 sm:h-8 w-12 sm:w-16 bg-white/50 rounded animate-pulse"></div> : value}
+        {loading ? <div className="h-6 sm:h-8 w-12 sm:w-16 bg-white dark:bg-slate-900/50 rounded animate-pulse"></div> : value}
       </div>
     </div>
   )
 }
+
+
+

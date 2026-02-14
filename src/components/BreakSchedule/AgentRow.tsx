@@ -33,10 +33,10 @@ export default function AgentRow({
   }
 
   return (
-    <tr className="hover:bg-gray-50">
+    <tr className="hover:bg-slate-50 dark:bg-slate-950">
       <th
         scope="row"
-        className="sticky left-0 z-10 bg-white px-4 py-3 text-sm font-medium text-gray-900 text-left shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]"
+        className="sticky left-0 z-10 bg-white dark:bg-slate-900 px-4 py-3 text-sm font-medium text-slate-900 dark:text-white text-left shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]"
       >
         <div className="flex items-center gap-2 relative">
           <span>{schedule.name}</span>
@@ -58,7 +58,7 @@ export default function AgentRow({
                 ✕
               </span>
               <div className="pointer-events-none absolute left-full bottom-full mb-2 -ml-16 z-50 w-80 scale-0 transition-all duration-150 group-hover:scale-100">
-                <div className="bg-gray-900 text-white text-xs rounded-lg py-3 px-4 shadow-xl">
+                <div className="bg-slate-900 dark:bg-slate-800 text-white text-xs rounded-lg py-3 px-4 shadow-xl">
                   <div className="font-semibold mb-2 text-red-300">Auto-distribution failed</div>
                   <div className="whitespace-pre-wrap break-words leading-relaxed">{failureReason}</div>
                 </div>
@@ -74,13 +74,13 @@ export default function AgentRow({
           </span>
         )}
       </td>
-      <td className="px-4 py-3 text-center text-sm text-gray-900">
+      <td className="px-4 py-3 text-center text-sm text-slate-900 dark:text-white">
         {formatTime(schedule.breaks?.HB1 || null)}
       </td>
-      <td className="px-4 py-3 text-center text-sm text-gray-900">
+      <td className="px-4 py-3 text-center text-sm text-slate-900 dark:text-white">
         {formatTime(schedule.breaks?.B || null)}
       </td>
-      <td className="px-4 py-3 text-center text-sm text-gray-900">
+      <td className="px-4 py-3 text-center text-sm text-slate-900 dark:text-white">
         {formatTime(schedule.breaks?.HB2 || null)}
       </td>
       {intervals.map((intervalStart, index) => {
@@ -116,3 +116,6 @@ export default function AgentRow({
     </tr>
   )
 }
+
+
+

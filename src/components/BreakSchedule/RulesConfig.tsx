@@ -45,7 +45,7 @@ export default function RulesConfig({ rules, onUpdateRule, onToggleRule }: Rules
 
   return (
     <div className="space-y-4">
-      <h3 className="text-lg font-medium text-gray-900">Break Schedule Rules</h3>
+      <h3 className="text-lg font-medium text-slate-900 dark:text-white">Break Schedule Rules</h3>
       
       <div className="space-y-3">
         {rules.map((rule) => {
@@ -55,14 +55,14 @@ export default function RulesConfig({ rules, onUpdateRule, onToggleRule }: Rules
           return (
             <div
               key={rule.id}
-              className={`bg-white border rounded-lg p-4 ${
-                rule.is_active ? 'border-green-300' : 'border-gray-200'
+              className={`bg-white dark:bg-slate-900 border rounded-lg p-4 ${
+                rule.is_active ? 'border-green-300' : 'border-slate-200 dark:border-slate-800'
               }`}
             >
               <div className="flex items-start justify-between">
                 <div className="flex-1">
                   <div className="flex items-center gap-3">
-                    <h4 className="text-sm font-medium text-gray-900">{rule.rule_name}</h4>
+                    <h4 className="text-sm font-medium text-slate-900 dark:text-white">{rule.rule_name}</h4>
                     <span
                       className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${
                         rule.is_active ? SEMANTIC_COLORS.success.badge : SEMANTIC_COLORS.neutral.badge
@@ -78,14 +78,14 @@ export default function RulesConfig({ rules, onUpdateRule, onToggleRule }: Rules
                       {rule.is_blocking ? 'Blocking' : 'Warning'}
                     </span>
                   </div>
-                  <p className="mt-1 text-sm text-gray-600">{rule.description}</p>
+                  <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">{rule.description}</p>
 
                   {/* Rule parameters */}
                   {params && Object.keys(params).length > 0 && (
                     <div className="mt-3 space-y-2">
                       {Object.entries(params).map(([key, value]) => (
                         <div key={key} className="flex items-center gap-3">
-                          <label className="text-xs font-medium text-gray-700 min-w-[120px]">
+                          <label className="text-xs font-medium text-slate-700 dark:text-slate-300 min-w-[120px]">
                             {key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}:
                           </label>
                           {isEditing ? (
@@ -104,7 +104,7 @@ export default function RulesConfig({ rules, onUpdateRule, onToggleRule }: Rules
                               className={`${INPUT_STYLES.default} text-xs max-w-[200px]`}
                             />
                           ) : (
-                            <span className="text-xs text-gray-900">{String(value)}</span>
+                            <span className="text-xs text-slate-900 dark:text-white">{String(value)}</span>
                           )}
                         </div>
                       ))}
@@ -157,3 +157,6 @@ export default function RulesConfig({ rules, onUpdateRule, onToggleRule }: Rules
     </div>
   )
 }
+
+
+

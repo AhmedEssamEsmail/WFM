@@ -6,7 +6,7 @@ describe('Skeleton Components', () => {
   describe('Skeleton', () => {
     it('should render with default props', () => {
       const { container } = render(<Skeleton />)
-      expect(container.firstChild).toHaveClass('bg-gray-200')
+      expect(container.firstChild).toHaveClass('bg-slate-200 dark:bg-slate-700')
     })
 
     it('should render text variant', () => {
@@ -51,13 +51,13 @@ describe('Skeleton Components', () => {
   describe('SkeletonText', () => {
     it('should render single line by default', () => {
       const { container } = render(<SkeletonText />)
-      const skeletons = container.querySelectorAll('.bg-gray-200')
+      const skeletons = container.querySelectorAll('.bg-slate-200 dark:bg-slate-700')
       expect(skeletons).toHaveLength(1)
     })
 
     it('should render multiple lines', () => {
       const { container } = render(<SkeletonText lines={3} />)
-      const skeletons = container.querySelectorAll('.bg-gray-200')
+      const skeletons = container.querySelectorAll('.bg-slate-200 dark:bg-slate-700')
       expect(skeletons).toHaveLength(3)
     })
   })
@@ -86,3 +86,6 @@ describe('Skeleton Components', () => {
     })
   })
 })
+
+
+

@@ -72,10 +72,10 @@ export default function ShiftConfigSettings() {
   }
 
   return (
-    <div className="bg-white rounded-lg shadow p-6">
+    <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm p-6">
       {loadingShiftConfigurations ? (
         <div className="flex items-center justify-center h-32">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
         </div>
       ) : (
         <ShiftConfigurations
@@ -89,3 +89,6 @@ export default function ShiftConfigSettings() {
     </div>
   )
 }
+
+
+

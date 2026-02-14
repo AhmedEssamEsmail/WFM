@@ -10,8 +10,8 @@ interface WarningPopupProps {
 
 export default function WarningPopup({ warning, onDismiss, onClose }: WarningPopupProps) {
   return (
-    <div className="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg shadow-xl max-w-md w-full mx-4 p-6">
+    <div className="fixed inset-0 bg-slate-500 dark:bg-slate-900 bg-opacity-75 dark:bg-opacity-75 backdrop-blur-sm flex items-center justify-center z-50">
+      <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-xl max-w-md w-full mx-4 p-6">
         <div className="flex items-start gap-3">
           <div className="flex-shrink-0">
             <svg
@@ -29,8 +29,8 @@ export default function WarningPopup({ warning, onDismiss, onClose }: WarningPop
             </svg>
           </div>
           <div className="flex-1">
-            <h3 className="text-lg font-medium text-gray-900 mb-2">Shift Change Detected</h3>
-            <div className="space-y-2 text-sm text-gray-600">
+            <h3 className="text-lg font-medium text-slate-900 dark:text-white mb-2">Shift Change Detected</h3>
+            <div className="space-y-2 text-sm text-slate-600 dark:text-slate-300">
               <p>
                 <span className="font-medium">Date:</span>{' '}
                 {format(parseISO(warning.schedule_date), 'EEEE, MMMM d, yyyy')}
@@ -43,7 +43,7 @@ export default function WarningPopup({ warning, onDismiss, onClose }: WarningPop
                 <span className="font-medium">New Shift:</span>{' '}
                 {SHIFT_LABELS[warning.new_shift_type as ShiftType]}
               </p>
-              <p className="mt-3 text-gray-700">
+              <p className="mt-3 text-slate-700 dark:text-slate-300">
                 The break schedule for this day has been cleared due to the shift change. Please
                 reschedule breaks for the new shift.
               </p>
@@ -63,3 +63,6 @@ export default function WarningPopup({ warning, onDismiss, onClose }: WarningPop
     </div>
   )
 }
+
+
+

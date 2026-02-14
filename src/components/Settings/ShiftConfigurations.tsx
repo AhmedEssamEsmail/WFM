@@ -110,8 +110,8 @@ export default function ShiftConfigurations({
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <div>
-          <h3 className="text-lg font-medium text-gray-900">Shift Configurations</h3>
-          <p className="text-sm text-gray-500 mt-1">
+          <h3 className="text-lg font-medium text-slate-900 dark:text-white">Shift Configurations</h3>
+          <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
             Configure shift times for break schedule management
           </p>
         </div>
@@ -125,12 +125,12 @@ export default function ShiftConfigurations({
 
       {/* Add new shift form */}
       {showAddForm && (
-        <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
-          <h4 className="text-sm font-medium text-gray-900 mb-3">Add New Shift</h4>
+        <div className="bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-lg p-4">
+          <h4 className="text-sm font-medium text-slate-900 dark:text-white mb-3">Add New Shift</h4>
           <div className="space-y-3">
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1">
+                <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">
                   Shift Code <span className="text-red-500">*</span>
                 </label>
                 <input
@@ -141,10 +141,10 @@ export default function ShiftConfigurations({
                   placeholder="e.g., NIGHT"
                   maxLength={10}
                 />
-                <p className="text-xs text-gray-500 mt-1">Unique code (uppercase)</p>
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Unique code (uppercase)</p>
               </div>
               <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1">
+                <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">
                   Shift Label <span className="text-red-500">*</span>
                 </label>
                 <input
@@ -158,7 +158,7 @@ export default function ShiftConfigurations({
             </div>
             <div className="grid grid-cols-3 gap-4">
               <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1">Start Time</label>
+                <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">Start Time</label>
                 <input
                   type="time"
                   step="900"
@@ -168,7 +168,7 @@ export default function ShiftConfigurations({
                 />
               </div>
               <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1">End Time</label>
+                <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">End Time</label>
                 <input
                   type="time"
                   step="900"
@@ -178,7 +178,7 @@ export default function ShiftConfigurations({
                 />
               </div>
               <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1">Display Order</label>
+                <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">Display Order</label>
                 <input
                   type="number"
                   value={newShift.display_order}
@@ -189,7 +189,7 @@ export default function ShiftConfigurations({
               </div>
             </div>
             <div>
-              <label className="block text-xs font-medium text-gray-700 mb-1">Description</label>
+              <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">Description</label>
               <input
                 type="text"
                 value={newShift.description}
@@ -227,14 +227,14 @@ export default function ShiftConfigurations({
           return (
             <div
               key={shift.id}
-              className={`bg-white border rounded-lg p-4 ${
-                shift.is_active ? 'border-green-300' : 'border-gray-200'
+              className={`bg-white dark:bg-slate-900 border rounded-lg p-4 ${
+                shift.is_active ? 'border-green-300' : 'border-slate-200 dark:border-slate-800'
               }`}
             >
               <div className="flex items-start justify-between">
                 <div className="flex-1">
                   <div className="flex items-center gap-3 mb-2">
-                    <span className="inline-flex items-center px-2.5 py-0.5 rounded text-xs font-bold bg-gray-100 text-gray-800">
+                    <span className="inline-flex items-center px-2.5 py-0.5 rounded text-xs font-bold bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200">
                       {shift.shift_code}
                     </span>
                     {isEditing ? (
@@ -245,11 +245,11 @@ export default function ShiftConfigurations({
                         className={`${INPUT_STYLES.default} text-sm max-w-[200px]`}
                       />
                     ) : (
-                      <h4 className="text-sm font-medium text-gray-900">{shift.shift_label}</h4>
+                      <h4 className="text-sm font-medium text-slate-900 dark:text-white">{shift.shift_label}</h4>
                     )}
                     <span
                       className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${
-                        shift.is_active ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
+                        shift.is_active ? 'bg-green-100 text-green-800' : 'bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200'
                       }`}
                     >
                       {shift.is_active ? 'Active' : 'Inactive'}
@@ -259,7 +259,7 @@ export default function ShiftConfigurations({
                   <div className="space-y-2">
                     <div className="flex items-center gap-4 text-sm">
                       <div className="flex items-center gap-2">
-                        <span className="text-gray-500">Start:</span>
+                        <span className="text-slate-500 dark:text-slate-400">Start:</span>
                         {isEditing ? (
                           <input
                             type="time"
@@ -269,13 +269,13 @@ export default function ShiftConfigurations({
                             className={`${INPUT_STYLES.default} text-xs max-w-[100px]`}
                           />
                         ) : (
-                          <span className="font-medium text-gray-900">
+                          <span className="font-medium text-slate-900 dark:text-white">
                             {shift.start_time.substring(0, 5)}
                           </span>
                         )}
                       </div>
                       <div className="flex items-center gap-2">
-                        <span className="text-gray-500">End:</span>
+                        <span className="text-slate-500 dark:text-slate-400">End:</span>
                         {isEditing ? (
                           <input
                             type="time"
@@ -285,13 +285,13 @@ export default function ShiftConfigurations({
                             className={`${INPUT_STYLES.default} text-xs max-w-[100px]`}
                           />
                         ) : (
-                          <span className="font-medium text-gray-900">
+                          <span className="font-medium text-slate-900 dark:text-white">
                             {shift.end_time.substring(0, 5)}
                           </span>
                         )}
                       </div>
                       <div className="flex items-center gap-2">
-                        <span className="text-gray-500">Order:</span>
+                        <span className="text-slate-500 dark:text-slate-400">Order:</span>
                         {isEditing ? (
                           <input
                             type="number"
@@ -301,12 +301,12 @@ export default function ShiftConfigurations({
                             min="0"
                           />
                         ) : (
-                          <span className="font-medium text-gray-900">{shift.display_order}</span>
+                          <span className="font-medium text-slate-900 dark:text-white">{shift.display_order}</span>
                         )}
                       </div>
                     </div>
                     {shift.description && (
-                      <p className="text-xs text-gray-600">{shift.description}</p>
+                      <p className="text-xs text-slate-600 dark:text-slate-300">{shift.description}</p>
                     )}
                   </div>
                 </div>
@@ -364,3 +364,6 @@ export default function ShiftConfigurations({
     </div>
   )
 }
+
+
+

@@ -13,7 +13,7 @@ export function Skeleton({
   height,
   animation = 'pulse'
 }: SkeletonProps) {
-  const baseClasses = 'bg-gray-200'
+  const baseClasses = 'bg-slate-200 dark:bg-slate-700'
   
   const variantClasses = {
     text: 'rounded',
@@ -58,7 +58,7 @@ export function SkeletonText({ lines = 1, className = '' }: { lines?: number; cl
 
 export function SkeletonCard({ className = '' }: { className?: string }) {
   return (
-    <div className={`bg-white rounded-lg shadow p-6 ${className}`}>
+    <div className={`bg-white rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm p-6 ${className}`}>
       <Skeleton variant="rectangular" height="2rem" width="60%" className="mb-4" />
       <SkeletonText lines={3} />
     </div>
@@ -67,9 +67,9 @@ export function SkeletonCard({ className = '' }: { className?: string }) {
 
 export function SkeletonTable({ rows = 5, columns = 4 }: { rows?: number; columns?: number }) {
   return (
-    <div className="bg-white rounded-lg shadow overflow-hidden">
+    <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
       {/* Header */}
-      <div className="bg-gray-50 border-b border-gray-200 p-4">
+      <div className="bg-slate-50 dark:bg-slate-950 border-b border-slate-200 dark:border-slate-800 p-4">
         <div className="grid gap-4" style={{ gridTemplateColumns: `repeat(${columns}, 1fr)` }}>
           {Array.from({ length: columns }).map((_, i) => (
             <Skeleton key={i} height="1rem" width="80%" />
@@ -79,7 +79,7 @@ export function SkeletonTable({ rows = 5, columns = 4 }: { rows?: number; column
       
       {/* Rows */}
       {Array.from({ length: rows }).map((_, rowIndex) => (
-        <div key={rowIndex} className="border-b border-gray-200 p-4">
+        <div key={rowIndex} className="border-b border-slate-200 dark:border-slate-800 p-4">
           <div className="grid gap-4" style={{ gridTemplateColumns: `repeat(${columns}, 1fr)` }}>
             {Array.from({ length: columns }).map((_, colIndex) => (
               <Skeleton key={colIndex} height="1rem" width="90%" />
@@ -116,7 +116,7 @@ export function SkeletonList({ items = 5 }: { items?: number }) {
   return (
     <div className="space-y-4">
       {Array.from({ length: items }).map((_, i) => (
-        <div key={i} className="flex items-center gap-4 p-4 bg-white rounded-lg shadow">
+        <div key={i} className="flex items-center gap-4 p-4 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
           <SkeletonAvatar size={48} />
           <div className="flex-1">
             <Skeleton height="1rem" width="40%" className="mb-2" />
@@ -127,3 +127,6 @@ export function SkeletonList({ items = 5 }: { items?: number }) {
     </div>
   )
 }
+
+
+

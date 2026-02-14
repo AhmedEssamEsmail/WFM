@@ -60,11 +60,11 @@ export class ChunkErrorBoundary extends Component<Props, State> {
   render() {
     if (this.state.hasError && this.state.isChunkError) {
       return (
-        <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-950">
           <div className="text-center max-w-md mx-auto p-6">
             <div className="mb-4">
               <svg 
-                className="w-16 h-16 mx-auto text-primary-600 animate-spin" 
+                className="w-16 h-16 mx-auto text-indigo-600 animate-spin" 
                 fill="none" 
                 viewBox="0 0 24 24"
               >
@@ -83,10 +83,10 @@ export class ChunkErrorBoundary extends Component<Props, State> {
                 />
               </svg>
             </div>
-            <h2 className="text-xl font-semibold text-gray-900 mb-2">
+            <h2 className="text-xl font-semibold text-slate-900 dark:text-white mb-2">
               Loading new version...
             </h2>
-            <p className="text-gray-600">
+            <p className="text-slate-600 dark:text-slate-300">
               We're updating the app with the latest changes. This will only take a moment.
             </p>
           </div>
@@ -97,3 +97,6 @@ export class ChunkErrorBoundary extends Component<Props, State> {
     return this.props.children
   }
 }
+
+
+

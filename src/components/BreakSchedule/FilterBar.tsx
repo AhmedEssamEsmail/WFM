@@ -38,7 +38,7 @@ export default function FilterBar({
   }, [localSearch, onSearchChange])
 
   return (
-    <div className="bg-white rounded-lg shadow p-4">
+    <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm p-4">
       <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
         <div className="flex flex-col sm:flex-row gap-3 flex-1 w-full sm:w-auto">
           {/* Search input */}
@@ -111,3 +111,6 @@ export default function FilterBar({
     </div>
   )
 }
+
+
+

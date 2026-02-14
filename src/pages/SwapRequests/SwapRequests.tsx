@@ -87,14 +87,14 @@ export default function SwapRequests() {
   return (
     <div className="space-y-4 pb-4">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-gray-900">Swap Requests</h1>
+        <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Swap Requests</h1>
       </div>
 
       {/* Filters */}
-      <div className="bg-white rounded-lg shadow p-4 space-y-3">
+      <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm p-4 space-y-3">
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           <div>
-            <label htmlFor="start-date" className="block text-sm font-medium text-gray-700 mb-1">
+            <label htmlFor="start-date" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
               Start Date
             </label>
             <input
@@ -102,11 +102,11 @@ export default function SwapRequests() {
               type="date"
               value={startDate}
               onChange={(e) => setStartDate(e.target.value)}
-              className="block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 text-sm"
+              className="block w-full rounded-md border-slate-300 dark:border-slate-600 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm"
             />
           </div>
           <div>
-            <label htmlFor="end-date" className="block text-sm font-medium text-gray-700 mb-1">
+            <label htmlFor="end-date" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
               End Date
             </label>
             <input
@@ -114,18 +114,18 @@ export default function SwapRequests() {
               type="date"
               value={endDate}
               onChange={(e) => setEndDate(e.target.value)}
-              className="block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 text-sm"
+              className="block w-full rounded-md border-slate-300 dark:border-slate-600 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm"
             />
           </div>
           <div>
-            <label htmlFor="status-filter" className="block text-sm font-medium text-gray-700 mb-1">
+            <label htmlFor="status-filter" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
               Status
             </label>
             <select
               id="status-filter"
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value as SwapRequestStatus | '')}
-              className="block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 text-sm"
+              className="block w-full rounded-md border-slate-300 dark:border-slate-600 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm"
             >
               <option value="">All Statuses</option>
               <option value="pending_acceptance">Pending Acceptance</option>
@@ -139,7 +139,7 @@ export default function SwapRequests() {
         {(startDate || endDate || statusFilter) && (
           <button
             onClick={clearFilters}
-            className="w-full sm:w-auto px-4 py-2 text-sm text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200"
+            className="w-full sm:w-auto px-4 py-2 text-sm text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 rounded-md hover:bg-slate-200 dark:bg-slate-700"
           >
             Clear Filters
           </button>
@@ -147,37 +147,37 @@ export default function SwapRequests() {
       </div>
 
       {/* Requests List */}
-      <div className="bg-white rounded-lg shadow">
+      <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
         {loading ? (
           <div className="p-8 text-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600 mx-auto"></div>
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600 mx-auto"></div>
           </div>
         ) : requests.length === 0 ? (
-          <div className="p-8 text-center text-gray-500 text-sm">
+          <div className="p-8 text-center text-slate-500 dark:text-slate-400 text-sm">
             No swap requests found
           </div>
         ) : (
-          <div className="divide-y divide-gray-200">
+          <div className="divide-y divide-slate-100 dark:divide-slate-800">
             {requests.map((request) => (
               <div
                 key={request.id}
                 onClick={() => navigate(`${ROUTES.SWAP_REQUESTS}/${request.id}`)}
-                className="p-4 hover:bg-gray-50 cursor-pointer"
+                className="p-4 hover:bg-slate-50 dark:bg-slate-950 cursor-pointer"
               >
                 <div className="flex items-start justify-between mb-3">
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1">
-                      <p className="text-sm font-medium text-gray-900">
+                      <p className="text-sm font-medium text-slate-900 dark:text-white">
                         {(request as SwapRequestWithUsers).requester?.name || 'Unknown'}
                       </p>
-                      <svg className="w-4 h-4 text-gray-400 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <svg className="w-4 h-4 text-slate-400 dark:text-slate-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
                       </svg>
-                      <p className="text-sm font-medium text-gray-900">
+                      <p className="text-sm font-medium text-slate-900 dark:text-white">
                         {(request as SwapRequestWithUsers).target?.name || (request as SwapRequestWithUsers).target_user?.name || 'Unknown'}
                       </p>
                     </div>
-                    <p className="text-xs text-gray-500">
+                    <p className="text-xs text-slate-500 dark:text-slate-400">
                       {(request as SwapRequestWithUsers).requester?.email || 'N/A'}
                     </p>
                   </div>
@@ -185,7 +185,7 @@ export default function SwapRequests() {
                     {getStatusLabel(request.status)}
                   </span>
                 </div>
-                <div className="text-xs text-gray-500">
+                <div className="text-xs text-slate-500 dark:text-slate-400">
                   <p>Created: {formatDate(request.created_at)}</p>
                 </div>
               </div>
@@ -196,3 +196,6 @@ export default function SwapRequests() {
     </div>
   )
 }
+
+
+

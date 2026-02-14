@@ -12,17 +12,17 @@ export default function LeaveChart({ metrics }: LeaveChartProps) {
   return (
     <>
       {/* Leaves by Type */}
-      <div className="bg-white rounded-lg shadow p-6">
-        <h3 className="text-lg font-medium text-gray-900 mb-4">Leaves by Type</h3>
+      <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm p-6">
+        <h3 className="text-lg font-medium text-slate-900 dark:text-white mb-4">Leaves by Type</h3>
         <div className="space-y-3">
           {Object.entries(metrics.leavesByType).map(([type, count]) => (
             <div key={type} className="flex items-center">
               <div className="flex-1">
                 <div className="flex justify-between mb-1">
-                  <span className="text-sm font-medium text-gray-700 capitalize">{type.replace('_', ' ')}</span>
-                  <span className="text-sm text-gray-500">{count}</span>
+                  <span className="text-sm font-medium text-slate-700 dark:text-slate-300 capitalize">{type.replace('_', ' ')}</span>
+                  <span className="text-sm text-slate-500 dark:text-slate-400">{count}</span>
                 </div>
-                <div className="w-full bg-gray-200 rounded-full h-2">
+                <div className="w-full bg-slate-200 dark:bg-slate-700 rounded-full h-2">
                   <div
                     className="bg-green-600 h-2 rounded-full"
                     style={{ width: `${(count / maxLeaveValue) * 100}%` }}
@@ -32,23 +32,23 @@ export default function LeaveChart({ metrics }: LeaveChartProps) {
             </div>
           ))}
           {Object.keys(metrics.leavesByType).length === 0 && (
-            <p className="text-sm text-gray-500 text-center py-4">No leave requests in this period</p>
+            <p className="text-sm text-slate-500 dark:text-slate-400 text-center py-4">No leave requests in this period</p>
           )}
         </div>
       </div>
 
       {/* Shift Distribution */}
-      <div className="bg-white rounded-lg shadow p-6">
-        <h3 className="text-lg font-medium text-gray-900 mb-4">Shift Distribution</h3>
+      <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm p-6">
+        <h3 className="text-lg font-medium text-slate-900 dark:text-white mb-4">Shift Distribution</h3>
         <div className="space-y-3">
           {Object.entries(metrics.shiftDistribution).map(([type, count]) => (
             <div key={type} className="flex items-center">
               <div className="flex-1">
                 <div className="flex justify-between mb-1">
-                  <span className="text-sm font-medium text-gray-700">{type}</span>
-                  <span className="text-sm text-gray-500">{count}</span>
+                  <span className="text-sm font-medium text-slate-700 dark:text-slate-300">{type}</span>
+                  <span className="text-sm text-slate-500 dark:text-slate-400">{count}</span>
                 </div>
-                <div className="w-full bg-gray-200 rounded-full h-2">
+                <div className="w-full bg-slate-200 dark:bg-slate-700 rounded-full h-2">
                   <div
                     className="bg-purple-600 h-2 rounded-full"
                     style={{ width: `${(count / maxShiftValue) * 100}%` }}
@@ -58,17 +58,17 @@ export default function LeaveChart({ metrics }: LeaveChartProps) {
             </div>
           ))}
           {Object.keys(metrics.shiftDistribution).length === 0 && (
-            <p className="text-sm text-gray-500 text-center py-4">No shifts in this period</p>
+            <p className="text-sm text-slate-500 dark:text-slate-400 text-center py-4">No shifts in this period</p>
           )}
         </div>
       </div>
 
       {/* Request Status Breakdown */}
-      <div className="bg-white rounded-lg shadow p-6">
-        <h3 className="text-lg font-medium text-gray-900 mb-4">Request Status Overview</h3>
+      <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm p-6">
+        <h3 className="text-lg font-medium text-slate-900 dark:text-white mb-4">Request Status Overview</h3>
         <div className="space-y-4">
           <div>
-            <h4 className="text-sm font-medium text-gray-700 mb-2">Swap Requests</h4>
+            <h4 className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Swap Requests</h4>
             <div className="grid grid-cols-3 gap-2">
               <div className={`${SEMANTIC_COLORS.success.bg} p-3 rounded text-center`}>
                 <p className="text-2xl font-bold text-green-900">{metrics.approvedSwaps}</p>
@@ -85,7 +85,7 @@ export default function LeaveChart({ metrics }: LeaveChartProps) {
             </div>
           </div>
           <div>
-            <h4 className="text-sm font-medium text-gray-700 mb-2">Leave Requests</h4>
+            <h4 className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Leave Requests</h4>
             <div className="grid grid-cols-3 gap-2">
               <div className={`${SEMANTIC_COLORS.success.bg} p-3 rounded text-center`}>
                 <p className="text-2xl font-bold text-green-900">{metrics.approvedLeaves}</p>
@@ -106,3 +106,6 @@ export default function LeaveChart({ metrics }: LeaveChartProps) {
     </>
   )
 }
+
+
+

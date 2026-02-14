@@ -50,12 +50,12 @@ export default function GeneralSettings({
   }
 
   return (
-    <div className="bg-white rounded-lg shadow p-6 space-y-6">
+    <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm p-6 space-y-6">
       {/* Auto-Approve Toggle */}
       <div className="flex items-center justify-between">
         <div>
-          <h3 className="text-lg font-medium text-gray-900">Auto-Approve Requests</h3>
-          <p className="text-sm text-gray-500">
+          <h3 className="text-lg font-medium text-slate-900 dark:text-white">Auto-Approve Requests</h3>
+          <p className="text-sm text-slate-500 dark:text-slate-400">
             Automatically approve swap and leave requests when TL approves them
           </p>
         </div>
@@ -63,11 +63,11 @@ export default function GeneralSettings({
           onClick={handleAutoApproveToggle}
           disabled={saving}
           className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 ${
-            autoApprove ? 'bg-indigo-600' : 'bg-gray-200'
+            autoApprove ? 'bg-indigo-600' : 'bg-slate-200 dark:bg-slate-700'
           } ${saving ? 'opacity-50 cursor-not-allowed' : ''}`}
         >
           <span
-            className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
+            className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm ring-0 transition duration-200 ease-in-out ${
               autoApprove ? 'translate-x-5' : 'translate-x-0'
             }`}
           />
@@ -77,8 +77,8 @@ export default function GeneralSettings({
       {/* Allow Leave Exceptions Toggle */}
       <div className="flex items-center justify-between border-t pt-6">
         <div>
-          <h3 className="text-lg font-medium text-gray-900">Allow Leave Exceptions</h3>
-          <p className="text-sm text-gray-500">
+          <h3 className="text-lg font-medium text-slate-900 dark:text-white">Allow Leave Exceptions</h3>
+          <p className="text-sm text-slate-500 dark:text-slate-400">
             Allow users to request exceptions for denied leave requests (insufficient balance)
           </p>
         </div>
@@ -86,20 +86,23 @@ export default function GeneralSettings({
           onClick={handleExceptionsToggle}
           disabled={saving}
           className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 ${
-            allowLeaveExceptions ? 'bg-indigo-600' : 'bg-gray-200'
+            allowLeaveExceptions ? 'bg-indigo-600' : 'bg-slate-200 dark:bg-slate-700'
           } ${saving ? 'opacity-50 cursor-not-allowed' : ''}`}
         >
           <span
-            className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
+            className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm ring-0 transition duration-200 ease-in-out ${
               allowLeaveExceptions ? 'translate-x-5' : 'translate-x-0'
             }`}
           />
         </button>
       </div>
 
-      <div className="text-xs text-gray-400 mt-4 border-t pt-4">
+      <div className="text-xs text-slate-400 dark:text-slate-500 mt-4 border-t pt-4">
         <p>Note: Changes take effect immediately for all new requests.</p>
       </div>
     </div>
   )
 }
+
+
+

@@ -10,3 +10,6 @@ export default function LeaveIcon(props: React.SVGProps<SVGSVGElement>) {
     </svg>
   )
 }
+
+
+

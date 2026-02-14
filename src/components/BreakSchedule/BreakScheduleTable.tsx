@@ -76,7 +76,7 @@ export default function BreakScheduleTable({
   )
 
   return (
-    <div className="bg-white rounded-lg shadow overflow-hidden">
+    <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
       {isSaving && (
         <div className="bg-blue-50 border-b border-blue-200 px-4 py-2 text-sm text-blue-800">
           Saving changes...
@@ -85,36 +85,36 @@ export default function BreakScheduleTable({
       
       <div className="overflow-x-auto">
         <div className="inline-block min-w-full align-middle">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50 sticky top-0 z-20">
+          <table className="min-w-full divide-y divide-slate-100 dark:divide-slate-800">
+            <thead className="bg-slate-50 dark:bg-slate-950 sticky top-0 z-20">
               <tr>
                 <th
                   scope="col"
-                  className="sticky left-0 z-30 bg-gray-50 px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[209px] shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]"
+                  className="sticky left-0 z-30 bg-slate-50 dark:bg-slate-950 px-4 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider min-w-[209px] shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]"
                 >
                   Agent Name
                 </th>
                 <th
                   scope="col"
-                  className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[80px] bg-gray-50"
+                  className="px-4 py-3 text-center text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider min-w-[80px] bg-slate-50 dark:bg-slate-950"
                 >
                   Shift
                 </th>
                 <th
                   scope="col"
-                  className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[80px] bg-gray-50"
+                  className="px-4 py-3 text-center text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider min-w-[80px] bg-slate-50 dark:bg-slate-950"
                 >
                   HB1 Start
                 </th>
                 <th
                   scope="col"
-                  className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[80px] bg-gray-50"
+                  className="px-4 py-3 text-center text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider min-w-[80px] bg-slate-50 dark:bg-slate-950"
                 >
                   B Start
                 </th>
                 <th
                   scope="col"
-                  className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[80px] bg-gray-50"
+                  className="px-4 py-3 text-center text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider min-w-[80px] bg-slate-50 dark:bg-slate-950"
                 >
                   HB2 Start
                 </th>
@@ -122,28 +122,28 @@ export default function BreakScheduleTable({
                   <th
                     key={interval}
                     scope="col"
-                    className="px-2 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[60px] bg-gray-50"
+                    className="px-2 py-3 text-center text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider min-w-[60px] bg-slate-50 dark:bg-slate-950"
                   >
                     {interval}
                   </th>
                 ))}
               </tr>
             </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
+            <tbody className="bg-white dark:bg-slate-900 divide-y divide-slate-100 dark:divide-slate-800">
               {/* Total IN summary row */}
-              <tr className="bg-gray-100 font-semibold">
+              <tr className="bg-slate-100 dark:bg-slate-800 font-semibold">
                 <th
                   scope="row"
-                  className="sticky left-0 z-10 bg-gray-100 px-4 py-3 text-sm text-gray-900 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]"
+                  className="sticky left-0 z-10 bg-slate-100 dark:bg-slate-800 px-4 py-3 text-sm text-slate-900 dark:text-white shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]"
                 >
                   Total IN
                 </th>
-                <td className="px-4 py-3 text-center bg-gray-100">-</td>
-                <td className="px-4 py-3 text-center bg-gray-100">-</td>
-                <td className="px-4 py-3 text-center bg-gray-100">-</td>
-                <td className="px-4 py-3 text-center bg-gray-100">-</td>
+                <td className="px-4 py-3 text-center bg-slate-100 dark:bg-slate-800">-</td>
+                <td className="px-4 py-3 text-center bg-slate-100 dark:bg-slate-800">-</td>
+                <td className="px-4 py-3 text-center bg-slate-100 dark:bg-slate-800">-</td>
+                <td className="px-4 py-3 text-center bg-slate-100 dark:bg-slate-800">-</td>
                 {intervals.map((interval) => (
-                  <td key={interval} className="px-2 py-3 text-center bg-gray-100">
+                  <td key={interval} className="px-2 py-3 text-center bg-slate-100 dark:bg-slate-800">
                     <CoverageCell count={getCoverageForInterval(interval)} />
                   </td>
                 ))}
@@ -169,3 +169,6 @@ export default function BreakScheduleTable({
     </div>
   )
 }
+
+
+

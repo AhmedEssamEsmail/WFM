@@ -217,15 +217,15 @@ export default function EmployeeDirectory() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-3">
         <div>
-          <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Employee Directory</h1>
-          <p className="text-sm text-gray-600">View and manage workforce</p>
+          <h1 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white">Employee Directory</h1>
+          <p className="text-sm text-slate-600 dark:text-slate-300">View and manage workforce</p>
         </div>
         
         {canEditHeadcount() && (
           <div className="flex flex-wrap gap-2">
             <button
               onClick={handleDownloadTemplate}
-              className="px-3 py-2 bg-white border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 flex items-center gap-2"
+              className="px-3 py-2 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-lg text-sm font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:bg-slate-950 flex items-center gap-2"
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
@@ -235,7 +235,7 @@ export default function EmployeeDirectory() {
             <button
               onClick={handleExport}
               disabled={employees.length === 0}
-              className="px-3 py-2 bg-white border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+              className="px-3 py-2 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-lg text-sm font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:bg-slate-950 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
@@ -245,7 +245,7 @@ export default function EmployeeDirectory() {
             <button
               onClick={handleImportClick}
               disabled={importing}
-              className="px-3 py-2 bg-primary-600 text-white rounded-lg text-sm font-medium hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+              className="px-3 py-2 bg-indigo-600 text-white rounded-lg text-sm font-medium hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
@@ -301,7 +301,7 @@ export default function EmployeeDirectory() {
             </div>
             <button
               onClick={() => setImportResults(null)}
-              className="flex-shrink-0 text-gray-400 hover:text-gray-600"
+              className="flex-shrink-0 text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:text-slate-300"
             >
               <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                 <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
@@ -312,25 +312,25 @@ export default function EmployeeDirectory() {
       )}
 
       {/* Filters */}
-      <div className="bg-white p-3 sm:p-4 rounded-lg shadow space-y-3 sm:space-y-4">
+      <div className="bg-white dark:bg-slate-900 p-3 sm:p-4 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm space-y-3 sm:space-y-4">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
           <div>
-            <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">Search</label>
+            <label className="block text-xs sm:text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Search</label>
             <input
               type="text"
               placeholder="Name, email, or ID..."
               value={filters.search}
               onChange={(e) => setFilters(f => ({ ...f, search: e.target.value }))}
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+              className="w-full border border-slate-300 dark:border-slate-600 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
             />
           </div>
           
           <div>
-            <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">Department</label>
+            <label className="block text-xs sm:text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Department</label>
             <select
               value={filters.department}
               onChange={(e) => setFilters(f => ({ ...f, department: e.target.value }))}
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+              className="w-full border border-slate-300 dark:border-slate-600 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
             >
               <option value="">All Departments</option>
               {departments.map(dept => (
@@ -340,11 +340,11 @@ export default function EmployeeDirectory() {
           </div>
 
           <div>
-            <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">Status</label>
+            <label className="block text-xs sm:text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Status</label>
             <select
               value={filters.status}
               onChange={(e) => setFilters(f => ({ ...f, status: e.target.value }))}
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+              className="w-full border border-slate-300 dark:border-slate-600 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
             >
               <option value="">All Statuses</option>
               <option value="active">Active</option>
@@ -355,11 +355,11 @@ export default function EmployeeDirectory() {
           </div>
 
           <div>
-            <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">Role</label>
+            <label className="block text-xs sm:text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Role</label>
             <select
               value={filters.role}
               onChange={(e) => setFilters(f => ({ ...f, role: e.target.value }))}
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+              className="w-full border border-slate-300 dark:border-slate-600 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
             >
               <option value="">All Roles</option>
               <option value="agent">Agent</option>
@@ -372,7 +372,7 @@ export default function EmployeeDirectory() {
         {hasActiveFilters && (
           <button
             onClick={clearFilters}
-            className="text-xs sm:text-sm text-primary-600 hover:text-primary-800 font-medium"
+            className="text-xs sm:text-sm text-indigo-600 hover:text-indigo-800 font-medium"
           >
             Clear all filters
           </button>
@@ -380,9 +380,9 @@ export default function EmployeeDirectory() {
       </div>
 
       {/* Results */}
-      <div className="bg-white rounded-lg shadow overflow-hidden">
-        <div className="px-3 sm:px-6 py-3 sm:py-4 border-b border-gray-200 flex justify-between items-center">
-          <h2 className="text-base sm:text-lg font-semibold text-gray-900">
+      <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
+        <div className="px-3 sm:px-6 py-3 sm:py-4 border-b border-slate-200 dark:border-slate-800 flex justify-between items-center">
+          <h2 className="text-base sm:text-lg font-semibold text-slate-900 dark:text-white">
             Employees ({employees.length})
           </h2>
           {!canEditHeadcount() && (
@@ -394,44 +394,44 @@ export default function EmployeeDirectory() {
 
         {/* Desktop Table */}
         <div className="hidden md:block overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
+          <table className="min-w-full divide-y divide-slate-100 dark:divide-slate-800">
+            <thead className="bg-slate-50 dark:bg-slate-950">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Employee</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Department</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Role</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Manager</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">Employee</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">ID</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">Department</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">Role</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">Status</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">Manager</th>
               </tr>
             </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
+            <tbody className="bg-white dark:bg-slate-900 divide-y divide-slate-100 dark:divide-slate-800">
               {loading ? (
                 [...Array(5)].map((_, i) => (
                   <tr key={i}>
                     <td colSpan={7} className="px-6 py-4">
-                      <div className="h-12 bg-gray-100 rounded animate-pulse"></div>
+                      <div className="h-12 bg-slate-100 dark:bg-slate-800 rounded animate-pulse"></div>
                     </td>
                   </tr>
                 ))
               ) : (
                 employees.map((employee) => (
-                  <tr key={employee.id} className="hover:bg-gray-50">
+                  <tr key={employee.id} className="hover:bg-slate-50 dark:bg-slate-950">
                     <td className="px-6 py-4 whitespace-nowrap">
                       <Link to={`/headcount/employees/${employee.id}`} className="flex items-center">
-                        <div className="h-10 w-10 rounded-full bg-primary-100 flex items-center justify-center text-primary-600 font-semibold">
+                        <div className="h-10 w-10 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 font-semibold">
                           {employee.name.charAt(0).toUpperCase()}
                         </div>
                         <div className="ml-4">
-                          <div className="text-sm font-medium text-gray-900">{employee.name}</div>
-                          <div className="text-sm text-gray-500">{employee.email}</div>
+                          <div className="text-sm font-medium text-slate-900 dark:text-white">{employee.name}</div>
+                          <div className="text-sm text-slate-500 dark:text-slate-400">{employee.email}</div>
                         </div>
                       </Link>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-500 dark:text-slate-400">
                       {employee.employee_id || '-'}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-900 dark:text-white">
                       {employee.department || 'Unassigned'}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
@@ -447,12 +447,12 @@ export default function EmployeeDirectory() {
                       <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
                         employee.status === 'active' ? 'bg-green-100 text-green-800' :
                         employee.status === 'on_leave' ? 'bg-yellow-100 text-yellow-800' :
-                        'bg-gray-100 text-gray-800'
+                        'bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200'
                       }`}>
                         {employee.status.replace('_', ' ')}
                       </span>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-500 dark:text-slate-400">
                       {employee.manager_name || '-'}
                     </td>
                   </tr>
@@ -463,11 +463,11 @@ export default function EmployeeDirectory() {
         </div>
 
         {/* Mobile Cards */}
-        <div className="md:hidden divide-y divide-gray-200">
+        <div className="md:hidden divide-y divide-slate-100 dark:divide-slate-800">
           {loading ? (
             [...Array(5)].map((_, i) => (
               <div key={i} className="p-4">
-                <div className="h-20 bg-gray-100 rounded animate-pulse"></div>
+                <div className="h-20 bg-slate-100 dark:bg-slate-800 rounded animate-pulse"></div>
               </div>
             ))
           ) : (
@@ -475,32 +475,32 @@ export default function EmployeeDirectory() {
               <Link 
                 key={employee.id} 
                 to={`/headcount/employees/${employee.id}`}
-                className="block p-4 hover:bg-gray-50 active:bg-gray-100"
+                className="block p-4 hover:bg-slate-50 dark:bg-slate-950 active:bg-slate-100 dark:bg-slate-800"
               >
                 <div className="flex items-start space-x-3">
-                  <div className="h-10 w-10 rounded-full bg-primary-100 flex items-center justify-center text-primary-600 font-semibold flex-shrink-0">
+                  <div className="h-10 w-10 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 font-semibold flex-shrink-0">
                     {employee.name.charAt(0).toUpperCase()}
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex justify-between items-start">
                       <div>
-                        <h3 className="text-sm font-medium text-gray-900 truncate">{employee.name}</h3>
-                        <p className="text-xs text-gray-500 truncate">{employee.email}</p>
+                        <h3 className="text-sm font-medium text-slate-900 dark:text-white truncate">{employee.name}</h3>
+                        <p className="text-xs text-slate-500 dark:text-slate-400 truncate">{employee.email}</p>
                       </div>
                       <span className={`px-2 py-0.5 text-xs font-semibold rounded-full flex-shrink-0 ml-2 ${
                         employee.status === 'active' ? 'bg-green-100 text-green-800' :
                         employee.status === 'on_leave' ? 'bg-yellow-100 text-yellow-800' :
-                        'bg-gray-100 text-gray-800'
+                        'bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200'
                       }`}>
                         {employee.status === 'on_leave' ? 'Leave' : employee.status}
                       </span>
                     </div>
                     
                     <div className="mt-2 flex flex-wrap gap-2 text-xs">
-                      <span className="text-gray-500">
+                      <span className="text-slate-500 dark:text-slate-400">
                         {employee.department || 'No dept'}
                       </span>
-                      <span className="text-gray-300">|</span>
+                      <span className="text-slate-300 dark:text-slate-600">|</span>
                       <span className={`font-medium ${
                         employee.role === 'agent' ? 'text-blue-600' :
                         employee.role === 'tl' ? 'text-purple-600' :
@@ -511,7 +511,7 @@ export default function EmployeeDirectory() {
                     </div>
                     
                     {employee.manager_name && (
-                      <p className="mt-1 text-xs text-gray-400">
+                      <p className="mt-1 text-xs text-slate-400 dark:text-slate-500">
                         Manager: {employee.manager_name}
                       </p>
                     )}
@@ -525,3 +525,6 @@ export default function EmployeeDirectory() {
     </div>
   )
 }
+
+
+

@@ -10,3 +10,6 @@ export default function SignOutIcon(props: React.SVGProps<SVGSVGElement>) {
     </svg>
   )
 }
+
+
+

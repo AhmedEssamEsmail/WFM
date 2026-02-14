@@ -289,7 +289,7 @@ export default function Schedule() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
       </div>
     )
   }
@@ -298,8 +298,8 @@ export default function Schedule() {
     <div className="space-y-6 w-full">
       <div className="sm:flex sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Schedule</h1>
-          <p className="mt-1 text-sm text-gray-500">
+          <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Schedule</h1>
+          <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
             {canEdit ? 'View and manage team schedules' : 'View your schedule'}
           </p>
         </div>
@@ -312,7 +312,7 @@ export default function Schedule() {
               id="agent-filter"
               value={selectedUserId}
               onChange={(e) => setSelectedUserId(e.target.value)}
-              className="block w-full sm:w-64 rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 text-sm"
+              className="block w-full sm:w-64 rounded-lg border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 focus:ring-2 text-sm"
             >
               <option value="all">All Agents</option>
               {users.map(u => (
@@ -324,21 +324,21 @@ export default function Schedule() {
       </div>
 
       {/* Month navigation */}
-          <div className="flex items-center justify-between bg-white rounded-lg shadow px-4 py-3">
+          <div className="flex items-center justify-between bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm px-4 py-3">
             <button
               onClick={() => setCurrentDate(subMonths(currentDate, 1))}
-              className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+              className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors"
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
               </svg>
             </button>
-            <h2 className="text-lg font-semibold text-gray-900">
+            <h2 className="text-lg font-semibold text-slate-900 dark:text-white">
               {format(currentDate, 'MMMM yyyy')}
             </h2>
             <button
               onClick={() => setCurrentDate(addMonths(currentDate, 1))}
-              className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+              className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors"
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
@@ -347,15 +347,15 @@ export default function Schedule() {
           </div>
 
           {/* Schedule grid */}
-          <div className="bg-white rounded-lg shadow overflow-hidden">
+          <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
             <div className="overflow-x-auto">
               <div className="inline-block min-w-full align-middle">
-                <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50 sticky top-0 z-20">
+                <table className="min-w-full divide-y divide-slate-100 dark:divide-slate-800">
+                <thead className="bg-slate-50 dark:bg-slate-800 sticky top-0 z-20">
                   <tr>
                     <th 
                       scope="col"
-                      className="sticky left-0 z-30 bg-gray-50 px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[120px] sm:min-w-[150px] shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]"
+                      className="bg-slate-50 dark:bg-slate-800 px-4 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider min-w-[120px] sm:min-w-[150px]"
                     >
                       Name
                     </th>
@@ -363,21 +363,21 @@ export default function Schedule() {
                       <th
                         key={day.toISOString()}
                         scope="col"
-                        className="px-2 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[50px] sm:min-w-[60px] bg-gray-50"
+                        className="px-2 py-3 text-center text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider min-w-[50px] sm:min-w-[60px] bg-slate-50 dark:bg-slate-800"
                       >
                         <div className="sr-only">{format(day, 'EEEE')}</div>
                         <div aria-hidden="true">{format(day, 'EEE')}</div>
-                        <div className="text-gray-900">{format(day, 'd')}</div>
+                        <div className="text-slate-900 dark:text-white">{format(day, 'd')}</div>
                       </th>
                     ))}
                   </tr>
                 </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
+                <tbody className="bg-white dark:bg-slate-900 divide-y divide-slate-100 dark:divide-slate-800">
                   {filteredUsers.map(u => (
-                    <tr key={u.id}>
+                    <tr key={u.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
                       <th 
                         scope="row"
-                        className="sticky left-0 z-10 bg-white px-4 py-3 whitespace-nowrap text-sm font-medium text-gray-900 text-left shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]"
+                        className="bg-white dark:bg-slate-900 px-4 py-3 whitespace-nowrap text-sm font-medium text-slate-900 dark:text-slate-100 text-left"
                       >
                         {u.name}
                       </th>
@@ -390,7 +390,7 @@ export default function Schedule() {
                         return (
                           <td
                             key={day.toISOString()}
-                            className={`px-2 py-3 text-center ${canEdit ? 'cursor-pointer hover:bg-gray-50' : ''} ${isOnLeave ? 'bg-opacity-50' : ''}`}
+                            className={`px-2 py-3 text-center ${canEdit ? 'cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors' : ''} ${isOnLeave ? 'bg-opacity-50' : ''}`}
                             onClick={() => canEdit && handleShiftClick(u.id, day)}
                             onKeyDown={(e) => {
                               if (canEdit && (e.key === 'Enter' || e.key === ' ')) {
@@ -430,15 +430,15 @@ export default function Schedule() {
                                   {SHIFT_LABELS[shift.shift_type]}
                                 </span>
                                 {shift.swapped_with_user_id && (
-                                  <div className="text-xs text-gray-500 mt-1 truncate" title={`Swapped with ${swappedUserNames[shift.swapped_with_user_id] || 'Unknown'}`}>
+                                  <div className="text-xs text-slate-500 dark:text-slate-400 mt-1 truncate" title={`Swapped with ${swappedUserNames[shift.swapped_with_user_id] || 'Unknown'}`}>
                                     â {swappedUserNames[shift.swapped_with_user_id]?.split(' ')[0] || '?'}
                                   </div>
                                 )}
                               </div>
                             ) : canEdit ? (
-                              <span className="text-gray-300 text-xs">+</span>
+                              <span className="text-slate-300 dark:text-slate-600 text-xs">+</span>
                             ) : (
-                              <span className="text-gray-300">-</span>
+                              <span className="text-slate-300 dark:text-slate-600">-</span>
                             )}
                           </td>
                         )
@@ -452,18 +452,18 @@ export default function Schedule() {
           </div>
 
           {/* Legend */}
-          <div className="bg-white rounded-lg shadow p-4">
-            <h3 className="text-sm font-medium text-gray-700 mb-3">Legend</h3>
+          <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm p-4">
+            <h3 className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-3">Legend</h3>
             <div className="space-y-3">
               <div>
-                <h4 className="text-xs font-medium text-gray-500 uppercase mb-2">Shifts</h4>
+                <h4 className="text-xs font-medium text-slate-500 dark:text-slate-400 uppercase mb-2">Shifts</h4>
                 <div className="flex flex-wrap gap-4">
                   {Object.entries(SHIFT_COLORS).map(([type, color]) => (
                     <div key={type} className="flex items-center gap-2">
                       <span className={`inline-flex items-center px-2 py-1 rounded text-xs font-medium ${color}`}>
                         {SHIFT_LABELS[type as ShiftType]}
                       </span>
-                      <span className="text-sm text-gray-600">
+                      <span className="text-sm text-slate-600 dark:text-slate-300">
                         {SHIFT_DESCRIPTIONS[type as ShiftType]}
                       </span>
                     </div>
@@ -471,12 +471,12 @@ export default function Schedule() {
                 </div>
               </div>
               <div>
-                <h4 className="text-xs font-medium text-gray-500 uppercase mb-2">Leave Types</h4>
+                <h4 className="text-xs font-medium text-slate-500 dark:text-slate-400 uppercase mb-2">Leave Types</h4>
                 <div className="flex flex-wrap gap-4">
                   {loadingLeaveTypes ? (
-                    <div className="text-sm text-gray-500">Loading leave types...</div>
+                    <div className="text-sm text-slate-500 dark:text-slate-400">Loading leave types...</div>
                   ) : leaveTypes.length === 0 ? (
-                    <div className="text-sm text-gray-500">No leave types configured</div>
+                    <div className="text-sm text-slate-500 dark:text-slate-400">No leave types configured</div>
                   ) : (
                     leaveTypes.filter(lt => lt.is_active).map(leaveType => (
                       <div key={leaveType.id} className="flex items-center gap-2">
@@ -491,7 +491,7 @@ export default function Schedule() {
                           {leaveType.label}
                         </span>
                         {leaveType.description && (
-                          <span className="text-sm text-gray-600">
+                          <span className="text-sm text-slate-600 dark:text-slate-300">
                             {leaveType.description}
                           </span>
                         )}
@@ -505,92 +505,96 @@ export default function Schedule() {
 
       {/* Shift edit modal */}
       {editingShift && (
-        <div className="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg shadow-xl max-w-md w-full mx-4 p-6">
-            <h3 className="text-lg font-medium text-gray-900 mb-4">
-              {editingShift.existingLeave ? 'Edit Leave/Shift' : editingShift.shiftId ? 'Edit Shift' : 'Add Shift/Leave'}
-            </h3>
-            <p className="text-sm text-gray-500 mb-4">
-              Date: {format(new Date(editingShift.date), 'EEEE, MMMM d, yyyy')}
-            </p>
-            
-            <div className="space-y-3">
-              <label className="block text-sm font-medium text-gray-700">Shift Type</label>
-              <div className="grid grid-cols-2 gap-3">
-                {(Object.keys(SHIFT_COLORS) as ShiftType[]).map(type => (
-                  <button
-                    key={type}
-                    onClick={() => { setSelectedShiftType(type); setSelectedLeaveTypeCode(null); }}
-                    className={`p-3 rounded-lg border-2 transition-colors ${
-                      selectedShiftType === type && !selectedLeaveTypeCode
-                        ? 'border-primary-500 bg-primary-50'
-                        : 'border-gray-200 hover:border-gray-300'
-                    }`}
-                  >
-                    <span className={`inline-flex items-center px-2 py-1 rounded text-xs font-medium ${SHIFT_COLORS[type]}`}>
-                      {SHIFT_LABELS[type]}
-                    </span>
-                  </button>
-                ))}
-              </div>
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white dark:bg-slate-900 rounded-xl shadow-xl max-w-md w-full border border-slate-200 dark:border-slate-800">
+            <div className="p-6 border-b border-slate-200 dark:border-slate-800">
+              <h3 className="text-xl font-bold text-slate-900 dark:text-white">
+                {editingShift.existingLeave ? 'Edit Leave/Shift' : editingShift.shiftId ? 'Edit Shift' : 'Add Shift/Leave'}
+              </h3>
+              <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
+                Date: {format(new Date(editingShift.date), 'EEEE, MMMM d, yyyy')}
+              </p>
             </div>
-
-            {/* Leave Type Assignment */}
-            <div className="space-y-3 mt-4 pt-4 border-t border-gray-200">
-              <label className="block text-sm font-medium text-gray-700">Or Assign Leave</label>
-              <div className="grid grid-cols-2 gap-3">
-                {loadingLeaveTypes ? (
-                  <div className="col-span-2 text-center text-sm text-gray-500">Loading leave types...</div>
-                ) : leaveTypes.filter(lt => lt.is_active).length === 0 ? (
-                  <div className="col-span-2 text-center text-sm text-gray-500">No leave types available</div>
-                ) : (
-                  leaveTypes.filter(lt => lt.is_active).map(leaveType => (
+            
+            <div className="p-6 space-y-4">
+              <div className="space-y-3">
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">Shift Type</label>
+                <div className="grid grid-cols-2 gap-3">
+                  {(Object.keys(SHIFT_COLORS) as ShiftType[]).map(type => (
                     <button
-                      key={leaveType.id}
-                      onClick={() => {
-                        setSelectedLeaveTypeCode(leaveType.code)
-                        setSelectedShiftType(null)
-                      }}
+                      key={type}
+                      onClick={() => { setSelectedShiftType(type); setSelectedLeaveTypeCode(null); }}
                       className={`p-3 rounded-lg border-2 transition-colors ${
-                        selectedLeaveTypeCode === leaveType.code
-                          ? 'border-primary-500 bg-primary-50'
-                          : 'border-gray-200 hover:border-gray-300'
+                        selectedShiftType === type && !selectedLeaveTypeCode
+                          ? 'border-indigo-500 bg-indigo-50 dark:bg-indigo-900/20'
+                          : 'border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600'
                       }`}
                     >
-                      <span 
-                        className="inline-flex items-center px-2 py-1 rounded text-xs font-medium border"
-                        style={{
-                          backgroundColor: leaveType.color,
-                          color: '#1F2937',
-                          borderColor: leaveType.color
-                        }}
-                      >
-                        {leaveType.label}
+                      <span className={`inline-flex items-center px-2 py-1 rounded text-xs font-medium ${SHIFT_COLORS[type]}`}>
+                        {SHIFT_LABELS[type]}
                       </span>
                     </button>
-                  ))
+                  ))}
+                </div>
+              </div>
+
+              {/* Leave Type Assignment */}
+              <div className="space-y-3 pt-4 border-t border-slate-200 dark:border-slate-800">
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">Or Assign Leave</label>
+                <div className="grid grid-cols-2 gap-3">
+                  {loadingLeaveTypes ? (
+                    <div className="col-span-2 text-center text-sm text-slate-500 dark:text-slate-400">Loading leave types...</div>
+                  ) : leaveTypes.filter(lt => lt.is_active).length === 0 ? (
+                    <div className="col-span-2 text-center text-sm text-slate-500 dark:text-slate-400">No leave types available</div>
+                  ) : (
+                    leaveTypes.filter(lt => lt.is_active).map(leaveType => (
+                      <button
+                        key={leaveType.id}
+                        onClick={() => {
+                          setSelectedLeaveTypeCode(leaveType.code)
+                          setSelectedShiftType(null)
+                        }}
+                        className={`p-3 rounded-lg border-2 transition-colors ${
+                          selectedLeaveTypeCode === leaveType.code
+                            ? 'border-indigo-500 bg-indigo-50 dark:bg-indigo-900/20'
+                            : 'border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600'
+                        }`}
+                      >
+                        <span 
+                          className="inline-flex items-center px-2 py-1 rounded text-xs font-medium border"
+                          style={{
+                            backgroundColor: leaveType.color,
+                            color: '#1F2937',
+                            borderColor: leaveType.color
+                          }}
+                        >
+                          {leaveType.label}
+                        </span>
+                      </button>
+                    ))
+                  )}
+                </div>
+                {selectedLeaveTypeCode && (
+                  <button
+                    onClick={() => {
+                      setSelectedLeaveTypeCode(null)
+                      setSelectedShiftType('AM')
+                    }}
+                    className="text-sm text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 underline"
+                  >
+                    Clear leave selection
+                  </button>
                 )}
               </div>
-              {selectedLeaveTypeCode && (
-                <button
-                  onClick={() => {
-                    setSelectedLeaveTypeCode(null)
-                    setSelectedShiftType('AM')
-                  }}
-                  className="text-sm text-gray-500 hover:text-gray-700 underline"
-                >
-                  Clear leave selection
-                </button>
-              )}
             </div>
 
-            <div className="mt-6 flex justify-between">
+            <div className="p-6 border-t border-slate-200 dark:border-slate-800 flex justify-between">
               <div>
                 {(editingShift.shiftId || editingShift.existingLeave) && (
                   <button
                     onClick={deleteShift}
                     disabled={savingShift}
-                    className="px-4 py-2 text-sm font-medium text-red-600 hover:text-red-800 disabled:opacity-50"
+                    className="px-4 py-2 text-sm font-medium text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-300 disabled:opacity-50"
                   >
                     Delete
                   </button>
@@ -599,14 +603,14 @@ export default function Schedule() {
               <div className="flex gap-3">
                 <button
                   onClick={() => setEditingShift(null)}
-                  className="px-4 py-2 text-sm font-medium text-gray-700 hover:text-gray-900"
+                  className="px-4 py-2 text-sm font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors"
                 >
                   Cancel
                 </button>
                 <button
                   onClick={saveShift}
                   disabled={savingShift}
-                  className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 disabled:opacity-50"
+                  className="px-4 py-2 rounded-lg text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 transition-colors"
                 >
                   {savingShift ? 'Saving...' : 'Save'}
                 </button>
@@ -618,3 +622,6 @@ export default function Schedule() {
     </div>
   )
 }
+
+
+

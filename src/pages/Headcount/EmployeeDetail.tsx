@@ -61,7 +61,7 @@ export default function EmployeeDetail() {
   }
 
   if (!employee) {
-    return <div className="text-center py-12 text-gray-500">Employee not found</div>
+    return <div className="text-center py-12 text-slate-500 dark:text-slate-400">Employee not found</div>
   }
 
   const isEditable = canEditHeadcount() && isEditing
@@ -71,18 +71,18 @@ export default function EmployeeDetail() {
       {/* Header */}
       <div className="flex justify-between items-start">
         <div>
-          <Link to={ROUTES.HEADCOUNT_EMPLOYEES} className="text-primary-600 hover:text-primary-800 text-sm mb-2 inline-block">
+          <Link to={ROUTES.HEADCOUNT_EMPLOYEES} className="text-indigo-600 hover:text-indigo-800 text-sm mb-2 inline-block">
             ← Back to Directory
           </Link>
-          <h1 className="text-2xl font-bold text-gray-900">{employee.name}</h1>
-          <p className="text-gray-600">{employee.email}</p>
+          <h1 className="text-2xl font-bold text-slate-900 dark:text-white">{employee.name}</h1>
+          <p className="text-slate-600 dark:text-slate-300">{employee.email}</p>
         </div>
         
         <ProtectedEdit>
           {!isEditing ? (
             <button
               onClick={() => setIsEditing(true)}
-              className="bg-primary-600 text-white px-4 py-2 rounded-lg hover:bg-primary-700"
+              className="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700"
             >
               Edit Employee
             </button>
@@ -93,7 +93,7 @@ export default function EmployeeDetail() {
                   setIsEditing(false)
                   setFormData(employee)
                 }}
-                className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
+                className="px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg hover:bg-slate-50 dark:bg-slate-950"
                 disabled={saving}
               >
                 Cancel
@@ -101,7 +101,7 @@ export default function EmployeeDetail() {
               <button
                 onClick={handleSave}
                 disabled={saving}
-                className="bg-primary-600 text-white px-4 py-2 rounded-lg hover:bg-primary-700 disabled:opacity-50"
+                className="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 disabled:opacity-50"
               >
                 {saving ? 'Saving...' : 'Save Changes'}
               </button>
@@ -118,12 +118,12 @@ export default function EmployeeDetail() {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Basic Info */}
-        <div className="bg-white rounded-lg shadow p-6 space-y-4">
-          <h2 className="text-lg font-semibold text-gray-900 border-b pb-2">Basic Information</h2>
+        <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm p-6 space-y-4">
+          <h2 className="text-lg font-semibold text-slate-900 dark:text-white border-b pb-2">Basic Information</h2>
           
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700">Employee ID</label>
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">Employee ID</label>
               {isEditable ? (
                 <input
                   type="text"
@@ -132,11 +132,11 @@ export default function EmployeeDetail() {
                   className="mt-1 w-full border rounded-lg px-3 py-2"
                 />
               ) : (
-                <p className="mt-1 text-gray-900">{employee.employee_id || 'Not assigned'}</p>
+                <p className="mt-1 text-slate-900 dark:text-white">{employee.employee_id || 'Not assigned'}</p>
               )}
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700">Role</label>
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">Role</label>
               {isEditable ? (
                 <select
                   value={formData.role || 'agent'}
@@ -148,11 +148,11 @@ export default function EmployeeDetail() {
                   <option value="wfm">WFM</option>
                 </select>
               ) : (
-                <p className="mt-1 text-gray-900 uppercase">{employee.role}</p>
+                <p className="mt-1 text-slate-900 dark:text-white uppercase">{employee.role}</p>
               )}
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700">Department</label>
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">Department</label>
               {isEditable ? (
                 <select
                   value={formData.department || ''}
@@ -165,11 +165,11 @@ export default function EmployeeDetail() {
                   ))}
                 </select>
               ) : (
-                <p className="mt-1 text-gray-900">{employee.department || 'Unassigned'}</p>
+                <p className="mt-1 text-slate-900 dark:text-white">{employee.department || 'Unassigned'}</p>
               )}
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700">Hire Date</label>
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">Hire Date</label>
               {isEditable ? (
                 <input
                   type="date"
@@ -178,19 +178,19 @@ export default function EmployeeDetail() {
                   className="mt-1 w-full border rounded-lg px-3 py-2"
                 />
               ) : (
-                <p className="mt-1 text-gray-900">{employee.hire_date || 'Not set'}</p>
+                <p className="mt-1 text-slate-900 dark:text-white">{employee.hire_date || 'Not set'}</p>
               )}
             </div>
           </div>
         </div>
 
         {/* Job Details */}
-        <div className="bg-white rounded-lg shadow p-6 space-y-4">
-          <h2 className="text-lg font-semibold text-gray-900 border-b pb-2">Job Details</h2>
+        <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm p-6 space-y-4">
+          <h2 className="text-lg font-semibold text-slate-900 dark:text-white border-b pb-2">Job Details</h2>
           
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700">Job Title</label>
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">Job Title</label>
               {isEditable ? (
                 <input
                   type="text"
@@ -199,12 +199,12 @@ export default function EmployeeDetail() {
                   className="mt-1 w-full border rounded-lg px-3 py-2"
                 />
               ) : (
-                <p className="mt-1 text-gray-900">{employee.job_title || 'Not set'}</p>
+                <p className="mt-1 text-slate-900 dark:text-white">{employee.job_title || 'Not set'}</p>
               )}
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700">Job Level</label>
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">Job Level</label>
               {isEditable ? (
                 <select
                   value={formData.job_level || ''}
@@ -221,12 +221,12 @@ export default function EmployeeDetail() {
                   <option value="director">Director</option>
                 </select>
               ) : (
-                <p className="mt-1 text-gray-900 capitalize">{employee.job_level || 'Not set'}</p>
+                <p className="mt-1 text-slate-900 dark:text-white capitalize">{employee.job_level || 'Not set'}</p>
               )}
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700">Employment Type</label>
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">Employment Type</label>
               {isEditable ? (
                 <select
                   value={formData.employment_type || 'full_time'}
@@ -239,12 +239,12 @@ export default function EmployeeDetail() {
                   <option value="intern">Intern</option>
                 </select>
               ) : (
-                <p className="mt-1 text-gray-900 capitalize">{employee.employment_type?.replace('_', ' ') || 'Full Time'}</p>
+                <p className="mt-1 text-slate-900 dark:text-white capitalize">{employee.employment_type?.replace('_', ' ') || 'Full Time'}</p>
               )}
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700">Location</label>
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">Location</label>
               {isEditable ? (
                 <input
                   type="text"
@@ -254,21 +254,21 @@ export default function EmployeeDetail() {
                   placeholder="e.g., Remote, Dubai Office"
                 />
               ) : (
-                <p className="mt-1 text-gray-900">{employee.location || 'Not set'}</p>
+                <p className="mt-1 text-slate-900 dark:text-white">{employee.location || 'Not set'}</p>
               )}
             </div>
           </div>
         </div>
 
         {/* Manager Info */}
-        <div className="bg-white rounded-lg shadow p-6 space-y-4">
-          <h2 className="text-lg font-semibold text-gray-900 border-b pb-2">Management</h2>
+        <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm p-6 space-y-4">
+          <h2 className="text-lg font-semibold text-slate-900 dark:text-white border-b pb-2">Management</h2>
           
           <div>
-            <label className="block text-sm font-medium text-gray-700">Manager</label>
-            <p className="mt-1 text-gray-900">
+            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">Manager</label>
+            <p className="mt-1 text-slate-900 dark:text-white">
               {employee.manager_name ? (
-                <Link to={`/headcount/employees/${employee.manager_id}`} className="text-primary-600 hover:underline">
+                <Link to={`/headcount/employees/${employee.manager_id}`} className="text-indigo-600 hover:underline">
                   {employee.manager_name}
                 </Link>
               ) : (
@@ -292,3 +292,6 @@ export default function EmployeeDetail() {
     </div>
   )
 }
+
+
+
