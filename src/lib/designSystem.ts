@@ -87,13 +87,6 @@ export const SHIFT_LABELS: Record<ShiftType, string> = {
   OFF: 'OFF',
 } as const
 
-export const SHIFT_DESCRIPTIONS: Record<ShiftType, string> = {
-  AM: 'Morning Shift',
-  PM: 'Afternoon Shift',
-  BET: 'Between Shift',
-  OFF: 'Day Off',
-} as const
-
 // ============================================
 // LEAVE TYPE COLORS
 // ============================================
@@ -217,35 +210,13 @@ export const COVERAGE_LEVEL_LABELS = {
 // ============================================
 // SHIFT TYPE COLORS (WFM v2 Design - Enhanced)
 // ============================================
+// NOTE: These are fallback colors only. Actual shift display should use
+// shift configurations from the database via shiftConfigurationsService
 export const SHIFT_TYPE_COLORS = {
   Morning: 'bg-sky-100 text-sky-900 border-sky-200',
   Day: 'bg-blue-500 text-white border-blue-600',
   Evening: 'bg-purple-500 text-white border-purple-600',
   Night: 'bg-slate-700 text-white border-slate-800',
-} as const
-
-// Mapping from database ShiftType to display information
-export const SHIFT_TYPE_DISPLAY = {
-  AM: {
-    name: 'Morning',
-    timeRange: '06:00 - 14:00',
-    color: 'bg-sky-100 text-sky-900 border-sky-200',
-  },
-  PM: {
-    name: 'Day',
-    timeRange: '09:00 - 17:00',
-    color: 'bg-blue-500 text-white border-blue-600',
-  },
-  BET: {
-    name: 'Evening',
-    timeRange: '14:00 - 22:00',
-    color: 'bg-purple-500 text-white border-purple-600',
-  },
-  OFF: {
-    name: 'Night',
-    timeRange: '22:00 - 06:00',
-    color: 'bg-slate-700 text-white border-slate-800',
-  },
 } as const
 
 // ============================================
@@ -315,13 +286,6 @@ export function getStatusLabel(status: SwapRequestStatus | LeaveRequestStatus): 
  */
 export function getShiftColor(shiftType: ShiftType): string {
   return SHIFT_COLORS[shiftType]
-}
-
-/**
- * Get shift display information (name, time range, color)
- */
-export function getShiftDisplay(shiftType: ShiftType) {
-  return SHIFT_TYPE_DISPLAY[shiftType]
 }
 
 /**

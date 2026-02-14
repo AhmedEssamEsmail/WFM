@@ -194,7 +194,7 @@ export default function BreakSchedule() {
   }
 
   return (
-    <div className="space-y-6 w-full">
+    <div className="space-y-6 w-full max-w-[90%] mx-auto">
       <div className="sm:flex sm:items-center sm:justify-between">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Break Schedule</h1>

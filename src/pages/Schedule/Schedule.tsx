@@ -3,9 +3,10 @@ import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../hooks/useAuth'
 import { useLeaveTypes } from '../../hooks/useLeaveTypes'
 import { useScheduleView } from '../../hooks/useScheduleView'
+import { useShiftConfigurations } from '../../hooks/useShiftConfigurations'
 import { User, Shift, ShiftType, LeaveType, LeaveRequest } from '../../types'
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, addMonths, subMonths, isWithinInterval, parseISO, startOfWeek, endOfWeek, addWeeks, subWeeks } from 'date-fns'
-import { SHIFT_COLORS, SHIFT_LABELS, SHIFT_DESCRIPTIONS, SHIFT_TYPE_DISPLAY, getShiftDisplay } from '../../lib/designSystem'
+import { SHIFT_COLORS, SHIFT_LABELS } from '../../lib/designSystem'
 import { shiftsService, leaveRequestsService } from '../../services'
 import { formatDateISO } from '../../utils'
 import { handleDatabaseError } from '../../lib/errorHandler'
@@ -21,6 +22,7 @@ export default function Schedule() {
   const { user } = useAuth()
   const { leaveTypes, isLoading: loadingLeaveTypes } = useLeaveTypes()
   const { view, setView } = useScheduleView()
+  const { getShiftDisplay, isLoading: loadingShiftConfigs } = useShiftConfigurations()
   const [currentDate, setCurrentDate] = useState(new Date())
   const [users, setUsers] = useState<User[]>([])
   const [shifts, setShifts] = useState<ShiftWithSwap[]>([])
@@ -319,7 +321,7 @@ export default function Schedule() {
     }
   }
 
-  if (loading) {
+  if (loading || loadingShiftConfigs) {
     return (
       <div className="flex items-center justify-center h-64">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
@@ -350,7 +352,7 @@ export default function Schedule() {
     : format(currentDate, 'MMMM yyyy')
 
   return (
-    <div className="space-y-6 w-full">
+    <div className="space-y-6 w-full max-w-[90%] mx-auto">
       <div className="space-y-4">
         <div className="sm:flex sm:items-center sm:justify-between">
           <div>
@@ -551,17 +553,17 @@ export default function Schedule() {
               <div>
                 <h4 className="text-xs font-medium text-gray-500 uppercase mb-2">Shifts</h4>
                 <div className="flex flex-wrap gap-4">
-                  {Object.entries(SHIFT_TYPE_DISPLAY).map(([type, display]) => (
-                    <div key={type} className="flex items-center gap-2">
-                      <div className={`inline-flex flex-col items-center px-2 py-1 rounded text-xs font-medium border ${display.color}`}>
-                        <span className="font-semibold">{display.name}</span>
-                        <span className="text-[10px] mt-0.5">{display.timeRange}</span>
+                  {(Object.keys(SHIFT_COLORS) as ShiftType[]).map(type => {
+                    const display = getShiftDisplay(type)
+                    return (
+                      <div key={type} className="flex items-center gap-2">
+                        <div className={`inline-flex flex-col items-center px-2 py-1 rounded text-xs font-medium border ${display.color}`}>
+                          <span className="font-semibold">{display.name}</span>
+                          {display.timeRange && <span className="text-[10px] mt-0.5">{display.timeRange}</span>}
+                        </div>
                       </div>
-                      <span className="text-sm text-gray-600">
-                        {SHIFT_DESCRIPTIONS[type as ShiftType]}
-                      </span>
-                    </div>
-                  ))}
+                    )
+                  })}
                 </div>
               </div>
               <div>
