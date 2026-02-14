@@ -351,57 +351,61 @@ export default function Schedule() {
 
   return (
     <div className="space-y-6 w-full">
-      <div className="sm:flex sm:items-center sm:justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Schedule</h1>
-          <p className="mt-1 text-sm text-gray-500">
-            {canEdit ? 'View and manage team schedules' : 'View your schedule'}
-          </p>
+      <div className="space-y-4">
+        <div className="sm:flex sm:items-center sm:justify-between">
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900">Schedule</h1>
+            <p className="mt-1 text-sm text-gray-500">
+              {canEdit ? 'View and manage team schedules' : 'View your schedule'}
+            </p>
+          </div>
+          
+          <div className="mt-4 sm:mt-0 flex flex-col sm:flex-row gap-3">
+            {/* Team Filter - Only show for TL/WFM */}
+            {canEdit && (
+              <div>
+                <label htmlFor="team-filter" className="sr-only">Filter by team</label>
+                <select
+                  id="team-filter"
+                  value={selectedDepartment}
+                  onChange={(e) => {
+                    setSelectedDepartment(e.target.value)
+                    // Reset agent filter when team changes
+                    setSelectedUserId('all')
+                  }}
+                  className="block w-full sm:w-48 rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 text-sm"
+                >
+                  <option value="all">All Teams</option>
+                  {departments.map(dept => (
+                    <option key={dept} value={dept}>{dept}</option>
+                  ))}
+                </select>
+              </div>
+            )}
+            
+            {/* Agent Filter - Only show for TL/WFM */}
+            {canEdit && (
+              <div>
+                <label htmlFor="agent-filter" className="sr-only">Filter by agent</label>
+                <select
+                  id="agent-filter"
+                  value={selectedUserId}
+                  onChange={(e) => setSelectedUserId(e.target.value)}
+                  className="block w-full sm:w-64 rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 text-sm"
+                >
+                  <option value="all">All Agents</option>
+                  {filteredUsers.map(u => (
+                    <option key={u.id} value={u.id}>{u.name}</option>
+                  ))}
+                </select>
+              </div>
+            )}
+          </div>
         </div>
-        
-        <div className="mt-4 sm:mt-0 flex flex-col sm:flex-row gap-3">
-          {/* View Toggle */}
+
+        {/* View Toggle - Centered */}
+        <div className="flex justify-center">
           <ViewToggle value={view} onChange={setView} />
-          
-          {/* Team Filter - Only show for TL/WFM */}
-          {canEdit && (
-            <div>
-              <label htmlFor="team-filter" className="sr-only">Filter by team</label>
-              <select
-                id="team-filter"
-                value={selectedDepartment}
-                onChange={(e) => {
-                  setSelectedDepartment(e.target.value)
-                  // Reset agent filter when team changes
-                  setSelectedUserId('all')
-                }}
-                className="block w-full sm:w-48 rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 text-sm"
-              >
-                <option value="all">All Teams</option>
-                {departments.map(dept => (
-                  <option key={dept} value={dept}>{dept}</option>
-                ))}
-              </select>
-            </div>
-          )}
-          
-          {/* Agent Filter - Only show for TL/WFM */}
-          {canEdit && (
-            <div>
-              <label htmlFor="agent-filter" className="sr-only">Filter by agent</label>
-              <select
-                id="agent-filter"
-                value={selectedUserId}
-                onChange={(e) => setSelectedUserId(e.target.value)}
-                className="block w-full sm:w-64 rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 text-sm"
-              >
-                <option value="all">All Agents</option>
-                {filteredUsers.map(u => (
-                  <option key={u.id} value={u.id}>{u.name}</option>
-                ))}
-              </select>
-            </div>
-          )}
         </div>
       </div>
 
@@ -461,9 +465,14 @@ export default function Schedule() {
                     <tr key={u.id}>
                       <th 
                         scope="row"
-                        className="sticky left-0 z-10 bg-white px-4 py-3 whitespace-nowrap text-sm font-medium text-gray-900 text-left shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]"
+                        className="sticky left-0 z-10 bg-white px-4 py-3 whitespace-nowrap text-left shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]"
                       >
-                        {u.name}
+                        <div className="flex flex-col">
+                          <span className="text-sm font-semibold text-gray-900">{u.name}</span>
+                          {u.department && (
+                            <span className="text-xs text-gray-500">{u.department}</span>
+                          )}
+                        </div>
                       </th>
                       {displayDays.map(day => {
                         const shift = getShiftForUserAndDate(u.id, day)

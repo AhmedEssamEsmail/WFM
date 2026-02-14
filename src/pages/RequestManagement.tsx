@@ -1,6 +1,5 @@
 import { useState, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
-import Layout from '../components/Layout'
 import { RequestTable, type RequestTableRow, type RequestAction } from '../components/RequestTable'
 import { useSwapRequests } from '../hooks/useSwapRequests'
 import { useLeaveRequests } from '../hooks/useLeaveRequests'
@@ -71,18 +70,26 @@ export default function RequestManagement() {
       }
     }
 
-    // Requirement 11.2: Revoke for requester on pending requests
+    // Requirement 11.2: Revoke only for approved or rejected requests by requester
     if (user && user.id === requesterId) {
-      if (
-        status === 'pending_acceptance' ||
-        status === 'pending_tl' ||
-        status === 'pending_wfm'
-      ) {
+      if (status === 'approved' || status === 'rejected') {
         actions.push('revoke')
       }
     }
 
     return actions
+  }
+
+  // Status priority for sorting
+  const getStatusPriority = (status: RequestStatus): number => {
+    const priority: Record<RequestStatus, number> = {
+      'pending_wfm': 1,
+      'pending_tl': 2,
+      'pending_acceptance': 3,
+      'approved': 4,
+      'rejected': 5,
+    }
+    return priority[status] || 999
   }
 
   // Merge and transform requests
@@ -114,9 +121,9 @@ export default function RequestManagement() {
     return [...swapRows, ...leaveRows]
   }, [swapRequests, leaveRequests, user])
 
-  // Apply filters
+  // Apply filters and sort
   const filteredRequests = useMemo(() => {
-    return unifiedRequests.filter((req) => {
+    let filtered = unifiedRequests.filter((req) => {
       // Type filter
       if (typeFilter !== 'all' && req.type !== typeFilter) return false
 
@@ -138,6 +145,15 @@ export default function RequestManagement() {
 
       return true
     })
+
+    // Sort by status priority: Pending WFM → Pending TL → Pending Recipient → Approved → Rejected
+    filtered.sort((a, b) => {
+      const priorityA = getStatusPriority(a.status)
+      const priorityB = getStatusPriority(b.status)
+      return priorityA - priorityB
+    })
+
+    return filtered
   }, [unifiedRequests, statusFilter, typeFilter, dateRangeFilter, leaveRequests])
 
   // Handle row click - navigate to detail page
@@ -223,15 +239,14 @@ export default function RequestManagement() {
   }
 
   return (
-    <Layout>
-      <div className="space-y-6">
-        {/* Header */}
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Request Management</h1>
-          <p className="mt-1 text-sm text-gray-500">
-            View and manage all swap and leave requests in one place
-          </p>
-        </div>
+    <div className="space-y-6">
+      {/* Header */}
+      <div>
+        <h1 className="text-2xl font-bold text-gray-900">Request Management</h1>
+        <p className="mt-1 text-sm text-gray-500">
+          View and manage all swap and leave requests in one place
+        </p>
+      </div>
 
         {/* Filters - Requirement 8.9 */}
         <div className="bg-white rounded-lg shadow p-4">
@@ -334,6 +349,6 @@ export default function RequestManagement() {
           Showing {filteredRequests.length} of {unifiedRequests.length} requests
         </div>
       </div>
-    </Layout>
+    </div>
   )
 }

@@ -94,15 +94,15 @@ export function CoverageChart({ data }: CoverageChartProps) {
       <div className="mt-6 flex flex-wrap items-center justify-center gap-4 text-sm">
         <div className="flex items-center gap-2">
           <div className="w-4 h-4 bg-green-500 rounded" aria-hidden="true"></div>
-          <span className="text-gray-700">Adequate (≥20)</span>
+          <span className="text-gray-700">Adequate (>12)</span>
         </div>
         <div className="flex items-center gap-2">
           <div className="w-4 h-4 bg-yellow-500 rounded" aria-hidden="true"></div>
-          <span className="text-gray-700">Low (15-19)</span>
+          <span className="text-gray-700">Low (8-12)</span>
         </div>
         <div className="flex items-center gap-2">
           <div className="w-4 h-4 bg-red-500 rounded" aria-hidden="true"></div>
-          <span className="text-gray-700">Critical (&lt;15)</span>
+          <span className="text-gray-700">Critical (&lt;8)</span>
         </div>
       </div>
     </div>

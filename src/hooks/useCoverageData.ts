@@ -91,10 +91,10 @@ export function useCoverageData() {
         // Calculate net coverage
         const netCoverage = scheduledCount - onLeaveCount
 
-        // Determine coverage level
+        // Determine coverage level: Red (<8), Yellow (8-12), Green (>12)
         const level: 'adequate' | 'low' | 'critical' = 
-          netCoverage >= 20 ? 'adequate' 
-          : netCoverage >= 15 ? 'low' 
+          netCoverage > 12 ? 'adequate' 
+          : netCoverage >= 8 ? 'low' 
           : 'critical'
 
         days.push({
