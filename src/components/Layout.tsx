@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
 import { useNavigation } from '../hooks/useNavigation'
+import { useDarkMode } from '../hooks/useDarkMode'
 import { ROLE_COLORS, ROLE_LABELS } from '../lib/designSystem'
 import { STORAGE_KEYS } from '../constants'
 import {
@@ -20,6 +21,7 @@ const SIDEBAR_COLLAPSED_KEY = STORAGE_KEYS.SIDEBAR_COLLAPSED
 export default function Layout({ children }: LayoutProps) {
   const { user, signOut } = useAuth()
   const { navItems, isRouteActive } = useNavigation()
+  const { isDark, toggle: toggleDarkMode } = useDarkMode()
 
   const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
     const saved = localStorage.getItem(SIDEBAR_COLLAPSED_KEY)
@@ -102,6 +104,24 @@ export default function Layout({ children }: LayoutProps) {
 
           {user && (
             <div className="flex items-center gap-2 sm:gap-3">
+              {/* Dark Mode Toggle */}
+              <button
+                onClick={toggleDarkMode}
+                className="p-2 text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors"
+                aria-label={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
+                title={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
+              >
+                {isDark ? (
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+                  </svg>
+                ) : (
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+                  </svg>
+                )}
+              </button>
+
               <div className="hidden lg:block text-right flex-shrink-0">
                 <p className="text-sm font-semibold text-slate-900 dark:text-white leading-none mb-1 truncate max-w-[150px]">{user.name}</p>
                 <span className={`inline-block px-2 py-0.5 rounded-full text-[10px] uppercase tracking-wider font-bold ${ROLE_COLORS[user.role]}`}>
