@@ -469,6 +469,7 @@ export default function Schedule() {
                       >
                         <div className="flex flex-col">
                           <span className="text-sm font-semibold text-gray-900">{u.name}</span>
+                          <span className="text-xs text-gray-500">{u.role}</span>
                           {u.department && (
                             <span className="text-xs text-gray-500">{u.department}</span>
                           )}
@@ -483,7 +484,7 @@ export default function Schedule() {
                         return (
                           <td
                             key={day.toISOString()}
-                            className={`px-2 py-3 text-center ${canEdit ? 'cursor-pointer hover:bg-gray-50' : ''} ${isOnLeave ? 'bg-opacity-50' : ''}`}
+                            className={`p-2 text-center w-32 min-w-[128px] ${canEdit ? 'cursor-pointer hover:bg-gray-50' : ''}`}
                             onClick={() => canEdit && handleShiftClick(u.id, day)}
                             onKeyDown={(e) => {
                               if (canEdit && (e.key === 'Enter' || e.key === ' ')) {

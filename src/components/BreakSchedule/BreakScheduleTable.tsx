@@ -76,16 +76,16 @@ export default function BreakScheduleTable({
   )
 
   return (
-    <div className="bg-white rounded-lg shadow overflow-hidden">
+    <div className="bg-white rounded-lg shadow overflow-hidden w-full">
       {isSaving && (
         <div className="bg-blue-50 border-b border-blue-200 px-4 py-2 text-sm text-blue-800">
           Saving changes...
         </div>
       )}
       
-      <div className="overflow-x-auto">
+      <div className="overflow-x-auto w-full">
         <div className="inline-block min-w-full align-middle">
-          <table className="min-w-full divide-y divide-gray-200">
+          <table className="min-w-full divide-y divide-gray-200 table-fixed" style={{ width: 'max-content' }}>
             <thead className="bg-gray-50 sticky top-0 z-20">
               <tr>
                 <th

@@ -79,29 +79,29 @@ export default function FilterBar({
 
         {/* WFM action buttons */}
         {isWFM && (
-          <div className="flex gap-2 w-full sm:w-auto">
+          <div className="flex flex-wrap gap-2 w-full sm:w-auto justify-end">
             <button
               onClick={onAutoDistribute}
-              className={`${BUTTON_STYLES.primary} text-sm whitespace-nowrap`}
+              className={`${BUTTON_STYLES.primary} text-sm whitespace-nowrap flex-shrink-0`}
             >
               Auto-Distribute
             </button>
             <button
               onClick={onClearAll}
-              className={`${BUTTON_STYLES.danger} text-sm whitespace-nowrap`}
+              className={`${BUTTON_STYLES.danger} text-sm whitespace-nowrap flex-shrink-0`}
               title="Clear all breaks for this date"
             >
               Clear All
             </button>
             <button
               onClick={onImport}
-              className={`${BUTTON_STYLES.secondary} text-sm whitespace-nowrap`}
+              className={`${BUTTON_STYLES.secondary} text-sm whitespace-nowrap flex-shrink-0`}
             >
               Import CSV
             </button>
             <button
               onClick={onExport}
-              className={`${BUTTON_STYLES.secondary} text-sm whitespace-nowrap`}
+              className={`${BUTTON_STYLES.secondary} text-sm whitespace-nowrap flex-shrink-0`}
             >
               Export CSV
             </button>

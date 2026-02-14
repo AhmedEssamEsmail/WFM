@@ -68,11 +68,9 @@ export default function RequestManagement() {
       if (status === 'pending_tl' || status === 'pending_wfm') {
         actions.push('approve', 'reject')
       }
-    }
-
-    // Requirement 11.2: Revoke only for approved or rejected requests by requester
-    if (user && user.id === requesterId) {
-      if (status === 'approved' || status === 'rejected') {
+      
+      // Requirement 11.2: Revoke only for approved or rejected requests (WFM only)
+      if (user.role === 'wfm' && (status === 'approved' || status === 'rejected')) {
         actions.push('revoke')
       }
     }
