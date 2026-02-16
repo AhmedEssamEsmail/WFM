@@ -475,6 +475,24 @@ All services are exported from `services/index.ts` for easy imports.
 WFM/
 ├── public/
 │   └── icons/                       # Favicon and app icons
+├── docs/
+│   ├── project-tracking/            # Project tracking documents (moved from root)
+│   │   ├── improvements-summary.md
+│   │   ├── security-fix-instructions.md
+│   │   └── verification-checklist.md
+│   ├── accessibility.md
+│   ├── cicd-monitoring.md
+│   ├── developer-onboarding.md
+│   ├── final-review-checklist.md
+│   ├── monitoring.md
+│   ├── performance.md
+│   ├── production-readiness-scorecard.md
+│   ├── production-readiness-summary.md
+│   ├── project-restructure-spec.md
+│   ├── security-warnings-fix.md
+│   ├── team-training-guide.md
+│   ├── technical-debt.md
+│   └── testing.md
 ├── supabase/
 │   ├── schema.sql                   # Full database schema (tables, RLS, triggers)
 │   └── migrations/                  # Incremental SQL migrations
@@ -494,32 +512,36 @@ WFM/
 │   ├── App.tsx                      # Root component with routing & route guards
 │   ├── index.css                    # Global styles with Tailwind directives
 │   ├── components/
-│   │   ├── Layout.tsx               # App shell with sidebar navigation & RBAC
-│   │   ├── ErrorBoundary.tsx        # Error boundary for graceful error handling
-│   │   ├── ChunkErrorBoundary.tsx   # Chunk loading error handler with auto-reload
-│   │   ├── ProtectedRoute.tsx       # Route guard for authenticated users
-│   │   ├── PublicRoute.tsx          # Route guard for unauthenticated users
-│   │   ├── Pagination.tsx           # Pagination component for lists
-│   │   ├── Toast.tsx                # Toast notification component
-│   │   ├── ToastContainer.tsx       # Toast container with positioning
-│   │   ├── Skeleton.tsx             # Loading skeleton components (7 variants)
-│   │   ├── icons/                   # SVG icon components (extracted from Layout)
+│   │   ├── shared/                  # Infrastructure & cross-cutting components (NEW)
+│   │   │   ├── index.tsx            # Barrel exports for shared components
+│   │   │   ├── Layout.tsx           # App shell with sidebar navigation & RBAC
+│   │   │   ├── ErrorBoundary.tsx    # Error boundary for graceful error handling
+│   │   │   ├── PageErrorBoundary.tsx # Page-level error boundary
+│   │   │   ├── ChunkErrorBoundary.tsx # Chunk loading error handler with auto-reload
+│   │   │   ├── ProtectedRoute.tsx   # Route guard for authenticated users
+│   │   │   ├── PublicRoute.tsx      # Route guard for unauthenticated users
+│   │   │   └── Pagination.tsx       # Pagination component for lists
+│   │   ├── icons/                   # SVG icon components (15 icons)
 │   │   │   ├── index.ts             # Icon barrel exports
-│   │   │   ├── DashboardIcon.tsx    # Dashboard navigation icon
-│   │   │   ├── ScheduleIcon.tsx     # Schedule navigation icon
-│   │   │   ├── SwapIcon.tsx         # Swap requests icon
-│   │   │   ├── LeaveIcon.tsx        # Leave requests icon
-│   │   │   ├── BalanceIcon.tsx      # Leave balance icon
-│   │   │   ├── BreakScheduleIcon.tsx # Break schedule icon
-│   │   │   ├── UsersIcon.tsx        # Headcount icon
-│   │   │   ├── ReportsIcon.tsx      # Reports icon
-│   │   │   ├── SettingsIcon.tsx     # Settings icon
-│   │   │   ├── SignOutIcon.tsx      # Sign out icon
-│   │   │   ├── MenuIcon.tsx         # Mobile menu icon
-│   │   │   ├── CloseIcon.tsx        # Close icon
-│   │   │   ├── ChevronDoubleLeftIcon.tsx # Collapse sidebar icon
-│   │   │   └── UploadIcon.tsx       # Upload icon
-│   │   ├── BreakSchedule/           # Break schedule components
+│   │   │   ├── DashboardIcon.tsx
+│   │   │   ├── ScheduleIcon.tsx
+│   │   │   ├── SwapIcon.tsx
+│   │   │   ├── LeaveIcon.tsx
+│   │   │   ├── BalanceIcon.tsx
+│   │   │   ├── BreakScheduleIcon.tsx
+│   │   │   ├── UsersIcon.tsx
+│   │   │   ├── ReportsIcon.tsx
+│   │   │   ├── SettingsIcon.tsx
+│   │   │   ├── SignOutIcon.tsx
+│   │   │   ├── MenuIcon.tsx
+│   │   │   ├── CloseIcon.tsx
+│   │   │   ├── ChevronDoubleLeftIcon.tsx
+│   │   │   ├── UploadIcon.tsx
+│   │   │   ├── CalendarIcon.tsx
+│   │   │   ├── ClockIcon.tsx
+│   │   │   └── OvertimeIcon.tsx
+│   │   ├── BreakSchedule/           # Break schedule components (10 files)
+│   │   │   ├── index.tsx            # Barrel exports
 │   │   │   ├── BreakScheduleTable.tsx
 │   │   │   ├── AgentRow.tsx
 │   │   │   ├── BreakCell.tsx
@@ -530,24 +552,48 @@ WFM/
 │   │   │   ├── ValidationBanner.tsx
 │   │   │   ├── WarningPopup.tsx
 │   │   │   └── AutoDistributeModal.tsx
-│   │   ├── Settings/                # Settings sub-components
-│   │   │   ├── AutoDistributionSettings.tsx
-│   │   │   └── ShiftConfigurations.tsx
-│   │   └── Headcount/
-│   │       ├── EmployeeTable.tsx    # Employee directory table component
-│   │       └── ProtectedEdit.tsx    # Protected edit wrapper for WFM-only actions
+│   │   ├── Headcount/               # Headcount components (4 files)
+│   │   │   ├── index.tsx            # Barrel exports
+│   │   │   ├── EmployeeTable.tsx
+│   │   │   ├── EmployeeCard.tsx
+│   │   │   ├── EditEmployeeModal.tsx
+│   │   │   └── ProtectedEdit.tsx
+│   │   ├── OvertimeRequests/        # Overtime request components (2 files)
+│   │   │   ├── index.tsx            # Barrel exports
+│   │   │   ├── OvertimeRequestCard.tsx
+│   │   │   └── ApprovalTimeline.tsx
+│   │   ├── Skills/                  # Skills components (2 files)
+│   │   │   ├── index.tsx            # Barrel exports
+│   │   │   ├── SkillsBadges.tsx
+│   │   │   └── SkillsMultiSelect.tsx
+│   │   ├── Schedule/                # Schedule components (1 file - no index needed)
+│   │   │   └── SkillsFilter.tsx
+│   │   ├── AutoDistributionSettings.tsx # Flattened from Settings/ (moved)
+│   │   ├── ShiftConfigurations.tsx  # Flattened from Settings/ (moved)
+│   │   ├── Toast.tsx                # Toast notification component
+│   │   ├── ToastContainer.tsx       # Toast container with positioning
+│   │   ├── Skeleton.tsx             # Loading skeleton components (7 variants)
+│   │   ├── StatCard.tsx             # Stat card component
+│   │   ├── StatusBadge.tsx          # Status badge component
+│   │   ├── TypeBadge.tsx            # Type badge component
+│   │   ├── RequestTable.tsx         # Request table component
+│   │   └── CoverageChart.tsx        # Coverage chart component
 │   ├── hooks/
 │   │   ├── useAuth.ts               # Authentication hook with role helpers
 │   │   ├── useHeadcount.ts          # Headcount data fetching & mutations
 │   │   ├── useSwapRequests.ts       # Swap requests with React Query
 │   │   ├── useLeaveRequests.ts      # Leave requests with React Query
+│   │   ├── useOvertimeRequests.ts   # Overtime requests with React Query
 │   │   ├── useLeaveTypes.ts         # Leave types with React Query (centralized)
 │   │   ├── useSettings.ts           # Settings management with React Query
+│   │   ├── useSkills.ts             # Skills management with React Query
 │   │   ├── useDashboardData.ts      # Dashboard data fetching hook (extracted)
-│   │   └── useReportData.ts         # Reports data fetching hook (extracted)
+│   │   ├── useReportData.ts         # Reports data fetching hook (extracted)
+│   │   └── useNavigation.ts         # Navigation items with RBAC
 │   ├── lib/
 │   │   ├── supabase.ts              # Supabase client initialization with auth config
 │   │   ├── AuthContext.tsx          # Auth provider with session management
+│   │   ├── ThemeContext.tsx         # Theme provider
 │   │   ├── ToastContext.tsx         # Toast notification context
 │   │   ├── queryClient.ts           # React Query client configuration
 │   │   ├── designSystem.ts          # Unified design system (colors, styles, helpers)
@@ -556,41 +602,52 @@ WFM/
 │   │   ├── securityLogger.ts        # Security event logging
 │   │   └── sentry.ts                # Sentry SDK initialization and configuration
 │   ├── pages/
-│   │   ├── Pages/                    # Page-level documentation
-│   │   │   ├── Dashboard.tsx        # Main dashboard with pending requests
-│   │   │   ├── NotFound.tsx         # 404 page with navigation back to dashboard
-│   │   │   ├── Auth/                # Authentication pages
-│   │   │   │   ├── Login.tsx        # Login page with domain validation
-│   │   │   │   ├── Signup.tsx       # User registration
-│   │   │   │   └── Unauthorized.tsx # Unauthorized domain access page
-│   │   │   ├── Reports/             # Reports dashboard (decomposed)
-│   │   │   │   ├── index.tsx        # Reports layout orchestrator (~60 lines)
-│   │   │   │   ├── ReportFilters.tsx # Date range selector (~60 lines)
-│   │   │   │   ├── MetricCards.tsx  # Summary cards (~80 lines)
-│   │   │   │   ├── SwapChart.tsx    # Swap bar chart (~60 lines)
-│   │   │   │   └── LeaveChart.tsx   # Leave pie chart (~60 lines)
-│   │   │   ├── Settings/            # Settings pages (decomposed)
-│   │   │   │   ├── index.tsx        # Settings tab navigation shell (~80 lines)
-│   │   │   │   ├── GeneralSettings.tsx # Auto-approve, exceptions toggles (~80 lines)
-│   │   │   │   ├── LeaveTypeManager.tsx # Leave type CRUD (~150 lines)
-│   │   │   │   ├── BreakScheduleSettings.tsx # Break schedule config (~100 lines)
-│   │   │   │   └── ShiftConfigSettings.tsx # Shift configuration (~100 lines)
-│   │   ├── Schedule/                # Schedule management pages
+│   │   ├── Dashboard.tsx            # Main dashboard with pending requests
+│   │   ├── BreakSchedule.tsx        # Break schedule page
+│   │   ├── RequestManagement.tsx    # Request management page
+│   │   ├── NotFound.tsx             # 404 page with navigation back to dashboard
+│   │   ├── Auth/                    # Authentication pages (3 files)
+│   │   │   ├── index.ts             # Barrel exports
+│   │   │   ├── Login.tsx            # Login page with domain validation
+│   │   │   ├── Signup.tsx           # User registration
+│   │   │   └── Unauthorized.tsx     # Unauthorized domain access page
+│   │   ├── Headcount/               # Headcount pages (3 files)
+│   │   │   ├── index.ts             # Barrel exports
+│   │   │   ├── HeadcountDashboard.tsx # Headcount metrics dashboard
+│   │   │   ├── EmployeeDirectory.tsx # Employee directory with filters
+│   │   │   └── EmployeeDetail.tsx   # Individual employee profile
+│   │   ├── Schedule/                # Schedule pages (2 files)
+│   │   │   ├── index.ts             # Barrel exports
 │   │   │   ├── Schedule.tsx         # Calendar view of shifts
 │   │   │   └── ScheduleUpload.tsx   # CSV bulk upload for shifts (WFM only)
-│   │   ├── SwapRequests/            # Swap request pages
+│   │   ├── SwapRequests/            # Swap request pages (3 files)
+│   │   │   ├── index.ts             # Barrel exports
 │   │   │   ├── SwapRequests.tsx     # List of swap requests
 │   │   │   ├── SwapRequestDetail.tsx # Individual swap request details
 │   │   │   └── CreateSwapRequest.tsx # Create new swap request
-│   │   ├── LeaveRequests/           # Leave request pages
+│   │   ├── LeaveRequests/           # Leave request pages (4 files)
+│   │   │   ├── index.ts             # Barrel exports
 │   │   │   ├── LeaveRequests.tsx    # List of leave requests
 │   │   │   ├── LeaveRequestDetail.tsx # Individual leave request details
 │   │   │   ├── CreateLeaveRequest.tsx # Create new leave request
 │   │   │   └── LeaveBalances.tsx    # Leave balance management (WFM only)
-│   │   └── Headcount/               # Headcount management pages
-│   │       ├── HeadcountDashboard.tsx # Headcount metrics dashboard
-│   │       ├── EmployeeDirectory.tsx # Employee directory with filters
-│   │       └── EmployeeDetail.tsx   # Individual employee profile
+│   │   ├── OvertimeRequests/        # Overtime request pages (3 files)
+│   │   │   ├── index.ts             # Barrel exports
+│   │   │   ├── OvertimeRequests.tsx # List of overtime requests
+│   │   │   ├── OvertimeRequestDetail.tsx # Individual overtime request details
+│   │   │   └── CreateOvertimeRequest.tsx # Create new overtime request
+│   │   ├── Reports/                 # Reports dashboard (5 files, decomposed)
+│   │   │   ├── index.tsx            # Reports layout orchestrator (~60 lines)
+│   │   │   ├── ReportFilters.tsx    # Date range selector (~60 lines)
+│   │   │   ├── MetricCards.tsx      # Summary cards (~80 lines)
+│   │   │   ├── SwapChart.tsx        # Swap bar chart (~60 lines)
+│   │   │   └── LeaveChart.tsx       # Leave pie chart (~60 lines)
+│   │   └── Settings/                # Settings pages (5 files, decomposed)
+│   │       ├── index.tsx            # Settings tab navigation shell (~80 lines)
+│   │       ├── GeneralSettings.tsx  # Auto-approve, exceptions toggles (~80 lines)
+│   │       ├── LeaveTypeManager.tsx # Leave type CRUD (~150 lines)
+│   │       ├── BreakScheduleSettings.tsx # Break schedule config (~100 lines)
+│   │       └── ShiftConfigSettings.tsx # Shift configuration (~100 lines)
 │   ├── services/                    # API service layer (unified data-fetching)
 │   │   ├── index.ts                 # Service barrel exports (all services)
 │   │   ├── authService.ts           # Authentication services
@@ -598,6 +655,7 @@ WFM/
 │   │   ├── headcountService.ts      # Headcount operations
 │   │   ├── leaveBalancesService.ts  # Leave balance operations
 │   │   ├── leaveRequestsService.ts  # Leave request operations
+│   │   ├── overtimeRequestsService.ts # Overtime request operations
 │   │   ├── leaveTypesService.ts     # Leave types CRUD operations (centralized)
 │   │   ├── settingsService.ts       # Settings management
 │   │   ├── shiftsService.ts         # Shift operations
@@ -605,7 +663,8 @@ WFM/
 │   │   ├── dashboardService.ts      # Dashboard data service (extracted)
 │   │   ├── reportsService.ts        # Reports data service (extracted)
 │   │   ├── breakSchedulesService.ts # Break schedule operations
-│   │   └── breakRulesService.ts     # Break validation rules
+│   │   ├── breakRulesService.ts     # Break validation rules
+│   │   └── shiftConfigurationsService.ts # Shift configuration operations
 │   ├── utils/                       # Utility functions
 │   │   ├── csvHelpers.ts            # CSV parsing and generation
 │   │   ├── dateHelpers.ts           # Date manipulation utilities
@@ -619,6 +678,63 @@ WFM/
 │   │       ├── common.ts            # UUID, date, email schemas
 │   │       ├── user.ts              # User data schemas
 │   │       ├── leaveRequest.ts      # Leave request schemas
+│   │       ├── swapRequest.ts       # Swap request schemas
+│   │       ├── breakSchedule.ts     # Break schedule schemas
+│   │       └── settings.ts          # Settings schemas
+│   ├── test/                        # Unit tests (568 passing tests)
+│   │   ├── setup.ts                 # Test configuration
+│   │   ├── components/              # Component tests
+│   │   ├── hooks/                   # Hook tests
+│   │   ├── lib/                     # Library tests
+│   │   ├── utils/                   # Utility tests
+│   │   ├── properties/              # Property-based tests
+│   │   └── integration/             # Integration tests
+│   ├── types/
+│   │   ├── index.ts                 # TypeScript type definitions
+│   │   ├── errors.ts                # Custom error types
+│   │   └── pagination.ts            # Pagination types
+│   └── constants/
+│       ├── index.ts                 # Application constants (unified localStorage keys, routes, etc.)
+│       └── cache.ts                 # Cache configuration constants
+├── .env.example                     # Environment variable template (secure placeholders)
+├── .env.test.example                # Test environment template
+├── .gitignore                       # Git ignore rules (includes coverage/)
+├── package.json                     # Package name: "wfm"
+├── tailwind.config.ts
+├── tsconfig.json
+├── tsconfig.app.json
+├── tsconfig.node.json
+├── eslint.config.js
+├── postcss.config.js
+├── vercel.json                      # Vercel config (SPA rewrites + hardened CSP)
+└── vite.config.ts                   # Vite config (secure test environment)
+```
+
+### Project Organization Rules
+
+Following the February 2026 restructure, the codebase follows clear organization rules:
+
+**Component Organization:**
+- **Threshold:** 3+ related files = subdirectory with `index.tsx`
+- **Flat files:** Single components stay in `src/components/`
+- **Shared directory:** Infrastructure components (Layout, ErrorBoundary, ProtectedRoute, etc.)
+- **Feature directories:** BreakSchedule, Headcount, OvertimeRequests, Skills (all meet threshold)
+
+**Page Organization:**
+- **Threshold:** 2+ related pages = subdirectory with `index.ts`
+- **Flat files:** Single pages stay in `src/pages/`
+- **All page directories** have index files for cleaner imports
+
+**Documentation:**
+- **Root:** Only essential config and primary README
+- **docs/:** All documentation files
+- **docs/project-tracking/:** Project management documents (moved from root)
+
+**Benefits:**
+- Predictable structure with clear rules
+- Easy to locate and delete features
+- Cleaner imports with barrel exports
+- Scales naturally as project grows── leaveRequest.ts      # Leave request schemas
 │   │       ├── swapRequest.ts       # Swap request schemas
 │   │       ├── breakSchedule.ts     # Break schedule schemas
 │   │       └── settings.ts          # Settings schemas

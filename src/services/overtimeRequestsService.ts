@@ -268,7 +268,6 @@ export const overtimeRequestsService = {
 
     // Create system comment
     const userName = userData?.name || 'Unknown User'
-    const userRole = userData?.role || 'unknown'
     let commentContent = ''
 
     if (isAutoApprove) {
@@ -304,6 +303,13 @@ export const overtimeRequestsService = {
     if (!user) {
       throw new Error('User not authenticated')
     }
+
+    // Get user details for system comment
+    const { data: userData } = await supabase
+      .from('users')
+      .select('name, role')
+      .eq('id', user.id)
+      .single()
 
     // Get current request to determine status
     const currentRequest = await this.getOvertimeRequestById(id)
@@ -347,6 +353,23 @@ export const overtimeRequestsService = {
       throw error
     }
 
+    // Create system comment
+    const userName = userData?.name || 'Unknown User'
+    let commentContent = ''
+
+    if (currentRequest.status === 'pending_tl') {
+      commentContent = `Overtime request rejected by ${userName} (Team Lead). Reason: ${notes}`
+    } else if (currentRequest.status === 'pending_wfm') {
+      commentContent = `Overtime request rejected by ${userName} (WFM Administrator). Reason: ${notes}`
+    }
+
+    await commentsService.createSystemComment(
+      id,
+      'overtime_request',
+      commentContent,
+      user.id
+    )
+
     return data as OvertimeRequest
   },
 
@@ -361,6 +384,13 @@ export const overtimeRequestsService = {
     if (!user) {
       throw new Error('User not authenticated')
     }
+
+    // Get user details for system comment
+    const { data: userData } = await supabase
+      .from('users')
+      .select('name')
+      .eq('id', user.id)
+      .single()
 
     // Get current request
     const currentRequest = await this.getOvertimeRequestById(id)
@@ -396,6 +426,17 @@ export const overtimeRequestsService = {
       }
       throw error
     }
+
+    // Create system comment
+    const userName = userData?.name || 'Unknown User'
+    const commentContent = `Overtime request cancelled by ${userName}.`
+
+    await commentsService.createSystemComment(
+      id,
+      'overtime_request',
+      commentContent,
+      user.id
+    )
 
     return data as OvertimeRequest
   },
