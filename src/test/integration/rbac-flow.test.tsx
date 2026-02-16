@@ -18,7 +18,7 @@ const serviceSupabase = createClient(
 );
 
 describe.skip('RBAC Flow Integration', () => {
-  let testUserIds: string[] = [];
+  const testUserIds: string[] = [];
   let agentId: string;
   let tlId: string;
   let wfmId: string;

@@ -136,7 +136,7 @@ This implementation plan breaks down the Overtime Management System into discret
   - Ensure all tests pass, ask the user if questions arise.
 
 - [-] 7. Implement React hooks for overtime requests
-  - [ ] 7.1 Create `src/hooks/useOvertimeRequests.ts`
+  - [x] 7.1 Create `src/hooks/useOvertimeRequests.ts`
     - Implement `useOvertimeRequests(filters)` hook using React Query
     - Implement `useOvertimeRequest(id)` hook
     - Implement `useCreateOvertimeRequest()` mutation hook
@@ -146,13 +146,13 @@ This implementation plan breaks down the Overtime Management System into discret
     - Configure cache invalidation on mutations
     - _Requirements: 1.1, 4.1, 4.2, 4.3, 6.1, 7.3, 7.4, 7.5, 9.2_
 
-  - [-] 7.2 Create `src/hooks/useOvertimeSettings.ts`
+  - [x] 7.2 Create `src/hooks/useOvertimeSettings.ts`
     - Implement `useOvertimeSettings()` hook
     - Implement `useUpdateOvertimeSetting()` mutation hook
     - _Requirements: 11.1, 11.2, 11.3, 11.4, 11.5_
 
 - [~] 8. Create overtime request submission form
-  - [~] 8.1 Create `src/pages/OvertimeRequests/CreateOvertimeRequest.tsx`
+  - [x] 8.1 Create `src/pages/OvertimeRequests/CreateOvertimeRequest.tsx`
     - Build form with date picker, time inputs, overtime type radio buttons, and reason textarea
     - Implement client-side validation using validation utilities
     - Display calculated total hours
@@ -169,7 +169,7 @@ This implementation plan breaks down the Overtime Management System into discret
     - _Requirements: 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7_
 
 - [~] 9. Create overtime request card component
-  - [~] 9.1 Create `src/components/OvertimeRequests/OvertimeRequestCard.tsx`
+  - [-] 9.1 Create `src/components/OvertimeRequests/OvertimeRequestCard.tsx`
     - Display work date with calendar icon
     - Display overtime type badge (Regular/Double)
     - Display total hours

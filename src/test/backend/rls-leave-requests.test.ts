@@ -18,8 +18,8 @@ const serviceSupabase = createClient(
 );
 
 describe.skip('RLS Policy Tests - Leave Requests', () => {
-  let testUserIds: string[] = [];
-  let testLeaveIds: string[] = [];
+  const testUserIds: string[] = [];
+  const testLeaveIds: string[] = [];
   let agentId: string;
   let tlId: string;
   let wfmId: string;

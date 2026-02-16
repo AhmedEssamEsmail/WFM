@@ -18,7 +18,7 @@ const serviceSupabase = createClient(
 );
 
 describe.skip('RLS Policy Tests - Users Table', () => {
-  let testUserIds: string[] = [];
+  const testUserIds: string[] = [];
   let agentClient: SupabaseClient;
   let wfmClient: SupabaseClient;
   let agentUserId: string;

@@ -19,9 +19,9 @@ const serviceSupabase = createClient(
 );
 
 describe.skip('RLS Policy Tests - Swap Requests', () => {
-  let testUserIds: string[] = [];
-  let testShiftIds: string[] = [];
-  let testSwapIds: string[] = [];
+  const testUserIds: string[] = [];
+  const testShiftIds: string[] = [];
+  const testSwapIds: string[] = [];
   let requesterId: string;
   let targetId: string;
   let tlId: string;

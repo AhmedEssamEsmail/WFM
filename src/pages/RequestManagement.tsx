@@ -122,7 +122,7 @@ export default function RequestManagement() {
 
   // Apply filters and sort
   const filteredRequests = useMemo(() => {
-    let filtered = unifiedRequests.filter((req) => {
+    const filtered = unifiedRequests.filter((req) => {
       // Type filter
       if (typeFilter !== 'all' && req.type !== typeFilter) return false
 

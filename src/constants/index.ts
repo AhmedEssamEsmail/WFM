@@ -244,6 +244,11 @@ export const ROUTES = {
   LEAVE_REQUESTS_DETAIL: (id: string) => `/leave-requests/${id}`,
   LEAVE_BALANCES: '/leave-balances',
   
+  // Overtime Requests
+  OVERTIME_REQUESTS: '/overtime-requests',
+  OVERTIME_REQUESTS_CREATE: '/overtime-requests/create',
+  OVERTIME_REQUESTS_DETAIL: (id: string) => `/overtime-requests/${id}`,
+  
   // Headcount
   HEADCOUNT_EMPLOYEES: '/headcount/employees',
   HEADCOUNT_EMPLOYEE_DETAIL: (id: string) => `/headcount/employees/${id}`,

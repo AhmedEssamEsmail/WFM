@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback, useRef } from 'react'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../hooks/useAuth'
 import { useLeaveTypes } from '../../hooks/useLeaveTypes'
-import { User, Shift, ShiftType, LeaveType, LeaveRequest } from '../../types'
+import { User, Shift, ShiftType, LeaveType, LeaveRequest, HeadcountUser, Skill } from '../../types'
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, addMonths, subMonths, isWithinInterval, parseISO } from 'date-fns'
 import { SHIFT_COLORS, SHIFT_LABELS } from '../../lib/designSystem'
 import { shiftsService, leaveRequestsService } from '../../services'
@@ -49,7 +49,7 @@ export default function Schedule() {
   if (selectedSkillIds.length > 0) {
     filteredUsers = filteredUsers.filter(user => {
       // Check if user has any of the selected skills
-      const userSkillIds = (user as any).assigned_skills?.map((s: any) => s.id) || []
+      const userSkillIds = (user as HeadcountUser).assigned_skills?.map((s: Skill) => s.id) || []
       return selectedSkillIds.some(skillId => userSkillIds.includes(skillId))
     })
   }

@@ -108,11 +108,16 @@ export const skillsService = {
     if (error) throw error
     
     // Extract skills from the joined data
-    const skills = (data || [])
-      .map((item: any) => item.skills)
-      .filter((skill: any) => skill !== null)
+    interface UserSkillJoin {
+      skill_id: string
+      skills: Skill | null
+    }
     
-    return skills as Skill[]
+    const skills = ((data || []) as unknown as UserSkillJoin[])
+      .map((item) => item.skills)
+      .filter((skill): skill is Skill => skill !== null)
+    
+    return skills
   },
 
   /**

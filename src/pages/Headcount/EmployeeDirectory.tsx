@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback, useRef } from 'react'
 import { useHeadcount } from '../../hooks/useHeadcount'
 import { useAuth } from '../../hooks/useAuth'
-import type { HeadcountUser, Department } from '../../types'
+import type { HeadcountUser, Department, UserRole } from '../../types'
 import { downloadCSV, arrayToCSV } from '../../utils'
 import EmployeeCard from '../../components/Headcount/EmployeeCard'
 import EditEmployeeModal from '../../components/Headcount/EditEmployeeModal'
@@ -164,7 +164,7 @@ export default function EmployeeDirectory() {
               employee.department = value
               break
             case 'role':
-              employee.role = value as any
+              employee.role = value as UserRole
               break
             case 'status':
               employee.status = value as HeadcountUser['status']

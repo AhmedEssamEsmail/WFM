@@ -29,7 +29,8 @@ export const overtimeSettingsService = {
     
     data.forEach(row => {
       const key = row.setting_key as keyof OvertimeSettings
-      settings[key] = row.setting_value as any
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      settings[key] = row.setting_value as any // Complex union type from database
     })
 
     // Validate that all required settings are present
@@ -58,6 +59,7 @@ export const overtimeSettingsService = {
    * @param value - The new value for the setting
    * @throws Error if validation fails or database update fails
    */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   async updateOvertimeSetting(key: keyof OvertimeSettings, value: any): Promise<void> {
     // Validate the setting value based on the key
     this.validateSettingValue(key, value)
@@ -90,6 +92,7 @@ export const overtimeSettingsService = {
    * @param value - The value to validate
    * @throws Error if validation fails
    */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   validateSettingValue(key: keyof OvertimeSettings, value: any): void {
     switch (key) {
       case 'max_daily_hours':

@@ -189,7 +189,7 @@ export const overtimeRequestsService = {
     // Get current request to determine status
     const currentRequest = await this.getOvertimeRequestById(id)
 
-    let updates: Record<string, any> = {}
+    let updates: Partial<OvertimeRequest> = {}
     let newStatus: OvertimeStatus
 
     if (currentRequest.status === 'pending_tl') {
@@ -278,7 +278,7 @@ export const overtimeRequestsService = {
     // Get current request to determine status
     const currentRequest = await this.getOvertimeRequestById(id)
 
-    let updates: Record<string, any> = {
+    const updates: Partial<OvertimeRequest> = {
       status: 'rejected',
     }
 

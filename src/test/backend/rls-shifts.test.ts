@@ -18,8 +18,8 @@ const serviceSupabase = createClient(
 );
 
 describe.skip('RLS Policy Tests - Shifts Table', () => {
-  let testUserIds: string[] = [];
-  let testShiftIds: string[] = [];
+  const testUserIds: string[] = [];
+  const testShiftIds: string[] = [];
   let agentUserId: string;
   let wfmUserId: string;
   let agentShiftId: string;

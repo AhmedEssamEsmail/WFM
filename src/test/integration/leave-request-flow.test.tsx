@@ -18,8 +18,8 @@ const serviceSupabase = createClient(
 );
 
 describe.skip('Leave Request Flow Integration', () => {
-  let testUserIds: string[] = [];
-  let testLeaveIds: string[] = [];
+  const testUserIds: string[] = [];
+  const testLeaveIds: string[] = [];
   let userId: string;
 
   beforeAll(async () => {

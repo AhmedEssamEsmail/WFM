@@ -8,7 +8,7 @@ import { StatCard } from '../components/StatCard'
 import { CoverageChart } from '../components/CoverageChart'
 import { TypeBadge } from '../components/TypeBadge'
 import { StatusBadge } from '../components/StatusBadge'
-import type { SwapRequest, LeaveRequest, User } from '../types'
+import type { SwapRequest, LeaveRequest, User, SwapRequestStatus, LeaveRequestStatus } from '../types'
 import { formatDate as formatDateUtil } from '../utils'
 import { ROUTES } from '../constants'
 
@@ -26,7 +26,7 @@ interface UnifiedRequest {
   id: string
   type: 'swap' | 'leave'
   requesterName: string
-  status: string
+  status: SwapRequestStatus | LeaveRequestStatus
   details: string
   createdAt: string
   navigateTo: string
@@ -279,7 +279,7 @@ export default function Dashboard() {
                       {/* Requirement 3.4 - Show Type Badge */}
                       <TypeBadge type={request.type} />
                       {/* Requirement 3.5 - Show Status Badge */}
-                      <StatusBadge status={request.status as any} />
+                      <StatusBadge status={request.status} />
                     </div>
                   </div>
                   <p className="text-xs text-gray-400">
