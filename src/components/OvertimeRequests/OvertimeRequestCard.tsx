@@ -1,4 +1,4 @@
-import { Calendar, Clock } from 'lucide-react'
+import { CalendarIcon, ClockIcon } from '../icons'
 import type { OvertimeRequest, OvertimeType, OvertimeStatus } from '../../types/overtime'
 
 interface OvertimeRequestCardProps {
@@ -121,7 +121,7 @@ export function OvertimeRequestCard({ request, onClick }: OvertimeRequestCardPro
       <div className="flex items-start justify-between mb-3">
         {/* Work Date with Calendar Icon */}
         <div className="flex items-center gap-2">
-          <Calendar className="w-4 h-4 text-gray-500 flex-shrink-0" aria-hidden="true" />
+          <CalendarIcon className="w-4 h-4 text-gray-500 flex-shrink-0" aria-hidden="true" />
           <span className="text-sm font-medium text-gray-900">
             {formatDate(request.request_date)}
           </span>
@@ -140,7 +140,7 @@ export function OvertimeRequestCard({ request, onClick }: OvertimeRequestCardPro
       <div className="flex items-center gap-4 mb-3">
         {/* Time Range */}
         <div className="flex items-center gap-1.5 text-sm text-gray-600">
-          <Clock className="w-4 h-4 flex-shrink-0" aria-hidden="true" />
+          <ClockIcon className="w-4 h-4 flex-shrink-0" aria-hidden="true" />
           <span>
             {formatTime(request.start_time)} - {formatTime(request.end_time)}
           </span>

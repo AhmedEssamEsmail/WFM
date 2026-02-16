@@ -1,6 +1,8 @@
 export { default as BalanceIcon } from './BalanceIcon'
 export { default as BreakScheduleIcon } from './BreakScheduleIcon'
+export { default as CalendarIcon } from './CalendarIcon'
 export { default as ChevronDoubleLeftIcon } from './ChevronDoubleLeftIcon'
+export { default as ClockIcon } from './ClockIcon'
 export { default as CloseIcon } from './CloseIcon'
 export { default as DashboardIcon } from './DashboardIcon'
 export { default as LeaveIcon } from './LeaveIcon'
