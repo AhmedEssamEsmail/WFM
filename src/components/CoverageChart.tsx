@@ -32,17 +32,6 @@ export function CoverageChart({ data }: CoverageChartProps) {
     }
   }
 
-  const getBarTextColor = (level: 'adequate' | 'low' | 'critical'): string => {
-    switch (level) {
-      case 'adequate':
-        return 'text-green-700'
-      case 'low':
-        return 'text-yellow-700'
-      case 'critical':
-        return 'text-red-700'
-    }
-  }
-
   return (
     <div 
       className="bg-white rounded-lg shadow p-6"
@@ -57,7 +46,6 @@ export function CoverageChart({ data }: CoverageChartProps) {
           {data.map((item, index) => {
             const barHeight = maxCount > 0 ? (item.count / maxCount) * 100 : 0
             const barColor = getBarColor(item.level)
-            const textColor = getBarTextColor(item.level)
             
             return (
               <div 
@@ -85,7 +73,7 @@ export function CoverageChart({ data }: CoverageChartProps) {
                 
                 {/* Day label */}
                 <div className="text-center mt-2">
-                  <span className={`text-sm font-medium ${textColor}`}>
+                  <span className="text-sm font-medium text-gray-900">
                     {item.day}
                   </span>
                 </div>

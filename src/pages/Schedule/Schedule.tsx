@@ -146,8 +146,10 @@ export default function Schedule() {
             start_date: editingShift.date,
             end_date: editingShift.date,
             notes: 'Assigned by TL/WFM from schedule',
-            status: 'approved'
-          } as any)
+            status: 'approved',
+            tl_approved_at: null,
+            wfm_approved_at: null,
+          })
         }
 
         // Remove any existing shift for this day (leave takes precedence)
@@ -174,7 +176,7 @@ export default function Schedule() {
             user_id: editingShift.userId,
             date: editingShift.date,
             shift_type: selectedShiftType
-          } as any)
+          })
         }
       }
 
