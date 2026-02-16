@@ -295,7 +295,7 @@ export default function Schedule() {
   }
 
   return (
-    <div className="space-y-6 w-full">
+    <div className="space-y-6 w-[85%]">
       <div className="sm:flex sm:items-center sm:justify-between">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Schedule</h1>
@@ -312,7 +312,7 @@ export default function Schedule() {
               id="agent-filter"
               value={selectedUserId}
               onChange={(e) => setSelectedUserId(e.target.value)}
-              className="block w-full sm:w-64 rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 text-sm"
+              className="block w-full sm:w-56 rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 text-sm"
             >
               <option value="all">All Agents</option>
               {users.map(u => (
