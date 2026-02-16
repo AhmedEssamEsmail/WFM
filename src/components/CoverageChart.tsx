@@ -62,17 +62,18 @@ export function CoverageChart({ data }: CoverageChartProps) {
             return (
               <div 
                 key={index}
-                className="flex-1 flex flex-col items-center gap-2"
+                className="flex-1 flex flex-col items-center"
               >
-                {/* Count label above bar */}
-                <div className="text-center mb-1">
-                  <span className="text-gray-900 font-semibold text-sm">
-                    {item.count}
-                  </span>
-                </div>
-                
-                {/* Bar */}
-                <div className="w-3/4 flex flex-col items-center justify-end h-32">
+                {/* Bar container with number on top */}
+                <div className="w-[37.5%] flex flex-col items-center justify-end h-40">
+                  {/* Count label above bar */}
+                  <div className="text-center mb-1">
+                    <span className="text-gray-900 font-semibold text-sm">
+                      {item.count}
+                    </span>
+                  </div>
+                  
+                  {/* Bar */}
                   <div 
                     className={`w-full ${barColor} rounded-t transition-all duration-300`}
                     style={{ height: `${barHeight}%`, minHeight: barHeight > 0 ? '24px' : '0' }}
@@ -83,7 +84,7 @@ export function CoverageChart({ data }: CoverageChartProps) {
                 </div>
                 
                 {/* Day label */}
-                <div className="text-center">
+                <div className="text-center mt-2">
                   <span className={`text-sm font-medium ${textColor}`}>
                     {item.day}
                   </span>

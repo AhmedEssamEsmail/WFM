@@ -306,7 +306,7 @@ export default function Schedule() {
   }
 
   return (
-    <div className="space-y-6 w-[85%]">
+    <div className="space-y-6 w-[95%]">
       <div className="sm:flex sm:items-center sm:justify-between">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Schedule</h1>
@@ -317,7 +317,7 @@ export default function Schedule() {
         
         {/* Filters - Only show for TL/WFM */}
         {canEdit && (
-          <div className="mt-4 sm:mt-0 flex gap-4">
+          <div className="mt-4 sm:mt-0 flex gap-4 items-end">
             {/* Skills Filter */}
             <div className="w-56">
               <SkillsFilter
@@ -327,7 +327,7 @@ export default function Schedule() {
             </div>
             
             {/* Agent Filter */}
-            <div>
+            <div className="w-56">
               <label htmlFor="agent-filter" className="block text-sm font-medium text-gray-700 mb-1">
                 Filter by Agent
               </label>
@@ -335,7 +335,7 @@ export default function Schedule() {
                 id="agent-filter"
                 value={selectedUserId}
                 onChange={(e) => setSelectedUserId(e.target.value)}
-                className="block w-56 rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 text-sm"
+                className="block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 text-sm"
               >
                 <option value="all">All Agents</option>
                 {users.map(u => (
