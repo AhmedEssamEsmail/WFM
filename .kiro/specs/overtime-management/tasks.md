@@ -243,7 +243,7 @@ This implementation plan breaks down the Overtime Management System into discret
     - _Requirements: 7.1, 7.2, 7.3, 7.4, 7.5, 9.1_
 
 - [~] 13. Implement system comment generation
-  - [~] 13.1 Update overtime requests service to create system comments
+  - [-] 13.1 Update overtime requests service to create system comments
     - Add system comment on approval
     - Add system comment on rejection
     - Add system comment on cancellation
@@ -420,7 +420,7 @@ This implementation plan breaks down the Overtime Management System into discret
   - Ensure all tests pass, ask the user if questions arise.
 
 - [~] 22. Add routing and navigation
-  - [-] 22.1 Update application routing
+  - [x] 22.1 Update application routing
     - Add route for `/overtime-requests` (list page)
     - Add route for `/overtime-requests/new` (create form)
     - Add route for `/overtime-requests/:id` (detail page)

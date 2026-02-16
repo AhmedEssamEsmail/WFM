@@ -10,6 +10,7 @@ import type {
 import { API_ENDPOINTS } from '../constants'
 import { validateUUID } from '../validation'
 import { ResourceNotFoundError, ConcurrencyError, ValidationError } from '../types/errors'
+import { commentsService } from './commentsService'
 
 export const overtimeRequestsService = {
   /**
@@ -186,11 +187,19 @@ export const overtimeRequestsService = {
       throw new Error('User not authenticated')
     }
 
+    // Get user details for system comment
+    const { data: userData } = await supabase
+      .from('users')
+      .select('name, role')
+      .eq('id', user.id)
+      .single()
+
     // Get current request to determine status
     const currentRequest = await this.getOvertimeRequestById(id)
 
     let updates: Partial<OvertimeRequest> = {}
     let newStatus: OvertimeStatus
+    let isAutoApprove = false
 
     if (currentRequest.status === 'pending_tl') {
       // Team Lead approval
@@ -213,6 +222,7 @@ export const overtimeRequestsService = {
       if (autoApproveEnabled) {
         // Auto-approve: skip WFM review
         newStatus = 'approved'
+        isAutoApprove = true
         updates.wfm_reviewed_by = user.id
         updates.wfm_reviewed_at = new Date().toISOString()
         updates.wfm_decision = 'approved'
@@ -255,6 +265,26 @@ export const overtimeRequestsService = {
       }
       throw error
     }
+
+    // Create system comment
+    const userName = userData?.name || 'Unknown User'
+    const userRole = userData?.role || 'unknown'
+    let commentContent = ''
+
+    if (isAutoApprove) {
+      commentContent = `Overtime request auto-approved by ${userName} (Team Lead). Notes: ${notes}`
+    } else if (currentRequest.status === 'pending_tl') {
+      commentContent = `Overtime request approved by ${userName} (Team Lead). Notes: ${notes}`
+    } else if (currentRequest.status === 'pending_wfm') {
+      commentContent = `Overtime request approved by ${userName} (WFM Administrator). Notes: ${notes}`
+    }
+
+    await commentsService.createSystemComment(
+      id,
+      'overtime_request',
+      commentContent,
+      user.id
+    )
 
     return data as OvertimeRequest
   },
