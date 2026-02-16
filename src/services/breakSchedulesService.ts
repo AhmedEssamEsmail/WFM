@@ -22,6 +22,16 @@ import type {
 
 const { TABLE_NAMES: BREAK_SCHEDULES_TABLE_NAMES, HOURS, INTERVAL_MINUTES } = BREAK_SCHEDULE
 
+// Unused helper function - kept for potential future use
+// function toError(error: unknown): Error {
+//   if (error instanceof Error) return error
+//   if (typeof error === 'object' && error !== null) {
+//     const err = error as { message?: string; code?: string }
+//     return new Error(err.message || 'Unknown error')
+//   }
+//   return new Error(String(error))
+// }
+
 /**
  * IntervalMap class for efficient interval lookups with pre-computation support
  * Optimized for building interval maps once and reusing them
