@@ -87,13 +87,6 @@ export const SHIFT_LABELS: Record<ShiftType, string> = {
   OFF: 'OFF',
 } as const
 
-export const SHIFT_DESCRIPTIONS: Record<ShiftType, string> = {
-  AM: 'Morning Shift',
-  PM: 'Afternoon Shift',
-  BET: 'Between Shift',
-  OFF: 'Day Off',
-} as const
-
 // ============================================
 // LEAVE TYPE COLORS
 // ============================================
@@ -122,26 +115,26 @@ export const LEAVE_DESCRIPTIONS: Record<LeaveType, string> = {
 } as const
 
 // ============================================
-// REQUEST STATUS COLORS
+// REQUEST STATUS COLORS (WFM v2 Design)
 // ============================================
 export const SWAP_STATUS_COLORS: Record<SwapRequestStatus, string> = {
-  pending_acceptance: 'bg-yellow-100 text-yellow-900',
-  pending_tl: 'bg-blue-100 text-blue-900',
-  pending_wfm: 'bg-purple-100 text-purple-900',
-  approved: 'bg-green-100 text-green-900',
-  rejected: 'bg-red-100 text-red-900',
+  pending_acceptance: 'bg-blue-100 text-blue-800 border-blue-200',
+  pending_tl: 'bg-yellow-100 text-yellow-800 border-yellow-200',
+  pending_wfm: 'bg-yellow-100 text-yellow-800 border-yellow-200',
+  approved: 'bg-green-100 text-green-800 border-green-200',
+  rejected: 'bg-red-100 text-red-800 border-red-200',
 } as const
 
 export const LEAVE_STATUS_COLORS: Record<LeaveRequestStatus, string> = {
-  pending_tl: 'bg-blue-100 text-blue-900',
-  pending_wfm: 'bg-purple-100 text-purple-900',
-  approved: 'bg-green-100 text-green-900',
-  rejected: 'bg-red-100 text-red-900',
-  denied: 'bg-orange-100 text-orange-900',
+  pending_tl: 'bg-yellow-100 text-yellow-800 border-yellow-200',
+  pending_wfm: 'bg-yellow-100 text-yellow-800 border-yellow-200',
+  approved: 'bg-green-100 text-green-800 border-green-200',
+  rejected: 'bg-red-100 text-red-800 border-red-200',
+  denied: 'bg-red-100 text-red-800 border-red-200',
 } as const
 
 export const STATUS_LABELS: Record<SwapRequestStatus | LeaveRequestStatus, string> = {
-  pending_acceptance: 'Pending Acceptance',
+  pending_acceptance: 'Pending Recipient',
   pending_tl: 'Pending TL',
   pending_wfm: 'Pending WFM',
   approved: 'Approved',
@@ -162,6 +155,68 @@ export const ROLE_LABELS: Record<UserRole, string> = {
   agent: 'Agent',
   tl: 'Team Lead',
   wfm: 'WFM',
+} as const
+
+// ============================================
+// REQUEST TYPE COLORS (WFM v2 Design)
+// ============================================
+export const REQUEST_TYPE_COLORS = {
+  swap: 'bg-blue-100 text-blue-800 border-blue-200',
+  leave: 'bg-orange-100 text-orange-800 border-orange-200',
+} as const
+
+export const REQUEST_TYPE_LABELS = {
+  swap: 'Swap',
+  leave: 'Leave',
+} as const
+
+// ============================================
+// STAT CARD COLORS (WFM v2 Design)
+// ============================================
+export const STAT_CARD_COLORS = {
+  totalStaff: {
+    bg: 'bg-blue-100',
+    icon: 'text-blue-600',
+  },
+  activeShifts: {
+    bg: 'bg-green-100',
+    icon: 'text-green-600',
+  },
+  pendingRequests: {
+    bg: 'bg-yellow-100',
+    icon: 'text-yellow-600',
+  },
+  openSwaps: {
+    bg: 'bg-purple-100',
+    icon: 'text-purple-600',
+  },
+} as const
+
+// ============================================
+// COVERAGE LEVEL COLORS (WFM v2 Design)
+// ============================================
+export const COVERAGE_LEVEL_COLORS = {
+  adequate: 'bg-green-500',
+  low: 'bg-yellow-500',
+  critical: 'bg-red-500',
+} as const
+
+export const COVERAGE_LEVEL_LABELS = {
+  adequate: 'Adequate',
+  low: 'Low',
+  critical: 'Critical',
+} as const
+
+// ============================================
+// SHIFT TYPE COLORS (WFM v2 Design - Enhanced)
+// ============================================
+// NOTE: These are fallback colors only. Actual shift display should use
+// shift configurations from the database via shiftConfigurationsService
+export const SHIFT_TYPE_COLORS = {
+  Morning: 'bg-sky-100 text-sky-900 border-sky-200',
+  Day: 'bg-blue-500 text-white border-blue-600',
+  Evening: 'bg-purple-500 text-white border-purple-600',
+  Night: 'bg-slate-700 text-white border-slate-800',
 } as const
 
 // ============================================

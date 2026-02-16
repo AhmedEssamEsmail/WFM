@@ -2,10 +2,11 @@ import { useState, useEffect, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../hooks/useAuth'
 import { SwapRequest, User, SwapRequestStatus } from '../../types'
-import { getStatusColor, getStatusLabel } from '../../lib/designSystem'
 import { swapRequestsService } from '../../services'
 import { formatDate } from '../../utils'
 import { ROUTES } from '../../constants'
+import { TypeBadge } from '../../components/TypeBadge'
+import { StatusBadge } from '../../components/StatusBadge'
 
 interface SwapRequestWithUsers extends SwapRequest {
   requester: User
@@ -84,6 +85,15 @@ export default function SwapRequests() {
     setStatusFilter('')
   }
 
+  const getInitials = (name: string) => {
+    return name
+      .split(' ')
+      .map(part => part[0])
+      .join('')
+      .toUpperCase()
+      .slice(0, 2)
+  }
+
   return (
     <div className="space-y-4 pb-4">
       <div className="flex items-center justify-between">
@@ -149,48 +159,175 @@ export default function SwapRequests() {
       {/* Requests List */}
       <div className="bg-white rounded-lg shadow">
         {loading ? (
-          <div className="p-8 text-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600 mx-auto"></div>
+          <div className="flex items-center justify-center py-12">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
           </div>
         ) : requests.length === 0 ? (
-          <div className="p-8 text-center text-gray-500 text-sm">
-            No swap requests found
+          <div className="text-center py-12">
+            <p className="text-gray-500">No swap requests found</p>
           </div>
         ) : (
-          <div className="divide-y divide-gray-200">
-            {requests.map((request) => (
-              <div
-                key={request.id}
-                onClick={() => navigate(`${ROUTES.SWAP_REQUESTS}/${request.id}`)}
-                className="p-4 hover:bg-gray-50 cursor-pointer"
-              >
-                <div className="flex items-start justify-between mb-3">
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-1">
-                      <p className="text-sm font-medium text-gray-900">
-                        {(request as SwapRequestWithUsers).requester?.name || 'Unknown'}
-                      </p>
-                      <svg className="w-4 h-4 text-gray-400 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
-                      </svg>
-                      <p className="text-sm font-medium text-gray-900">
-                        {(request as SwapRequestWithUsers).target?.name || (request as SwapRequestWithUsers).target_user?.name || 'Unknown'}
-                      </p>
+          <>
+            {/* Desktop table view - hidden on mobile */}
+            <div className="hidden md:block overflow-x-auto">
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th 
+                      scope="col" 
+                      className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                      aria-label="Requester column"
+                    >
+                      Requester
+                    </th>
+                    <th 
+                      scope="col" 
+                      className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                      aria-label="Type column"
+                    >
+                      Type
+                    </th>
+                    <th 
+                      scope="col" 
+                      className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                      aria-label="Details column"
+                    >
+                      Details
+                    </th>
+                    <th 
+                      scope="col" 
+                      className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                      aria-label="Status column"
+                    >
+                      Status
+                    </th>
+                    <th 
+                      scope="col" 
+                      className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                      aria-label="Created column"
+                    >
+                      Created
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {requests.map((request) => {
+                    const targetName = (request as SwapRequestWithUsers).target?.name || (request as SwapRequestWithUsers).target_user?.name || 'Unknown'
+                    return (
+                      <tr
+                        key={request.id}
+                        onClick={() => navigate(`${ROUTES.SWAP_REQUESTS}/${request.id}`)}
+                        className="hover:bg-gray-50 cursor-pointer transition-colors"
+                        role="button"
+                        tabIndex={0}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' || e.key === ' ') {
+                            e.preventDefault()
+                            navigate(`${ROUTES.SWAP_REQUESTS}/${request.id}`)
+                          }
+                        }}
+                        aria-label={`View swap request from ${(request as SwapRequestWithUsers).requester?.name || 'Unknown'}`}
+                      >
+                        {/* Requester column */}
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="flex items-center gap-3">
+                            {/* Avatar */}
+                            <div 
+                              className="w-10 h-10 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center font-medium text-sm flex-shrink-0"
+                              aria-hidden="true"
+                            >
+                              {getInitials((request as SwapRequestWithUsers).requester?.name || 'Unknown')}
+                            </div>
+                            {/* Name */}
+                            <span className="text-sm font-medium text-gray-900">
+                              {(request as SwapRequestWithUsers).requester?.name || 'Unknown'}
+                            </span>
+                          </div>
+                        </td>
+
+                        {/* Type column */}
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <TypeBadge type="swap" />
+                        </td>
+
+                        {/* Details column */}
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <span className="text-sm text-gray-900">→ {targetName}</span>
+                        </td>
+
+                        {/* Status column */}
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <StatusBadge status={request.status} />
+                        </td>
+
+                        {/* Created column */}
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <span className="text-sm text-gray-500">{formatDate(request.created_at)}</span>
+                        </td>
+                      </tr>
+                    )
+                  })}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Mobile card view */}
+            <div className="md:hidden space-y-4 p-4">
+              {requests.map((request) => {
+                const targetName = (request as SwapRequestWithUsers).target?.name || (request as SwapRequestWithUsers).target_user?.name || 'Unknown'
+                return (
+                  <div
+                    key={request.id}
+                    onClick={() => navigate(`${ROUTES.SWAP_REQUESTS}/${request.id}`)}
+                    className="bg-white rounded-lg border border-gray-200 p-4 cursor-pointer hover:shadow-md transition-shadow"
+                    role="button"
+                    tabIndex={0}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault()
+                        navigate(`${ROUTES.SWAP_REQUESTS}/${request.id}`)
+                      }
+                    }}
+                    aria-label={`View swap request from ${(request as SwapRequestWithUsers).requester?.name || 'Unknown'}`}
+                  >
+                    {/* Header with requester and type */}
+                    <div className="flex items-start justify-between mb-3">
+                      <div className="flex items-center gap-3 flex-1 min-w-0">
+                        {/* Avatar */}
+                        <div 
+                          className="w-10 h-10 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center font-medium text-sm flex-shrink-0"
+                          aria-hidden="true"
+                        >
+                          {getInitials((request as SwapRequestWithUsers).requester?.name || 'Unknown')}
+                        </div>
+                        {/* Name */}
+                        <span className="text-sm font-medium text-gray-900 truncate">
+                          {(request as SwapRequestWithUsers).requester?.name || 'Unknown'}
+                        </span>
+                      </div>
+                      {/* Type badge */}
+                      <TypeBadge type="swap" />
                     </div>
-                    <p className="text-xs text-gray-500">
-                      {(request as SwapRequestWithUsers).requester?.email || 'N/A'}
-                    </p>
+
+                    {/* Details */}
+                    <div className="mb-3">
+                      <p className="text-sm text-gray-600">→ {targetName}</p>
+                    </div>
+
+                    {/* Status */}
+                    <div className="mb-3">
+                      <StatusBadge status={request.status} />
+                    </div>
+
+                    {/* Created date */}
+                    <div className="text-xs text-gray-500 pt-3 border-t border-gray-100">
+                      Created: {formatDate(request.created_at)}
+                    </div>
                   </div>
-                  <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ml-2 whitespace-nowrap ${getStatusColor(request.status)}`}>
-                    {getStatusLabel(request.status)}
-                  </span>
-                </div>
-                <div className="text-xs text-gray-500">
-                  <p>Created: {formatDate(request.created_at)}</p>
-                </div>
-              </div>
-            ))}
-          </div>
+                )
+              })}
+            </div>
+          </>
         )}
       </div>
     </div>

@@ -3,7 +3,7 @@ import { render, screen, waitFor, fireEvent } from '@testing-library/react'
 import { BrowserRouter } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import SwapRequests from '../../pages/SwapRequests/SwapRequests'
-import { AuthContext } from '../../lib/AuthContext'
+import { AuthContext } from '../../contexts/AuthContext'
 import { swapRequestsService } from '../../services'
 import type { User, SwapRequest } from '../../types'
 
@@ -85,13 +85,46 @@ describe('SwapRequests Page', () => {
       expect(screen.getByText('Swap Requests')).toBeInTheDocument()
     })
 
-    it('should render swap requests when data is available', async () => {
+    it('should render swap requests with new table styling', async () => {
       vi.mocked(swapRequestsService.getUserSwapRequests).mockResolvedValue(mockSwapRequests)
 
       renderSwapRequests()
 
       await waitFor(() => {
-        expect(screen.getByText('John Requester')).toBeInTheDocument()
+        // Use getAllByText since the name appears in both desktop and mobile views
+        const elements = screen.getAllByText('John Requester')
+        expect(elements.length).toBeGreaterThan(0)
+        // Verify table headers are present using role
+        const table = document.querySelector('table')
+        expect(table).toBeInTheDocument()
+        expect(screen.getByText('Requester')).toBeInTheDocument()
+        expect(screen.getByText('Type')).toBeInTheDocument()
+        expect(screen.getByText('Details')).toBeInTheDocument()
+        expect(screen.getByText('Created')).toBeInTheDocument()
+      })
+    })
+
+    it('should render TypeBadge for swap requests', async () => {
+      vi.mocked(swapRequestsService.getUserSwapRequests).mockResolvedValue(mockSwapRequests)
+
+      renderSwapRequests()
+
+      await waitFor(() => {
+        // Use getAllByText since the badge appears in both desktop and mobile views
+        const elements = screen.getAllByText('Swap')
+        expect(elements.length).toBeGreaterThan(0)
+      })
+    })
+
+    it('should render target user in details column', async () => {
+      vi.mocked(swapRequestsService.getUserSwapRequests).mockResolvedValue(mockSwapRequests)
+
+      renderSwapRequests()
+
+      await waitFor(() => {
+        // Use getAllByText since the text appears in both desktop and mobile views
+        const elements = screen.getAllByText('→ Jane Target')
+        expect(elements.length).toBeGreaterThan(0)
       })
     })
 
@@ -145,13 +178,15 @@ describe('SwapRequests Page', () => {
   })
 
   describe('Pagination', () => {
-    it('should render pagination controls when data is available', async () => {
+    it('should render requests when data is available', async () => {
       vi.mocked(swapRequestsService.getUserSwapRequests).mockResolvedValue(mockSwapRequests)
 
       renderSwapRequests()
 
       await waitFor(() => {
-        expect(screen.queryByText('John Requester')).toBeInTheDocument()
+        // Use getAllByText since the name appears in both desktop and mobile views
+        const elements = screen.getAllByText('John Requester')
+        expect(elements.length).toBeGreaterThan(0)
       })
     })
   })

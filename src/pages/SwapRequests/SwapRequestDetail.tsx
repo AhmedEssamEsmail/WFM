@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../hooks/useAuth'
+import { useShiftConfigurations } from '../../hooks/useShiftConfigurations'
 import { SwapRequest, User, Shift, Comment, SwapRequestStatus, ShiftType } from '../../types'
-import { getStatusColor, getStatusLabel, SHIFT_DESCRIPTIONS } from '../../lib/designSystem'
+import { getStatusColor, getStatusLabel } from '../../lib/designSystem'
 import { swapRequestsService, commentsService, settingsService, authService, shiftsService } from '../../services'
 import { formatDate, formatDateTime } from '../../utils'
 import { ERROR_MESSAGES } from '../../constants'
@@ -25,6 +26,7 @@ export default function SwapRequestDetail() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
   const { user } = useAuth()
+  const { getShiftDisplay } = useShiftConfigurations()
   const [request, setRequest] = useState<SwapRequest | null>(null)
   const [requester, setRequester] = useState<User | null>(null)
   const [targetUser, setTargetUser] = useState<User | null>(null)
@@ -545,7 +547,7 @@ export default function SwapRequestDetail() {
               <div className="mb-3">
                 <p className="font-medium">{formatDate(request.requester_original_date)}</p>
                 <span className="inline-block mt-1 px-2 py-1 bg-blue-100 text-blue-800 rounded text-sm">
-                  {request.requester_original_shift_type ? SHIFT_DESCRIPTIONS[request.requester_original_shift_type as ShiftType] : 'Unknown'}
+                  {request.requester_original_shift_type ? getShiftDisplay(request.requester_original_shift_type as ShiftType).name : 'Unknown'}
                 </span>
               </div>
             )}
@@ -555,7 +557,7 @@ export default function SwapRequestDetail() {
               <div>
                 <p className="font-medium">{formatDate(request.target_original_date)}</p>
                 <span className="inline-block mt-1 px-2 py-1 bg-blue-100 text-blue-800 rounded text-sm">
-                  {request.requester_original_shift_type_on_target_date ? SHIFT_DESCRIPTIONS[request.requester_original_shift_type_on_target_date as ShiftType] : 'Unknown'}
+                  {request.requester_original_shift_type_on_target_date ? getShiftDisplay(request.requester_original_shift_type_on_target_date as ShiftType).name : 'Unknown'}
                 </span>
               </div>
             )}
@@ -571,7 +573,7 @@ export default function SwapRequestDetail() {
               <div className="mb-3">
                 <p className="font-medium">{formatDate(request.requester_original_date)}</p>
                 <span className="inline-block mt-1 px-2 py-1 bg-purple-100 text-purple-800 rounded text-sm">
-                  {request.target_original_shift_type_on_requester_date ? SHIFT_DESCRIPTIONS[request.target_original_shift_type_on_requester_date as ShiftType] : 'Unknown'}
+                  {request.target_original_shift_type_on_requester_date ? getShiftDisplay(request.target_original_shift_type_on_requester_date as ShiftType).name : 'Unknown'}
                 </span>
               </div>
             )}
@@ -581,7 +583,7 @@ export default function SwapRequestDetail() {
               <div>
                 <p className="font-medium">{formatDate(request.target_original_date)}</p>
                 <span className="inline-block mt-1 px-2 py-1 bg-purple-100 text-purple-800 rounded text-sm">
-                  {request.target_original_shift_type ? SHIFT_DESCRIPTIONS[request.target_original_shift_type as ShiftType] : 'Unknown'}
+                  {request.target_original_shift_type ? getShiftDisplay(request.target_original_shift_type as ShiftType).name : 'Unknown'}
                 </span>
               </div>
             )}

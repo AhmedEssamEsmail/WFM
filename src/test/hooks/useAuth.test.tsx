@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import { renderHook } from '@testing-library/react'
 import { useAuth } from '../../hooks/useAuth'
-import { AuthContext } from '../../lib/AuthContext'
+import { AuthContext } from '../../contexts/AuthContext'
 import type { User } from '../../types'
 
 // Mock user data

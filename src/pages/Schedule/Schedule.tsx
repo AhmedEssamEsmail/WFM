@@ -4,7 +4,7 @@ import { useAuth } from '../../hooks/useAuth'
 import { useLeaveTypes } from '../../hooks/useLeaveTypes'
 import { User, Shift, ShiftType, LeaveType, LeaveRequest } from '../../types'
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, addMonths, subMonths, isWithinInterval, parseISO } from 'date-fns'
-import { SHIFT_COLORS, SHIFT_LABELS, SHIFT_DESCRIPTIONS } from '../../lib/designSystem'
+import { SHIFT_COLORS, SHIFT_LABELS } from '../../lib/designSystem'
 import { shiftsService, leaveRequestsService } from '../../services'
 import { formatDateISO } from '../../utils'
 import { handleDatabaseError } from '../../lib/errorHandler'
@@ -462,9 +462,6 @@ export default function Schedule() {
                     <div key={type} className="flex items-center gap-2">
                       <span className={`inline-flex items-center px-2 py-1 rounded text-xs font-medium ${color}`}>
                         {SHIFT_LABELS[type as ShiftType]}
-                      </span>
-                      <span className="text-sm text-gray-600">
-                        {SHIFT_DESCRIPTIONS[type as ShiftType]}
                       </span>
                     </div>
                   ))}
