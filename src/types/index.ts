@@ -131,6 +131,23 @@ export interface SwapExecutionResult {
   error_code?: string
 }
 
+// Skills Management Types
+export interface Skill {
+  id: string
+  name: string
+  description: string | null
+  color: string
+  is_active: boolean
+  created_at: string
+  updated_at: string
+}
+
+export interface UserSkill {
+  user_id: string
+  skill_id: string
+  created_at: string
+}
+
 // Extended User with headcount fields
 export interface HeadcountUser extends User {
   employee_id?: string
@@ -156,6 +173,8 @@ export interface HeadcountUser extends User {
   // Joined fields
   manager_name?: string
   manager_email?: string
+  // Skills from user_skills junction table
+  assigned_skills?: Skill[]
 }
 
 export interface Department {

@@ -1,4 +1,5 @@
 import type { HeadcountUser, UserRole } from '../../types'
+import SkillsBadges from '../Skills/SkillsBadges'
 
 interface EmployeeCardProps {
   employee: HeadcountUser
@@ -73,6 +74,13 @@ export default function EmployeeCard({ employee, onEdit, canEdit }: EmployeeCard
               </span>
             )}
           </div>
+
+          {/* Skills */}
+          {employee.assigned_skills && employee.assigned_skills.length > 0 && (
+            <div className="mt-3">
+              <SkillsBadges skills={employee.assigned_skills} />
+            </div>
+          )}
         </div>
       </div>
 

@@ -8,6 +8,7 @@ import { SHIFT_COLORS, SHIFT_LABELS } from '../../lib/designSystem'
 import { shiftsService, leaveRequestsService } from '../../services'
 import { formatDateISO } from '../../utils'
 import { handleDatabaseError } from '../../lib/errorHandler'
+import SkillsFilter from '../../components/Schedule/SkillsFilter'
 
 interface ShiftWithSwap extends Shift {
   swapped_with_user_id?: string | null
@@ -33,6 +34,7 @@ export default function Schedule() {
   
   // Filter state
   const [selectedUserId, setSelectedUserId] = useState<string>('all')
+  const [selectedSkillIds, setSelectedSkillIds] = useState<string[]>([])
 
   const canEdit = user?.role === 'tl' || user?.role === 'wfm'
   const monthStart = startOfMonth(currentDate)
@@ -40,7 +42,16 @@ export default function Schedule() {
   const daysInMonth = eachDayOfInterval({ start: monthStart, end: monthEnd })
   
   // Filter users based on selection
-  const filteredUsers = selectedUserId === 'all' ? users : users.filter(u => u.id === selectedUserId)
+  let filteredUsers = selectedUserId === 'all' ? users : users.filter(u => u.id === selectedUserId)
+  
+  // Apply skills filter (OR logic - show users with at least one selected skill)
+  if (selectedSkillIds.length > 0) {
+    filteredUsers = filteredUsers.filter(user => {
+      // Check if user has any of the selected skills
+      const userSkillIds = (user as any).assigned_skills?.map((s: any) => s.id) || []
+      return selectedSkillIds.some(skillId => userSkillIds.includes(skillId))
+    })
+  }
 
   const fetchScheduleData = useCallback(async () => {
     if (!user) return
@@ -51,7 +62,7 @@ export default function Schedule() {
       // - Agent: Can see all agents' schedules (but not TL/WFM)
       // - TL: Can see all agents + TL + WFM schedules
       // - WFM: Can see all agents + TL + WFM schedules
-      let usersQuery = supabase.from('users').select('*')
+      let usersQuery = supabase.from('v_headcount_active').select('*')
       
       if (user.role === 'agent') {
         // Agents can see all agents' schedules, but not TL or WFM
@@ -304,21 +315,34 @@ export default function Schedule() {
           </p>
         </div>
         
-        {/* Agent Filter - Only show for TL/WFM */}
+        {/* Filters - Only show for TL/WFM */}
         {canEdit && (
-          <div className="mt-4 sm:mt-0">
-            <label htmlFor="agent-filter" className="sr-only">Filter by agent</label>
-            <select
-              id="agent-filter"
-              value={selectedUserId}
-              onChange={(e) => setSelectedUserId(e.target.value)}
-              className="block w-full sm:w-56 rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 text-sm"
-            >
-              <option value="all">All Agents</option>
-              {users.map(u => (
-                <option key={u.id} value={u.id}>{u.name}</option>
-              ))}
-            </select>
+          <div className="mt-4 sm:mt-0 flex gap-4">
+            {/* Skills Filter */}
+            <div className="w-56">
+              <SkillsFilter
+                selectedSkillIds={selectedSkillIds}
+                onChange={setSelectedSkillIds}
+              />
+            </div>
+            
+            {/* Agent Filter */}
+            <div>
+              <label htmlFor="agent-filter" className="block text-sm font-medium text-gray-700 mb-1">
+                Filter by Agent
+              </label>
+              <select
+                id="agent-filter"
+                value={selectedUserId}
+                onChange={(e) => setSelectedUserId(e.target.value)}
+                className="block w-56 rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 text-sm"
+              >
+                <option value="all">All Agents</option>
+                {users.map(u => (
+                  <option key={u.id} value={u.id}>{u.name}</option>
+                ))}
+              </select>
+            </div>
           </div>
         )}
       </div>

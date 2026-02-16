@@ -8,11 +8,12 @@ import GeneralSettings from './GeneralSettings'
 import LeaveTypeManager from './LeaveTypeManager'
 import BreakScheduleSettings from './BreakScheduleSettings'
 import ShiftConfigSettings from './ShiftConfigSettings'
+import SkillsManager from './SkillsManager'
 
 export default function Settings() {
   const navigate = useNavigate()
   const { user } = useAuth()
-  const [activeTab, setActiveTab] = useState<'general' | 'leave-types' | 'break-schedule' | 'shift-configurations'>('general')
+  const [activeTab, setActiveTab] = useState<'general' | 'leave-types' | 'break-schedule' | 'shift-configurations' | 'skills'>('general')
   const [autoApprove, setAutoApprove] = useState(false)
   const [allowLeaveExceptions, setAllowLeaveExceptions] = useState(true)
   const [loading, setLoading] = useState(true)
@@ -76,6 +77,16 @@ export default function Settings() {
             Leave Types
           </button>
           <button
+            onClick={() => setActiveTab('skills')}
+            className={`${
+              activeTab === 'skills'
+                ? 'border-primary-500 text-primary-600'
+                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+            } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm`}
+          >
+            Skills
+          </button>
+          <button
             onClick={() => setActiveTab('break-schedule')}
             className={`${
               activeTab === 'break-schedule'
@@ -109,6 +120,8 @@ export default function Settings() {
       )}
 
       {activeTab === 'leave-types' && <LeaveTypeManager />}
+
+      {activeTab === 'skills' && <SkillsManager />}
 
       {activeTab === 'break-schedule' && <BreakScheduleSettings />}
 

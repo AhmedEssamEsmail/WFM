@@ -6,7 +6,7 @@ This implementation plan breaks down the Employee Skills Management feature into
 
 ## Tasks
 
-- [ ] 1. Set up database schema and migrations
+- [x] 1. Set up database schema and migrations
   - Create `skills` table with all required columns and constraints
   - Create `user_skills` junction table with composite primary key and foreign keys
   - Create indexes on `user_skills` for performance
@@ -22,7 +22,7 @@ This implementation plan breaks down the Employee Skills Management feature into
   - **Property 16: Foreign Key Constraint - Skill ID**
   - **Validates: Requirements 5.5**
 
-- [ ] 2. Create TypeScript types and validation schemas
+- [x] 2. Create TypeScript types and validation schemas
   - Add `Skill` interface to `src/types/index.ts`
   - Add `UserSkill` interface to `src/types/index.ts`
   - Extend `HeadcountUser` interface with `assigned_skills` field
@@ -42,7 +42,7 @@ This implementation plan breaks down the Employee Skills Management feature into
   - **Property 21: Name Length Validation**
   - **Validates: Requirements 7.3**
 
-- [ ] 3. Implement skills service layer
+- [x] 3. Implement skills service layer
   - Create `src/services/skillsService.ts`
   - Implement `getSkills()` with optional active filter
   - Implement `getSkillById()`
@@ -69,7 +69,7 @@ This implementation plan breaks down the Employee Skills Management feature into
   - **Property 10: Zero or Multiple Skills Assignment**
   - **Validates: Requirements 2.6**
 
-- [ ] 4. Create useSkills React hook
+- [x] 4. Create useSkills React hook
   - Create `src/hooks/useSkills.ts`
   - Implement query for fetching skills with React Query
   - Implement mutations for create, update, delete operations
@@ -85,7 +85,7 @@ This implementation plan breaks down the Employee Skills Management feature into
   - Test error handling
   - _Requirements: 1.2, 1.7, 1.8_
 
-- [ ] 5. Enhance headcount service to include skills
+- [x] 5. Enhance headcount service to include skills
   - Modify `headcountService.getEmployees()` to join skills data
   - Modify `headcountService.getEmployeeById()` to join skills data
   - Update queries to use enhanced `v_headcount_active` view
@@ -99,7 +99,7 @@ This implementation plan breaks down the Employee Skills Management feature into
 - [ ] 6. Checkpoint - Ensure all tests pass
   - Ensure all tests pass, ask the user if questions arise.
 
-- [ ] 7. Create SkillsManager component for Settings
+- [x] 7. Create SkillsManager component for Settings
   - Create `src/pages/Settings/SkillsManager.tsx`
   - Implement skills list table with columns: name, description, color badge, active status
   - Add "Create Skill" button
@@ -149,7 +149,7 @@ This implementation plan breaks down the Employee Skills Management feature into
   - Test active status toggle
   - _Requirements: 1.7, 1.9_
 
-- [ ] 10. Add Skills tab to Settings page
+- [x] 10. Add Skills tab to Settings page
   - Modify `src/pages/Settings/index.tsx`
   - Add "Skills" tab to navigation
   - Render SkillsManager component when Skills tab is active
@@ -163,7 +163,7 @@ This implementation plan breaks down the Employee Skills Management feature into
 - [ ] 11. Checkpoint - Ensure all tests pass
   - Ensure all tests pass, ask the user if questions arise.
 
-- [ ] 12. Create SkillsMultiSelect component
+- [x] 12. Create SkillsMultiSelect component
   - Create `src/components/Skills/SkillsMultiSelect.tsx`
   - Implement multi-select dropdown showing active skills
   - Display selected skills as colored badges
@@ -184,7 +184,7 @@ This implementation plan breaks down the Employee Skills Management feature into
   - Test badge display
   - _Requirements: 2.1, 2.2_
 
-- [ ] 13. Enhance EditEmployeeModal with skills assignment
+- [x] 13. Enhance EditEmployeeModal with skills assignment
   - Modify `src/components/Headcount/EditEmployeeModal.tsx`
   - Add SkillsMultiSelect component after Phone field
   - Add `skill_ids: string[]` to form state
@@ -199,7 +199,7 @@ This implementation plan breaks down the Employee Skills Management feature into
   - Test saving with no skills
   - _Requirements: 2.3, 2.4, 2.5, 2.6_
 
-- [ ] 14. Create SkillsBadges component
+- [x] 14. Create SkillsBadges component
   - Create `src/components/Skills/SkillsBadges.tsx`
   - Display skills as colored badges with skill name
   - Implement responsive layout (wraps on small screens)
@@ -213,7 +213,7 @@ This implementation plan breaks down the Employee Skills Management feature into
   - Test responsive wrapping
   - _Requirements: 3.1, 3.2, 3.3, 3.4_
 
-- [ ] 15. Enhance EmployeeCard with skills display
+- [x] 15. Enhance EmployeeCard with skills display
   - Modify `src/components/Headcount/EmployeeCard.tsx`
   - Add SkillsBadges component below existing employee info
   - Pass `employee.assigned_skills` to SkillsBadges
@@ -227,7 +227,7 @@ This implementation plan breaks down the Employee Skills Management feature into
 - [ ] 16. Checkpoint - Ensure all tests pass
   - Ensure all tests pass, ask the user if questions arise.
 
-- [ ] 17. Create SkillsFilter component
+- [x] 17. Create SkillsFilter component
   - Create `src/components/Schedule/SkillsFilter.tsx`
   - Implement multi-select dropdown for skills filtering
   - Show count of selected skills
@@ -243,7 +243,7 @@ This implementation plan breaks down the Employee Skills Management feature into
   - Test clear filter
   - _Requirements: 4.1, 4.2, 4.5, 4.6_
 
-- [ ] 18. Enhance Schedule page with skills filtering
+- [x] 18. Enhance Schedule page with skills filtering
   - Modify `src/pages/Schedule/Schedule.tsx`
   - Add SkillsFilter component above existing Agent filter
   - Add `selectedSkillIds: string[]` state variable
@@ -266,7 +266,7 @@ This implementation plan breaks down the Employee Skills Management feature into
   - Test empty filter state
   - _Requirements: 4.3, 4.4, 4.5_
 
-- [ ] 19. Add access control for Skills filter
+- [x] 19. Add access control for Skills filter
   - Ensure SkillsFilter only renders for TL and WFM users
   - Add role check in Schedule page
   - _Requirements: 6.3_

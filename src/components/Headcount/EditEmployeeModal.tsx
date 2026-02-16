@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react'
 import type { HeadcountUser, UserRole } from '../../types'
+import SkillsMultiSelect from '../Skills/SkillsMultiSelect'
+import { skillsService } from '../../services'
 
 interface EditEmployeeModalProps {
   employee: HeadcountUser | null
@@ -10,6 +12,7 @@ interface EditEmployeeModalProps {
 
 export default function EditEmployeeModal({ employee, isOpen, onClose, onSave }: EditEmployeeModalProps) {
   const [formData, setFormData] = useState<Partial<HeadcountUser>>({})
+  const [selectedSkillIds, setSelectedSkillIds] = useState<string[]>([])
   const [saving, setSaving] = useState(false)
 
   useEffect(() => {
@@ -24,6 +27,8 @@ export default function EditEmployeeModal({ employee, isOpen, onClose, onSave }:
         location: employee.location,
         phone: employee.phone,
       })
+      // Load employee's current skills
+      setSelectedSkillIds(employee.assigned_skills?.map(s => s.id) || [])
     }
   }, [employee])
 
@@ -33,7 +38,14 @@ export default function EditEmployeeModal({ employee, isOpen, onClose, onSave }:
     e.preventDefault()
     setSaving(true)
     try {
+      // Save employee data
       await onSave(formData)
+      
+      // Save skills assignment
+      if (employee) {
+        await skillsService.assignSkillsToUser(employee.id, selectedSkillIds)
+      }
+      
       onClose()
     } catch (error) {
       console.error('Failed to save:', error)
@@ -184,6 +196,16 @@ export default function EditEmployeeModal({ employee, isOpen, onClose, onSave }:
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                 />
               </div>
+            </div>
+
+            {/* Skills - Full width */}
+            <div className="pt-2">
+              <SkillsMultiSelect
+                selectedSkillIds={selectedSkillIds}
+                onChange={setSelectedSkillIds}
+                label="Skills"
+                placeholder="Select skills for this employee..."
+              />
             </div>
 
             {/* Actions */}

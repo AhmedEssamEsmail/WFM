@@ -81,4 +81,5 @@ export const QUERY_KEYS = {
   BREAK_RULES: 'breakRules',
   OVERTIME_REQUESTS: 'overtimeRequests',
   OVERTIME_SETTINGS: 'overtimeSettings',
+  SKILLS: 'skills',
 } as const

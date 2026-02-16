@@ -169,6 +169,20 @@ export type {
 } from './schemas/settings'
 
 // ============================================
+// Skills Schemas
+// ============================================
+
+export {
+  skillSchema,
+  assignSkillsSchema,
+} from './schemas/skillSchema'
+
+export type {
+  SkillInput,
+  AssignSkillsInput,
+} from './schemas/skillSchema'
+
+// ============================================
 // Imperative Validators
 // ============================================
 
