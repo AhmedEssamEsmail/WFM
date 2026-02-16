@@ -3,9 +3,8 @@ import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../hooks/useAuth'
 import { useOvertimeRequests } from '../../hooks/useOvertimeRequests'
 import { OvertimeRequestCard } from '../../components/OvertimeRequests/OvertimeRequestCard'
-import { Pagination } from '../../components/Pagination'
+import { Pagination } from '../../components/shared/Pagination'
 import { ROUTES } from '../../constants'
-import type { OvertimeStatus } from '../../types/overtime'
 
 /**
  * OvertimeRequests list page

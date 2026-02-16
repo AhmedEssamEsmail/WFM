@@ -1,6 +1,6 @@
 import { useState } from 'react'
-import { DistributionStrategy, ApplyMode } from '../../types'
-import { BUTTON_STYLES } from '../../lib/designSystem'
+import { DistributionStrategy, ApplyMode } from '../types'
+import { BUTTON_STYLES } from '../lib/designSystem'
 
 interface AutoDistributionSettingsProps {
   defaultStrategy: DistributionStrategy

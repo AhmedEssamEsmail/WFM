@@ -3,7 +3,7 @@ import { useToast } from '../../contexts/ToastContext'
 import { shiftConfigurationsService } from '../../services'
 import type { ShiftConfiguration } from '../../types'
 import { handleDatabaseError } from '../../lib/errorHandler'
-import ShiftConfigurations from '../../components/Settings/ShiftConfigurations'
+import ShiftConfigurations from '../../components/ShiftConfigurations'
 
 export default function ShiftConfigSettings() {
   const { success, error: showError } = useToast()

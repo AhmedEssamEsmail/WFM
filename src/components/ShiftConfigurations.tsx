@@ -1,6 +1,6 @@
 import { useState } from 'react'
-import { ShiftConfiguration } from '../../types'
-import { BUTTON_STYLES, INPUT_STYLES } from '../../lib/designSystem'
+import { ShiftConfiguration } from '../types'
+import { BUTTON_STYLES, INPUT_STYLES } from '../lib/designSystem'
 
 interface ShiftConfigurationsProps {
   shifts: ShiftConfiguration[]

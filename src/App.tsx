@@ -7,9 +7,9 @@ import { AuthProvider } from './contexts/AuthContext'
 import { ToastProvider, useToast } from './contexts/ToastContext'
 import { ThemeProvider } from './contexts/ThemeContext'
 import { initializeErrorHandler } from './lib/errorHandler'
-import ProtectedRoute from './components/ProtectedRoute'
-import PublicRoute from './components/PublicRoute'
-import PageErrorBoundary from './components/PageErrorBoundary'
+import ProtectedRoute from './components/shared/ProtectedRoute'
+import PublicRoute from './components/shared/PublicRoute'
+import PageErrorBoundary from './components/shared/PageErrorBoundary'
 
 // Eager load critical pages (only Login for immediate access)
 import Login from './pages/Auth/Login'

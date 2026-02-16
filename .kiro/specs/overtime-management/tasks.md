@@ -186,7 +186,7 @@ This implementation plan breaks down the Overtime Management System into discret
     - _Requirements: 4.4, 4.5_
 
 - [~] 10. Create overtime requests list page
-  - [-] 10.1 Create `src/pages/OvertimeRequests/OvertimeRequests.tsx`
+  - [x] 10.1 Create `src/pages/OvertimeRequests/OvertimeRequests.tsx`
     - Display list of overtime request cards
     - Implement status filter dropdown
     - Implement date range filter (This Week, Last 30 Days, Custom)
@@ -205,7 +205,7 @@ This implementation plan breaks down the Overtime Management System into discret
     - _Requirements: 4.1, 4.2, 4.3, 5.1, 5.2, 5.3, 5.4_
 
 - [~] 11. Create approval timeline component
-  - [~] 11.1 Create `src/components/OvertimeRequests/ApprovalTimeline.tsx`
+  - [x] 11.1 Create `src/components/OvertimeRequests/ApprovalTimeline.tsx`
     - Display submission stage (always shown)
     - Display TL approval stage (pending/completed)
     - Display WFM approval stage (pending/completed/skipped)
@@ -220,7 +220,7 @@ This implementation plan breaks down the Overtime Management System into discret
     - _Requirements: 6.2, 6.4_
 
 - [~] 12. Create overtime request detail page
-  - [~] 12.1 Create `src/pages/OvertimeRequests/OvertimeRequestDetail.tsx`
+  - [x] 12.1 Create `src/pages/OvertimeRequests/OvertimeRequestDetail.tsx`
     - Display request details card with all information
     - Display ApprovalTimeline component
     - Display action buttons (Approve/Reject/Cancel) based on role and status

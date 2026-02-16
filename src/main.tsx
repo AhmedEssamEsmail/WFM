@@ -2,8 +2,8 @@ import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import './index.css'
 import App from './App.tsx'
-import { ErrorBoundary } from './components/ErrorBoundary'
-import { ChunkErrorBoundary } from './components/ChunkErrorBoundary'
+import { ErrorBoundary } from './components/shared/ErrorBoundary.tsx'
+import { ChunkErrorBoundary } from './components/shared/ChunkErrorBoundary.tsx'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>

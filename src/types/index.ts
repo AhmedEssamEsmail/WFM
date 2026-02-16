@@ -8,7 +8,7 @@ export type LeaveRequestStatus = 'pending_tl' | 'pending_wfm' | 'approved' | 're
 
 export type LeaveType = string
 
-export type RequestType = 'swap' | 'leave'
+export type RequestType = 'swap' | 'leave' | 'overtime_request'
 
 // Export error types
 export * from './errors'

@@ -1,14 +1,14 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { useAuth } from '../hooks/useAuth'
-import { useNavigation } from '../hooks/useNavigation'
-import { useTheme } from '../contexts/ThemeContext'
-import { ROLE_COLORS, ROLE_LABELS } from '../lib/designSystem'
+import { useAuth } from '../../hooks/useAuth'
+import { useNavigation } from '../../hooks/useNavigation'
+import { useTheme } from '../../contexts/ThemeContext'
+import { ROLE_COLORS, ROLE_LABELS } from '../../lib/designSystem'
 import {
   CloseIcon,
   MenuIcon,
   SignOutIcon,
-} from './icons'
+} from '../icons'
 
 interface LayoutProps {
   children: React.ReactNode

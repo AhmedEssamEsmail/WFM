@@ -1,9 +1,9 @@
 import { Navigate, useLocation } from 'react-router-dom'
-import { useAuth } from '../hooks/useAuth'
+import { useAuth } from '../../hooks/useAuth'
 import Layout from './Layout'
-import { UnauthorizedAccessError } from '../types/errors'
-import { logUnauthorizedAccess } from '../lib/securityLogger'
-import type { UserRole } from '../types'
+import { UnauthorizedAccessError } from '../../types/errors'
+import { logUnauthorizedAccess } from '../../lib/securityLogger'
+import type { UserRole } from '../../types'
 
 interface ProtectedRouteProps {
   children: React.ReactNode
