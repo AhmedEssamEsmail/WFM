@@ -17,7 +17,7 @@ interface LayoutProps {
 export default function Layout({ children }: LayoutProps) {
   const { user, signOut } = useAuth()
   const { navItems, isRouteActive } = useNavigation()
-  useTheme() // Keep theme context active
+  const { isDarkMode, toggleDarkMode } = useTheme()
 
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
