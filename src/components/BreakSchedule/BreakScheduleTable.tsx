@@ -122,7 +122,7 @@ export default function BreakScheduleTable({
                   <th
                     key={interval}
                     scope="col"
-                    className="px-2 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[60px] bg-gray-50"
+                    className="px-2 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[70px] bg-gray-50"
                   >
                     {interval}
                   </th>
