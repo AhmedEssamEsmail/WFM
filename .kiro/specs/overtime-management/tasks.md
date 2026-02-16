@@ -420,7 +420,7 @@ This implementation plan breaks down the Overtime Management System into discret
   - Ensure all tests pass, ask the user if questions arise.
 
 - [~] 22. Add routing and navigation
-  - [~] 22.1 Update application routing
+  - [-] 22.1 Update application routing
     - Add route for `/overtime-requests` (list page)
     - Add route for `/overtime-requests/new` (create form)
     - Add route for `/overtime-requests/:id` (detail page)

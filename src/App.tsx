@@ -20,11 +20,14 @@ const Dashboard = lazy(() => import('./pages/Dashboard'))
 const Unauthorized = lazy(() => import('./pages/Auth/Unauthorized'))
 const LeaveRequests = lazy(() => import('./pages/LeaveRequests/LeaveRequests'))
 const SwapRequests = lazy(() => import('./pages/SwapRequests/SwapRequests'))
+const OvertimeRequests = lazy(() => import('./pages/OvertimeRequests/OvertimeRequests'))
 const RequestManagement = lazy(() => import('./pages/RequestManagement'))
 const CreateLeaveRequest = lazy(() => import('./pages/LeaveRequests/CreateLeaveRequest'))
 const CreateSwapRequest = lazy(() => import('./pages/SwapRequests/CreateSwapRequest'))
+const CreateOvertimeRequest = lazy(() => import('./pages/OvertimeRequests/CreateOvertimeRequest'))
 const LeaveRequestDetail = lazy(() => import('./pages/LeaveRequests/LeaveRequestDetail'))
 const SwapRequestDetail = lazy(() => import('./pages/SwapRequests/SwapRequestDetail'))
+const OvertimeRequestDetail = lazy(() => import('./pages/OvertimeRequests/OvertimeRequestDetail'))
 const Settings = lazy(() => import('./pages/Settings'))
 const Schedule = lazy(() => import('./pages/Schedule/Schedule'))
 const ScheduleUpload = lazy(() => import('./pages/Schedule/ScheduleUpload'))
@@ -87,6 +90,9 @@ function App() {
                 <Route path="/leave-requests" element={<ProtectedRoute><PageErrorBoundary><LeaveRequests /></PageErrorBoundary></ProtectedRoute>} />
                 <Route path="/leave-requests/create" element={<ProtectedRoute><PageErrorBoundary><CreateLeaveRequest /></PageErrorBoundary></ProtectedRoute>} />
                 <Route path="/leave-requests/:id" element={<ProtectedRoute><PageErrorBoundary><LeaveRequestDetail /></PageErrorBoundary></ProtectedRoute>} />
+                <Route path="/overtime-requests" element={<ProtectedRoute><PageErrorBoundary><OvertimeRequests /></PageErrorBoundary></ProtectedRoute>} />
+                <Route path="/overtime-requests/new" element={<ProtectedRoute><PageErrorBoundary><CreateOvertimeRequest /></PageErrorBoundary></ProtectedRoute>} />
+                <Route path="/overtime-requests/:id" element={<ProtectedRoute><PageErrorBoundary><OvertimeRequestDetail /></PageErrorBoundary></ProtectedRoute>} />
                 <Route path="/leave-balances" element={<ProtectedRoute><PageErrorBoundary><LeaveBalances /></PageErrorBoundary></ProtectedRoute>} />
 
                 {/* WFM only routes - Admin access */}
