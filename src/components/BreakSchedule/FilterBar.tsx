@@ -65,7 +65,7 @@ export default function FilterBar({
               id="department-filter"
               value={selectedDepartment}
               onChange={(e) => onDepartmentChange(e.target.value)}
-              className={INPUT_STYLES.default}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500 bg-white text-sm text-gray-700"
             >
               <option value="">All Departments</option>
               {departments.map((dept) => (
