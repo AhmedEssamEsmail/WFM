@@ -1,0 +1,72 @@
+﻿2026-02-16T13:33:15.3034965Z ##[group]Run actions/checkout@v4
+2026-02-16T13:33:15.3036438Z with:
+2026-02-16T13:33:15.3037282Z   repository: AhmedEssamEsmail/WFM
+2026-02-16T13:33:15.3038711Z   token: ***
+2026-02-16T13:33:15.3039493Z   ssh-strict: true
+2026-02-16T13:33:15.3040293Z   ssh-user: git
+2026-02-16T13:33:15.3041104Z   persist-credentials: true
+2026-02-16T13:33:15.3042022Z   clean: true
+2026-02-16T13:33:15.3042996Z   sparse-checkout-cone-mode: true
+2026-02-16T13:33:15.3044036Z   fetch-depth: 1
+2026-02-16T13:33:15.3044815Z   fetch-tags: false
+2026-02-16T13:33:15.3045653Z   show-progress: true
+2026-02-16T13:33:15.3046483Z   lfs: false
+2026-02-16T13:33:15.3047230Z   submodules: false
+2026-02-16T13:33:15.3048099Z   set-safe-directory: true
+2026-02-16T13:33:15.3049325Z ##[endgroup]
+2026-02-16T13:33:15.4366618Z Syncing repository: AhmedEssamEsmail/WFM
+2026-02-16T13:33:15.4371189Z ##[group]Getting Git version info
+2026-02-16T13:33:15.4373541Z Working directory is '/home/runner/work/WFM/WFM'
+2026-02-16T13:33:15.4377922Z [command]/usr/bin/git version
+2026-02-16T13:33:15.4380066Z git version 2.52.0
+2026-02-16T13:33:15.4403555Z ##[endgroup]
+2026-02-16T13:33:15.4467967Z Temporarily overriding HOME='/home/runner/work/_temp/d827d8a6-e02e-4075-83ba-8a970d0fe940' before making global git config changes
+2026-02-16T13:33:15.4473083Z Adding repository directory to the temporary git global config as a safe directory
+2026-02-16T13:33:15.4476626Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/WFM/WFM
+2026-02-16T13:33:15.5442084Z Deleting the contents of '/home/runner/work/WFM/WFM'
+2026-02-16T13:33:15.5448328Z ##[group]Initializing the repository
+2026-02-16T13:33:15.5453763Z [command]/usr/bin/git init /home/runner/work/WFM/WFM
+2026-02-16T13:33:15.5576254Z hint: Using 'master' as the name for the initial branch. This default branch name
+2026-02-16T13:33:15.5579887Z hint: will change to "main" in Git 3.0. To configure the initial branch name
+2026-02-16T13:33:15.5583709Z hint: to use in all of your new repositories, which will suppress this warning,
+2026-02-16T13:33:15.5586218Z hint: call:
+2026-02-16T13:33:15.5587418Z hint:
+2026-02-16T13:33:15.5589454Z hint: 	git config --global init.defaultBranch <name>
+2026-02-16T13:33:15.5591499Z hint:
+2026-02-16T13:33:15.5593696Z hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+2026-02-16T13:33:15.5596760Z hint: 'development'. The just-created branch can be renamed via this command:
+2026-02-16T13:33:15.5599475Z hint:
+2026-02-16T13:33:15.5600764Z hint: 	git branch -m <name>
+2026-02-16T13:33:15.5602124Z hint:
+2026-02-16T13:33:15.5605444Z hint: Disable this message with "git config set advice.defaultBranchName false"
+2026-02-16T13:33:15.5608706Z Initialized empty Git repository in /home/runner/work/WFM/WFM/.git/
+2026-02-16T13:33:15.5614518Z [command]/usr/bin/git remote add origin https://github.com/AhmedEssamEsmail/WFM
+2026-02-16T13:33:15.5647373Z ##[endgroup]
+2026-02-16T13:33:15.5650886Z ##[group]Disabling automatic garbage collection
+2026-02-16T13:33:15.5653854Z [command]/usr/bin/git config --local gc.auto 0
+2026-02-16T13:33:15.5693001Z ##[endgroup]
+2026-02-16T13:33:15.5695334Z ##[group]Setting up auth
+2026-02-16T13:33:15.5700802Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-02-16T13:33:15.5744453Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-02-16T13:33:15.6161407Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-02-16T13:33:15.6202030Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-02-16T13:33:15.6473338Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-02-16T13:33:15.6514111Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2026-02-16T13:33:15.6799543Z [command]/usr/bin/git config --local http.https://github.com/.extraheader AUTHORIZATION: basic ***
+2026-02-16T13:33:15.6840683Z ##[endgroup]
+2026-02-16T13:33:15.6845310Z ##[group]Fetching the repository
+2026-02-16T13:33:15.6854025Z [command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +cd1025b69ac6a5d16b18001931d892d848c9d439:refs/remotes/origin/main
+2026-02-16T13:33:16.1772525Z From https://github.com/AhmedEssamEsmail/WFM
+2026-02-16T13:33:16.1773875Z  * [new ref]         cd1025b69ac6a5d16b18001931d892d848c9d439 -> origin/main
+2026-02-16T13:33:16.1775662Z ##[endgroup]
+2026-02-16T13:33:16.1776479Z ##[group]Determining the checkout info
+2026-02-16T13:33:16.1777257Z ##[endgroup]
+2026-02-16T13:33:16.1777751Z [command]/usr/bin/git sparse-checkout disable
+2026-02-16T13:33:16.1796919Z [command]/usr/bin/git config --local --unset-all extensions.worktreeConfig
+2026-02-16T13:33:16.1819977Z ##[group]Checking out the ref
+2026-02-16T13:33:16.1824311Z [command]/usr/bin/git checkout --progress --force -B main refs/remotes/origin/main
+2026-02-16T13:33:16.2343652Z Switched to a new branch 'main'
+2026-02-16T13:33:16.2345329Z branch 'main' set up to track 'origin/main'.
+2026-02-16T13:33:16.2349171Z ##[endgroup]
+2026-02-16T13:33:16.2351097Z [command]/usr/bin/git log -1 --format=%H
+2026-02-16T13:33:16.2351950Z cd1025b69ac6a5d16b18001931d892d848c9d439

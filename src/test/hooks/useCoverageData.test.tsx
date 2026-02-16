@@ -111,11 +111,12 @@ describe('useCoverageData Hook', () => {
       const day2ISO = format(addDays(weekStart, 1), 'yyyy-MM-dd')
       const day3ISO = format(addDays(weekStart, 2), 'yyyy-MM-dd')
 
-      // Mock shifts: 25 on Monday (adequate), 17 on Tuesday (low), 10 on Wednesday (critical)
+      // Mock shifts: 15 on Monday (adequate), 10 on Tuesday (low), 5 on Wednesday (critical)
+      // Based on actual thresholds: >12 = adequate, 8-12 = low, <8 = critical
       const shifts = [
-        ...Array.from({ length: 25 }, (_, i) => ({ date: weekStartISO, user_id: `user-${i}` })),
-        ...Array.from({ length: 17 }, (_, i) => ({ date: day2ISO, user_id: `user-${i}` })),
-        ...Array.from({ length: 10 }, (_, i) => ({ date: day3ISO, user_id: `user-${i}` }))
+        ...Array.from({ length: 15 }, (_, i) => ({ date: weekStartISO, user_id: `user-${i}` })),
+        ...Array.from({ length: 10 }, (_, i) => ({ date: day2ISO, user_id: `user-${i}` })),
+        ...Array.from({ length: 5 }, (_, i) => ({ date: day3ISO, user_id: `user-${i}` }))
       ]
 
       vi.mocked(supabase.from).mockImplementation((table: string) => {
@@ -135,9 +136,9 @@ describe('useCoverageData Hook', () => {
       })
 
       const days = result.current.data?.days
-      expect(days?.[0].level).toBe('adequate') // 25 >= 20
-      expect(days?.[1].level).toBe('low') // 17 >= 15 and < 20
-      expect(days?.[2].level).toBe('critical') // 10 < 15
+      expect(days?.[0].level).toBe('adequate') // 15 > 12
+      expect(days?.[1].level).toBe('low') // 10 >= 8 and <= 12
+      expect(days?.[2].level).toBe('critical') // 5 < 8
     })
 
     it('should handle overlapping leave requests correctly', async () => {
@@ -302,12 +303,15 @@ describe('useCoverageData Hook', () => {
       const day1ISO = format(weekStart, 'yyyy-MM-dd')
       const day2ISO = format(addDays(weekStart, 1), 'yyyy-MM-dd')
       const day3ISO = format(addDays(weekStart, 2), 'yyyy-MM-dd')
+      const day4ISO = format(addDays(weekStart, 3), 'yyyy-MM-dd')
 
-      // Exactly 20 (adequate), exactly 15 (low), exactly 14 (critical)
+      // Exactly 13 (adequate), exactly 12 (low), exactly 8 (low), exactly 7 (critical)
+      // Based on actual thresholds: >12 = adequate, 8-12 = low, <8 = critical
       const shifts = [
-        ...Array.from({ length: 20 }, (_, i) => ({ date: day1ISO, user_id: `user-${i}` })),
-        ...Array.from({ length: 15 }, (_, i) => ({ date: day2ISO, user_id: `user-${i}` })),
-        ...Array.from({ length: 14 }, (_, i) => ({ date: day3ISO, user_id: `user-${i}` }))
+        ...Array.from({ length: 13 }, (_, i) => ({ date: day1ISO, user_id: `user-${i}` })),
+        ...Array.from({ length: 12 }, (_, i) => ({ date: day2ISO, user_id: `user-${i}` })),
+        ...Array.from({ length: 8 }, (_, i) => ({ date: day3ISO, user_id: `user-${i}` })),
+        ...Array.from({ length: 7 }, (_, i) => ({ date: day4ISO, user_id: `user-${i}` }))
       ]
 
       vi.mocked(supabase.from).mockImplementation((table: string) => {
@@ -324,12 +328,14 @@ describe('useCoverageData Hook', () => {
       })
 
       const days = result.current.data?.days
-      expect(days?.[0].netCoverage).toBe(20)
-      expect(days?.[0].level).toBe('adequate')
-      expect(days?.[1].netCoverage).toBe(15)
-      expect(days?.[1].level).toBe('low')
-      expect(days?.[2].netCoverage).toBe(14)
-      expect(days?.[2].level).toBe('critical')
+      expect(days?.[0].netCoverage).toBe(13)
+      expect(days?.[0].level).toBe('adequate') // 13 > 12
+      expect(days?.[1].netCoverage).toBe(12)
+      expect(days?.[1].level).toBe('low') // 12 >= 8 and <= 12
+      expect(days?.[2].netCoverage).toBe(8)
+      expect(days?.[2].level).toBe('low') // 8 >= 8 and <= 12
+      expect(days?.[3].netCoverage).toBe(7)
+      expect(days?.[3].level).toBe('critical') // 7 < 8
     })
   })
 

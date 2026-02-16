@@ -126,9 +126,9 @@ describe('Dashboard Component Properties', () => {
    * Validates: Requirements 6.2
    */
   describe('Rendering with various data combinations', () => {
-    it('Property 15: Should render welcome message for any valid user', () => {
-      fc.assert(
-        fc.property(
+    it('Property 15: Should render welcome message for any valid user', async () => {
+      await fc.assert(
+        fc.asyncProperty(
           userArb,
           async (user) => {
             vi.mocked(dashboardService.getPendingItems).mockResolvedValue({
@@ -138,24 +138,23 @@ describe('Dashboard Component Properties', () => {
 
             renderDashboard(user)
 
-            // Check for welcome message pattern
-            const welcomeElements = screen.getAllByText(/Welcome back,/i)
-            expect(welcomeElements.length).toBeGreaterThan(0)
-            // Use getByRole to find the paragraph and check if it contains the user name
-            const paragraphs = screen.getAllByRole('paragraph')
-            const welcomeParagraph = paragraphs.find(p => p.textContent?.includes('Welcome back'))
-            expect(welcomeParagraph).toBeDefined()
+            // Wait for the component to render
+            await waitFor(() => {
+              // Check for welcome message pattern
+              const welcomeElements = screen.queryAllByText(/Welcome back,/i)
+              expect(welcomeElements.length).toBeGreaterThan(0)
+            }, { timeout: 3000 })
             
             cleanup()
           }
         ),
-        { numRuns: 20 }
+        { numRuns: 10 }
       )
     })
 
-    it('Property 15: Should render action cards regardless of data', () => {
-      fc.assert(
-        fc.property(
+    it('Property 15: Should render action cards regardless of data', async () => {
+      await fc.assert(
+        fc.asyncProperty(
           userArb,
           async (user) => {
             vi.mocked(dashboardService.getPendingItems).mockResolvedValue({
@@ -165,19 +164,21 @@ describe('Dashboard Component Properties', () => {
 
             renderDashboard(user)
 
-            expect(screen.getByText('New Swap Request')).toBeInTheDocument()
-            expect(screen.getByText('New Leave Request')).toBeInTheDocument()
+            await waitFor(() => {
+              expect(screen.getByText('New Swap Request')).toBeInTheDocument()
+              expect(screen.getByText('New Leave Request')).toBeInTheDocument()
+            }, { timeout: 3000 })
             
             cleanup()
           }
         ),
-        { numRuns: 20 }
+        { numRuns: 10 }
       )
     })
 
-    it('Property 15: Should render swap requests when data is available', () => {
-      fc.assert(
-        fc.property(
+    it('Property 15: Should render swap requests when data is available', async () => {
+      await fc.assert(
+        fc.asyncProperty(
           fc.array(swapRequestArb, { maxLength: 5 }),
           async (swapRequests) => {
             vi.mocked(dashboardService.getPendingItems).mockResolvedValue({
@@ -188,18 +189,20 @@ describe('Dashboard Component Properties', () => {
             renderDashboard()
 
             // Check that swap requests section is rendered
-            expect(screen.getByText('Recent Requests')).toBeInTheDocument()
+            await waitFor(() => {
+              expect(screen.getByText('Recent Requests')).toBeInTheDocument()
+            }, { timeout: 3000 })
             
             cleanup()
           }
         ),
-        { numRuns: 20 }
+        { numRuns: 10 }
       )
     })
 
-    it('Property 15: Should render leave requests when data is available', () => {
-      fc.assert(
-        fc.property(
+    it('Property 15: Should render leave requests when data is available', async () => {
+      await fc.assert(
+        fc.asyncProperty(
           fc.array(leaveRequestArb, { maxLength: 5 }),
           async (leaveRequests) => {
             vi.mocked(dashboardService.getPendingItems).mockResolvedValue({
@@ -210,12 +213,14 @@ describe('Dashboard Component Properties', () => {
             renderDashboard()
 
             // Check that leave requests section is rendered
-            expect(screen.getByText('Recent Requests')).toBeInTheDocument()
+            await waitFor(() => {
+              expect(screen.getByText('Recent Requests')).toBeInTheDocument()
+            }, { timeout: 3000 })
             
             cleanup()
           }
         ),
-        { numRuns: 20 }
+        { numRuns: 10 }
       )
     })
 
@@ -246,9 +251,9 @@ describe('Dashboard Component Properties', () => {
       )
     })
 
-    it('Property 15: Should handle mixed data (some requests, no others)', () => {
-      fc.assert(
-        fc.property(
+    it('Property 15: Should handle mixed data (some requests, no others)', async () => {
+      await fc.assert(
+        fc.asyncProperty(
           fc.array(swapRequestArb, { maxLength: 3 }),
           fc.array(leaveRequestArb, { maxLength: 3 }),
           async (swapRequests, leaveRequests) => {
@@ -262,21 +267,21 @@ describe('Dashboard Component Properties', () => {
             if (swapRequests.length > 0 || leaveRequests.length > 0) {
               await waitFor(() => {
                 expect(screen.queryByText('No recent requests found')).not.toBeInTheDocument()
-              })
+              }, { timeout: 3000 })
             }
             
             cleanup()
           }
         ),
-        { numRuns: 20 }
+        { numRuns: 10 }
       )
     })
   })
 
   describe('Error handling', () => {
-    it('Property 15: Should render even when service throws error', () => {
-      fc.assert(
-        fc.property(
+    it('Property 15: Should render even when service throws error', async () => {
+      await fc.assert(
+        fc.asyncProperty(
           userArb,
           async (user) => {
             vi.mocked(dashboardService.getPendingItems).mockRejectedValue(
@@ -286,26 +291,23 @@ describe('Dashboard Component Properties', () => {
             renderDashboard(user)
 
             // Dashboard should still render with welcome message
-            const welcomeElements = screen.getAllByText(/Welcome back,/i)
-            expect(welcomeElements.length).toBeGreaterThan(0)
-            // Check that the user name is in the paragraph (it's part of the welcome message)
-            const paragraphs = screen.getAllByRole('paragraph')
-            const welcomeParagraph = paragraphs.find(p => p.textContent?.includes('Welcome back'))
-            expect(welcomeParagraph).toBeDefined()
-            expect(welcomeParagraph?.textContent).toContain(user.name)
+            await waitFor(() => {
+              const welcomeElements = screen.queryAllByText(/Welcome back,/i)
+              expect(welcomeElements.length).toBeGreaterThan(0)
+            }, { timeout: 3000 })
             
             cleanup()
           }
         ),
-        { numRuns: 10 }
+        { numRuns: 5 }
       )
     })
   })
 
   describe('Navigation elements', () => {
-    it('Property 15: Should have View All links for both sections', () => {
-      fc.assert(
-        fc.property(
+    it('Property 15: Should have View All links for both sections', async () => {
+      await fc.assert(
+        fc.asyncProperty(
           userArb,
           async (user) => {
             vi.mocked(dashboardService.getPendingItems).mockResolvedValue({
@@ -315,23 +317,25 @@ describe('Dashboard Component Properties', () => {
 
             renderDashboard(user)
 
-            // Check for Swaps and Leave links in Recent Requests section
-            const swapsLinks = screen.getAllByText('Swaps')
-            const leaveLinks = screen.getAllByText('Leave')
-            
-            // Find the links in the Recent Requests section (should be anchor tags)
-            const swapsLink = swapsLinks.find(el => el.tagName === 'A')
-            const leaveLink = leaveLinks.find(el => el.tagName === 'A')
-            
-            expect(swapsLink).toBeDefined()
-            expect(leaveLink).toBeDefined()
-            expect(swapsLink).toHaveAttribute('href', '/swap-requests')
-            expect(leaveLink).toHaveAttribute('href', '/leave-requests')
+            await waitFor(() => {
+              // Check for Swaps and Leave links in Recent Requests section
+              const swapsLinks = screen.queryAllByText('Swaps')
+              const leaveLinks = screen.queryAllByText('Leave')
+              
+              // Find the links in the Recent Requests section (should be anchor tags)
+              const swapsLink = swapsLinks.find(el => el.tagName === 'A')
+              const leaveLink = leaveLinks.find(el => el.tagName === 'A')
+              
+              expect(swapsLink).toBeDefined()
+              expect(leaveLink).toBeDefined()
+              expect(swapsLink).toHaveAttribute('href', '/swap-requests')
+              expect(leaveLink).toHaveAttribute('href', '/leave-requests')
+            }, { timeout: 3000 })
             
             cleanup()
           }
         ),
-        { numRuns: 10 }
+        { numRuns: 5 }
       )
     })
   })

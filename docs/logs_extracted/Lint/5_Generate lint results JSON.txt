@@ -1,0 +1,8 @@
+﻿2026-02-16T13:33:27.6647723Z ##[group]Run npm run lint -- --format json --output-file eslint-results.json
+2026-02-16T13:33:27.6648563Z [36;1mnpm run lint -- --format json --output-file eslint-results.json[0m
+2026-02-16T13:33:27.6686497Z shell: /usr/bin/bash -e {0}
+2026-02-16T13:33:27.6686758Z ##[endgroup]
+2026-02-16T13:33:27.7961612Z 
+2026-02-16T13:33:27.7962019Z > wfm@0.0.1 lint
+2026-02-16T13:33:27.7962727Z > eslint . --format json --output-file eslint-results.json
+2026-02-16T13:33:27.7963166Z 

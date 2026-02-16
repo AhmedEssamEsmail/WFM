@@ -1,0 +1,259 @@
+﻿2026-02-16T13:33:13.8285082Z Current runner version: '2.331.0'
+2026-02-16T13:33:13.8345326Z ##[group]Runner Image Provisioner
+2026-02-16T13:33:13.8362157Z Hosted Compute Agent
+2026-02-16T13:33:13.8363260Z Version: 20260123.484
+2026-02-16T13:33:13.8364349Z Commit: 6bd6555ca37d84114959e1c76d2c01448ff61c5d
+2026-02-16T13:33:13.8365567Z Build Date: 2026-01-23T19:41:17Z
+2026-02-16T13:33:13.8366991Z Worker ID: {9a924e90-79f0-4c66-a560-9c849485efa7}
+2026-02-16T13:33:13.8368231Z Azure Region: centralus
+2026-02-16T13:33:13.8369264Z ##[endgroup]
+2026-02-16T13:33:13.8372134Z ##[group]Operating System
+2026-02-16T13:33:13.8373184Z Ubuntu
+2026-02-16T13:33:13.8374000Z 24.04.3
+2026-02-16T13:33:13.8374939Z LTS
+2026-02-16T13:33:13.8375793Z ##[endgroup]
+2026-02-16T13:33:13.8376577Z ##[group]Runner Image
+2026-02-16T13:33:13.8377767Z Image: ubuntu-24.04
+2026-02-16T13:33:13.8378627Z Version: 20260209.23.1
+2026-02-16T13:33:13.8380910Z Included Software: https://github.com/actions/runner-images/blob/ubuntu24/20260209.23/images/ubuntu/Ubuntu2404-Readme.md
+2026-02-16T13:33:13.8404014Z Image Release: https://github.com/actions/runner-images/releases/tag/ubuntu24%2F20260209.23
+2026-02-16T13:33:13.8405633Z ##[endgroup]
+2026-02-16T13:33:13.8407635Z ##[group]GITHUB_TOKEN Permissions
+2026-02-16T13:33:13.8410537Z Contents: read
+2026-02-16T13:33:13.8411483Z Metadata: read
+2026-02-16T13:33:13.8432949Z Packages: read
+2026-02-16T13:33:13.8433829Z ##[endgroup]
+2026-02-16T13:33:13.8436866Z Secret source: Actions
+2026-02-16T13:33:13.8438095Z Prepare workflow directory
+2026-02-16T13:33:13.8938584Z Prepare all required actions
+2026-02-16T13:33:13.8993985Z Getting action download info
+2026-02-16T13:33:14.2905920Z Download action repository 'actions/checkout@v4' (SHA:34e114876b0b11c390a56381ad16ebd13914f8d5)
+2026-02-16T13:33:14.4581299Z Download action repository 'actions/setup-node@v4' (SHA:49933ea5288caeca8642d1e84afbd3f7d6820020)
+2026-02-16T13:33:14.5607374Z Download action repository 'actions/upload-artifact@v4' (SHA:ea165f8d65b6e75b540449e92b4886f43607fa02)
+2026-02-16T13:33:14.8154054Z Complete job name: Build
+2026-02-16T13:33:14.8992155Z ##[group]Run actions/checkout@v4
+2026-02-16T13:33:14.8993513Z with:
+2026-02-16T13:33:14.8994255Z   repository: AhmedEssamEsmail/WFM
+2026-02-16T13:33:14.8995411Z   token: ***
+2026-02-16T13:33:14.8996090Z   ssh-strict: true
+2026-02-16T13:33:14.8996793Z   ssh-user: git
+2026-02-16T13:33:14.8997500Z   persist-credentials: true
+2026-02-16T13:33:14.8998321Z   clean: true
+2026-02-16T13:33:14.8999046Z   sparse-checkout-cone-mode: true
+2026-02-16T13:33:14.8999930Z   fetch-depth: 1
+2026-02-16T13:33:14.9000626Z   fetch-tags: false
+2026-02-16T13:33:14.9001355Z   show-progress: true
+2026-02-16T13:33:14.9002284Z   lfs: false
+2026-02-16T13:33:14.9002994Z   submodules: false
+2026-02-16T13:33:14.9003745Z   set-safe-directory: true
+2026-02-16T13:33:14.9004930Z ##[endgroup]
+2026-02-16T13:33:15.0301056Z Syncing repository: AhmedEssamEsmail/WFM
+2026-02-16T13:33:15.0304121Z ##[group]Getting Git version info
+2026-02-16T13:33:15.0305249Z Working directory is '/home/runner/work/WFM/WFM'
+2026-02-16T13:33:15.0307812Z [command]/usr/bin/git version
+2026-02-16T13:33:15.0313212Z git version 2.52.0
+2026-02-16T13:33:15.0343717Z ##[endgroup]
+2026-02-16T13:33:15.0360434Z Temporarily overriding HOME='/home/runner/work/_temp/6ff34f24-8c57-4912-8505-d7bbbef765d4' before making global git config changes
+2026-02-16T13:33:15.0364705Z Adding repository directory to the temporary git global config as a safe directory
+2026-02-16T13:33:15.0379554Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/WFM/WFM
+2026-02-16T13:33:15.4502215Z Deleting the contents of '/home/runner/work/WFM/WFM'
+2026-02-16T13:33:15.4507600Z ##[group]Initializing the repository
+2026-02-16T13:33:15.4513275Z [command]/usr/bin/git init /home/runner/work/WFM/WFM
+2026-02-16T13:33:15.4620124Z hint: Using 'master' as the name for the initial branch. This default branch name
+2026-02-16T13:33:15.4624750Z hint: will change to "main" in Git 3.0. To configure the initial branch name
+2026-02-16T13:33:15.4628586Z hint: to use in all of your new repositories, which will suppress this warning,
+2026-02-16T13:33:15.4630987Z hint: call:
+2026-02-16T13:33:15.4632774Z hint:
+2026-02-16T13:33:15.4634115Z hint: 	git config --global init.defaultBranch <name>
+2026-02-16T13:33:15.4635652Z hint:
+2026-02-16T13:33:15.4637487Z hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+2026-02-16T13:33:15.4640243Z hint: 'development'. The just-created branch can be renamed via this command:
+2026-02-16T13:33:15.4642705Z hint:
+2026-02-16T13:33:15.4643764Z hint: 	git branch -m <name>
+2026-02-16T13:33:15.4644983Z hint:
+2026-02-16T13:33:15.4646765Z hint: Disable this message with "git config set advice.defaultBranchName false"
+2026-02-16T13:33:15.4649439Z Initialized empty Git repository in /home/runner/work/WFM/WFM/.git/
+2026-02-16T13:33:15.4655138Z [command]/usr/bin/git remote add origin https://github.com/AhmedEssamEsmail/WFM
+2026-02-16T13:33:15.4686143Z ##[endgroup]
+2026-02-16T13:33:15.4688953Z ##[group]Disabling automatic garbage collection
+2026-02-16T13:33:15.4691364Z [command]/usr/bin/git config --local gc.auto 0
+2026-02-16T13:33:15.4727711Z ##[endgroup]
+2026-02-16T13:33:15.4730154Z ##[group]Setting up auth
+2026-02-16T13:33:15.4734932Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-02-16T13:33:15.4772997Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-02-16T13:33:15.5146227Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-02-16T13:33:15.5186552Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-02-16T13:33:15.5439327Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-02-16T13:33:15.5477404Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2026-02-16T13:33:15.5745449Z [command]/usr/bin/git config --local http.https://github.com/.extraheader AUTHORIZATION: basic ***
+2026-02-16T13:33:15.5786909Z ##[endgroup]
+2026-02-16T13:33:15.5791642Z ##[group]Fetching the repository
+2026-02-16T13:33:15.5800559Z [command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +cd1025b69ac6a5d16b18001931d892d848c9d439:refs/remotes/origin/main
+2026-02-16T13:33:16.1496386Z From https://github.com/AhmedEssamEsmail/WFM
+2026-02-16T13:33:16.1624427Z  * [new ref]         cd1025b69ac6a5d16b18001931d892d848c9d439 -> origin/main
+2026-02-16T13:33:16.1632709Z ##[endgroup]
+2026-02-16T13:33:16.1633490Z ##[group]Determining the checkout info
+2026-02-16T13:33:16.1634362Z ##[endgroup]
+2026-02-16T13:33:16.1634864Z [command]/usr/bin/git sparse-checkout disable
+2026-02-16T13:33:16.1636359Z [command]/usr/bin/git config --local --unset-all extensions.worktreeConfig
+2026-02-16T13:33:16.1650883Z ##[group]Checking out the ref
+2026-02-16T13:33:16.1654663Z [command]/usr/bin/git checkout --progress --force -B main refs/remotes/origin/main
+2026-02-16T13:33:16.1917887Z Switched to a new branch 'main'
+2026-02-16T13:33:16.1920218Z branch 'main' set up to track 'origin/main'.
+2026-02-16T13:33:16.1930739Z ##[endgroup]
+2026-02-16T13:33:16.2122848Z [command]/usr/bin/git log -1 --format=%H
+2026-02-16T13:33:16.2123406Z cd1025b69ac6a5d16b18001931d892d848c9d439
+2026-02-16T13:33:16.2382456Z ##[group]Run actions/setup-node@v4
+2026-02-16T13:33:16.2383025Z with:
+2026-02-16T13:33:16.2383379Z   node-version: 20.x
+2026-02-16T13:33:16.2383833Z   cache: npm
+2026-02-16T13:33:16.2384239Z   always-auth: false
+2026-02-16T13:33:16.2384665Z   check-latest: false
+2026-02-16T13:33:16.2385291Z   token: ***
+2026-02-16T13:33:16.2385674Z ##[endgroup]
+2026-02-16T13:33:16.4389625Z Found in cache @ /opt/hostedtoolcache/node/20.20.0/x64
+2026-02-16T13:33:16.4397237Z ##[group]Environment details
+2026-02-16T13:33:18.8242419Z node: v20.20.0
+2026-02-16T13:33:18.8242859Z npm: 10.8.2
+2026-02-16T13:33:18.8243157Z yarn: 1.22.22
+2026-02-16T13:33:18.8244634Z ##[endgroup]
+2026-02-16T13:33:18.8277440Z [command]/opt/hostedtoolcache/node/20.20.0/x64/bin/npm config get cache
+2026-02-16T13:33:19.1423176Z /home/runner/.npm
+2026-02-16T13:33:19.3108735Z Cache hit for: node-cache-Linux-x64-npm-767ae61738c31efec69c797f536283fba1a97f3115aa3ff7bbc4bcd30614af26
+2026-02-16T13:33:20.2626966Z Received 52551357 of 52551357 (100.0%), 62.6 MBs/sec
+2026-02-16T13:33:20.2632416Z Cache Size: ~50 MB (52551357 B)
+2026-02-16T13:33:20.2800839Z [command]/usr/bin/tar -xf /home/runner/work/_temp/6934e86a-36df-42d9-9095-fb1995d5d15b/cache.tzst -P -C /home/runner/work/WFM/WFM --use-compress-program unzstd
+2026-02-16T13:33:20.4954456Z Cache restored successfully
+2026-02-16T13:33:20.5123348Z Cache restored from key: node-cache-Linux-x64-npm-767ae61738c31efec69c797f536283fba1a97f3115aa3ff7bbc4bcd30614af26
+2026-02-16T13:33:20.5353421Z ##[group]Run npm ci
+2026-02-16T13:33:20.5353822Z [36;1mnpm ci[0m
+2026-02-16T13:33:20.5437732Z shell: /usr/bin/bash -e {0}
+2026-02-16T13:33:20.5438140Z ##[endgroup]
+2026-02-16T13:33:25.4944167Z npm warn deprecated sourcemap-codec@1.4.8: Please use @jridgewell/sourcemap-codec instead
+2026-02-16T13:33:25.7721553Z npm warn deprecated source-map@0.8.0-beta.0: The work that was done in this beta branch won't be included in future versions
+2026-02-16T13:33:26.2117361Z npm warn deprecated glob@11.1.0: Old versions of glob are not supported, and contain widely publicized security vulnerabilities, which have been fixed in the current version. Please update. Support for old versions may be purchased (at exorbitant rates) by contacting i@izs.me
+2026-02-16T13:33:30.0472627Z 
+2026-02-16T13:33:30.0477755Z added 650 packages, and audited 651 packages in 9s
+2026-02-16T13:33:30.0480066Z 
+2026-02-16T13:33:30.0482217Z 175 packages are looking for funding
+2026-02-16T13:33:30.0484744Z   run `npm fund` for details
+2026-02-16T13:33:30.0485846Z 
+2026-02-16T13:33:30.0487673Z found 0 vulnerabilities
+2026-02-16T13:33:30.1041536Z ##[group]Run npx tsc -b
+2026-02-16T13:33:30.1042109Z [36;1mnpx tsc -b[0m
+2026-02-16T13:33:30.1091024Z shell: /usr/bin/bash -e {0}
+2026-02-16T13:33:30.1091255Z ##[endgroup]
+2026-02-16T13:33:42.4336896Z ##[group]Run npm run build
+2026-02-16T13:33:42.4337310Z [36;1mnpm run build[0m
+2026-02-16T13:33:42.4401272Z shell: /usr/bin/bash -e {0}
+2026-02-16T13:33:42.4401627Z ##[endgroup]
+2026-02-16T13:33:42.6135481Z 
+2026-02-16T13:33:42.6136205Z > wfm@0.0.1 build
+2026-02-16T13:33:42.6136729Z > tsc -b && vite build
+2026-02-16T13:33:42.6137053Z 
+2026-02-16T13:33:54.4753664Z [36mvite v6.4.1 [32mbuilding for production...[36m[39m
+2026-02-16T13:33:54.7806691Z transforming...
+2026-02-16T13:34:00.5392500Z [32m✓[39m 933 modules transformed.
+2026-02-16T13:34:00.7302507Z [33mGenerated an empty chunk: "react-vendor-2".[39m
+2026-02-16T13:34:02.0934220Z rendering chunks...
+2026-02-16T13:34:07.8733850Z computing gzip size...
+2026-02-16T13:34:07.9087214Z [2mdist/[22m[32mregisterSW.js                                  [39m[1m[2m  0.13 kB[22m[1m[22m
+2026-02-16T13:34:07.9091357Z [2mdist/[22m[32mmanifest.webmanifest                           [39m[1m[2m  0.47 kB[22m[1m[22m
+2026-02-16T13:34:07.9113726Z [2mdist/[22m[32mindex.html                                     [39m[1m[2m  1.08 kB[22m[1m[22m[2m │ gzip:  0.48 kB[22m
+2026-02-16T13:34:07.9115335Z [2mdist/[22m[2massets/[22m[35mindex-zBzzMjmH.css                      [39m[1m[2m 46.93 kB[22m[1m[22m[2m │ gzip:  7.97 kB[22m
+2026-02-16T13:34:07.9117181Z [2mdist/[22m[2massets/[22m[36mreact-vendor-2-l0sNRNKZ.js              [39m[1m[2m  0.05 kB[22m[1m[22m[2m │ gzip:  0.07 kB[22m[2m │ map:   0.11 kB[22m
+2026-02-16T13:34:07.9119381Z [2mdist/[22m[2massets/[22m[36mpagination-DebJLjiq.js                  [39m[1m[2m  0.37 kB[22m[1m[22m[2m │ gzip:  0.26 kB[22m[2m │ map:   3.32 kB[22m
+2026-02-16T13:34:07.9122206Z [2mdist/[22m[2massets/[22m[36mStatusBadge-BQiEBw8K.js                 [39m[1m[2m  0.63 kB[22m[1m[22m[2m │ gzip:  0.36 kB[22m[2m │ map:   2.97 kB[22m
+2026-02-16T13:34:07.9124293Z [2mdist/[22m[2massets/[22m[36msettingsService-BHsK-O1c.js             [39m[1m[2m  1.00 kB[22m[1m[22m[2m │ gzip:  0.50 kB[22m[2m │ map:   3.53 kB[22m
+2026-02-16T13:34:07.9126278Z [2mdist/[22m[2massets/[22m[36mcsvHelpers-7A9OOdJp.js                  [39m[1m[2m  1.03 kB[22m[1m[22m[2m │ gzip:  0.62 kB[22m[2m │ map:   6.35 kB[22m
+2026-02-16T13:34:07.9128306Z [2mdist/[22m[2massets/[22m[36mleaveTypesService-B0lubWrh.js           [39m[1m[2m  1.11 kB[22m[1m[22m[2m │ gzip:  0.45 kB[22m[2m │ map:   4.42 kB[22m
+2026-02-16T13:34:07.9130472Z [2mdist/[22m[2massets/[22m[36mvalidators-CImWQSnw.js                  [39m[1m[2m  1.16 kB[22m[1m[22m[2m │ gzip:  0.54 kB[22m[2m │ map:  14.94 kB[22m
+2026-02-16T13:34:07.9135264Z [2mdist/[22m[2massets/[22m[36mdateHelpers-DO5TgPxD.js                 [39m[1m[2m  1.19 kB[22m[1m[22m[2m │ gzip:  0.60 kB[22m[2m │ map:   9.06 kB[22m
+2026-02-16T13:34:07.9136985Z [2mdist/[22m[2massets/[22m[36mshiftsService-4sAEcJB6.js               [39m[1m[2m  1.25 kB[22m[1m[22m[2m │ gzip:  0.48 kB[22m[2m │ map:   5.10 kB[22m
+2026-02-16T13:34:07.9138590Z [2mdist/[22m[2massets/[22m[36museLeaveTypes-CugQi6jT.js               [39m[1m[2m  1.28 kB[22m[1m[22m[2m │ gzip:  0.52 kB[22m[2m │ map:   4.21 kB[22m
+2026-02-16T13:34:07.9140310Z [2mdist/[22m[2massets/[22m[36mNotFound-CC6H5SGh.js                    [39m[1m[2m  1.30 kB[22m[1m[22m[2m │ gzip:  0.73 kB[22m[2m │ map:   2.25 kB[22m
+2026-02-16T13:34:07.9173942Z [2mdist/[22m[2massets/[22m[36mcommentsService-CIvRVrPK.js             [39m[1m[2m  1.32 kB[22m[1m[22m[2m │ gzip:  0.50 kB[22m[2m │ map:   5.13 kB[22m
+2026-02-16T13:34:07.9176319Z [2mdist/[22m[2massets/[22m[36mUnauthorized-CDV-eC7T.js                [39m[1m[2m  1.53 kB[22m[1m[22m[2m │ gzip:  0.81 kB[22m[2m │ map:   2.59 kB[22m
+2026-02-16T13:34:07.9178639Z [2mdist/[22m[2massets/[22m[36mshiftConfigurationsService-BrGlA6I3.js  [39m[1m[2m  1.60 kB[22m[1m[22m[2m │ gzip:  0.63 kB[22m[2m │ map:   6.07 kB[22m
+2026-02-16T13:34:07.9181337Z [2mdist/[22m[2massets/[22m[36mleaveBalancesService-DpMPSqfK.js        [39m[1m[2m  1.69 kB[22m[1m[22m[2m │ gzip:  0.60 kB[22m[2m │ map:   6.23 kB[22m
+2026-02-16T13:34:07.9184429Z [2mdist/[22m[2massets/[22m[36museOvertimeRequests-z7wweNFW.js         [39m[1m[2m  1.94 kB[22m[1m[22m[2m │ gzip:  0.91 kB[22m[2m │ map:  14.93 kB[22m
+2026-02-16T13:34:07.9186571Z [2mdist/[22m[2massets/[22m[36museSkills-C82tJJAn.js                   [39m[1m[2m  2.60 kB[22m[1m[22m[2m │ gzip:  0.94 kB[22m[2m │ map:  10.12 kB[22m
+2026-02-16T13:34:07.9188649Z [2mdist/[22m[2massets/[22m[36mbreakRulesService-BRSi_Qi8.js           [39m[1m[2m  2.73 kB[22m[1m[22m[2m │ gzip:  0.93 kB[22m[2m │ map:   9.96 kB[22m
+2026-02-16T13:34:07.9190795Z [2mdist/[22m[2massets/[22m[36museLeaveRequests-UkEL2AoD.js            [39m[1m[2m  2.85 kB[22m[1m[22m[2m │ gzip:  1.02 kB[22m[2m │ map:   9.70 kB[22m
+2026-02-16T13:34:07.9193270Z [2mdist/[22m[2massets/[22m[36museHeadcount-CQrzSJUL.js                [39m[1m[2m  3.84 kB[22m[1m[22m[2m │ gzip:  1.34 kB[22m[2m │ map:  13.68 kB[22m
+2026-02-16T13:34:07.9195321Z [2mdist/[22m[2massets/[22m[36mindex-B9tzdMkd.js                       [39m[1m[2m  4.46 kB[22m[1m[22m[2m │ gzip:  1.90 kB[22m[2m │ map: 106.03 kB[22m
+2026-02-16T13:34:07.9197405Z [2mdist/[22m[2massets/[22m[36mleaveBalanceValidation-e6g5gQ7g.js      [39m[1m[2m  4.62 kB[22m[1m[22m[2m │ gzip:  1.76 kB[22m[2m │ map:  20.26 kB[22m
+2026-02-16T13:34:07.9199494Z [2mdist/[22m[2massets/[22m[36mSignup-Ble8Usog.js                      [39m[1m[2m  5.34 kB[22m[1m[22m[2m │ gzip:  1.71 kB[22m[2m │ map:  11.20 kB[22m
+2026-02-16T13:34:07.9201544Z [2mdist/[22m[2massets/[22m[36mswapRequestsService-BLN9rc1S.js         [39m[1m[2m  5.59 kB[22m[1m[22m[2m │ gzip:  1.41 kB[22m[2m │ map:  17.32 kB[22m
+2026-02-16T13:34:07.9223302Z [2mdist/[22m[2massets/[22m[36mCreateLeaveRequest-JkbL0KUJ.js          [39m[1m[2m  5.63 kB[22m[1m[22m[2m │ gzip:  2.05 kB[22m[2m │ map:  16.64 kB[22m
+2026-02-16T13:34:07.9225750Z [2mdist/[22m[2massets/[22m[36mCreateSwapRequest-CPaGkrxq.js           [39m[1m[2m  6.26 kB[22m[1m[22m[2m │ gzip:  2.08 kB[22m[2m │ map:  19.48 kB[22m
+2026-02-16T13:34:07.9228022Z [2mdist/[22m[2massets/[22m[36mSwapRequests-BRE4Lj1S.js                [39m[1m[2m  7.54 kB[22m[1m[22m[2m │ gzip:  2.11 kB[22m[2m │ map:  20.11 kB[22m
+2026-02-16T13:34:07.9230227Z [2mdist/[22m[2massets/[22m[36mEmployeeDetail-BTJqZ3F7.js              [39m[1m[2m  7.61 kB[22m[1m[22m[2m │ gzip:  2.03 kB[22m[2m │ map:  18.86 kB[22m
+2026-02-16T13:34:07.9232593Z [2mdist/[22m[2massets/[22m[36mautoDistribution-BDPGxSHC.js            [39m[1m[2m  8.50 kB[22m[1m[22m[2m │ gzip:  2.87 kB[22m[2m │ map:  37.77 kB[22m
+2026-02-16T13:34:07.9234808Z [2mdist/[22m[2massets/[22m[36mLeaveRequests-SCUWBGUB.js               [39m[1m[2m  9.16 kB[22m[1m[22m[2m │ gzip:  2.62 kB[22m[2m │ map:  26.51 kB[22m
+2026-02-16T13:34:07.9236971Z [2mdist/[22m[2massets/[22m[36mCreateOvertimeRequest-kI_LQdcU.js       [39m[1m[2m 11.41 kB[22m[1m[22m[2m │ gzip:  3.51 kB[22m[2m │ map:  39.68 kB[22m
+2026-02-16T13:34:07.9239231Z [2mdist/[22m[2massets/[22m[36mDashboard-BxJE5FpC.js                   [39m[1m[2m 13.11 kB[22m[1m[22m[2m │ gzip:  3.90 kB[22m[2m │ map:  41.86 kB[22m
+2026-02-16T13:34:07.9241449Z [2mdist/[22m[2massets/[22m[36mRequestManagement-Dwf621xW.js           [39m[1m[2m 13.66 kB[22m[1m[22m[2m │ gzip:  3.74 kB[22m[2m │ map:  42.66 kB[22m
+2026-02-16T13:34:07.9243898Z [2mdist/[22m[2massets/[22m[36mOvertimeRequests-XVvsn022.js            [39m[1m[2m 13.68 kB[22m[1m[22m[2m │ gzip:  3.89 kB[22m[2m │ map:  36.47 kB[22m
+2026-02-16T13:34:07.9246115Z [2mdist/[22m[2massets/[22m[36mLeaveBalances-D843UPWL.js               [39m[1m[2m 13.73 kB[22m[1m[22m[2m │ gzip:  4.38 kB[22m[2m │ map:  39.53 kB[22m
+2026-02-16T13:34:07.9248558Z [2mdist/[22m[2massets/[22m[36mScheduleUpload-Dwmvd1tc.js              [39m[1m[2m 13.87 kB[22m[1m[22m[2m │ gzip:  4.49 kB[22m[2m │ map:  38.80 kB[22m
+2026-02-16T13:34:07.9250812Z [2mdist/[22m[2massets/[22m[36mindex-BFX-n8E2.js                       [39m[1m[2m 14.55 kB[22m[1m[22m[2m │ gzip:  3.30 kB[22m[2m │ map:  34.95 kB[22m
+2026-02-16T13:34:07.9253316Z [2mdist/[22m[2massets/[22m[36mLeaveRequestDetail-GvSdPCh9.js          [39m[1m[2m 16.19 kB[22m[1m[22m[2m │ gzip:  3.57 kB[22m[2m │ map:  39.09 kB[22m
+2026-02-16T13:34:07.9255607Z [2mdist/[22m[2massets/[22m[36mSchedule-DgaB-Nk3.js                    [39m[1m[2m 16.90 kB[22m[1m[22m[2m │ gzip:  4.97 kB[22m[2m │ map:  50.96 kB[22m
+2026-02-16T13:34:07.9257711Z [2mdist/[22m[2massets/[22m[36mSwapRequestDetail-ChRkayoO.js           [39m[1m[2m 21.12 kB[22m[1m[22m[2m │ gzip:  4.16 kB[22m[2m │ map:  54.89 kB[22m
+2026-02-16T13:34:07.9260232Z [2mdist/[22m[2massets/[22m[36mEmployeeDirectory-DyJ5iokI.js           [39m[1m[2m 22.51 kB[22m[1m[22m[2m │ gzip:  5.79 kB[22m[2m │ map:  55.59 kB[22m
+2026-02-16T13:34:07.9262732Z [2mdist/[22m[2massets/[22m[36mdate-utils-Bp_B1hMV.js                  [39m[1m[2m 23.25 kB[22m[1m[22m[2m │ gzip:  6.91 kB[22m[2m │ map: 160.46 kB[22m
+2026-02-16T13:34:07.9264943Z [2mdist/[22m[2massets/[22m[36mOvertimeRequestDetail-BCuKA-pz.js       [39m[1m[2m 25.04 kB[22m[1m[22m[2m │ gzip:  5.43 kB[22m[2m │ map:  63.44 kB[22m
+2026-02-16T13:34:07.9267149Z [2mdist/[22m[2massets/[22m[36mindex-DH8oVdvS.js                       [39m[1m[2m 34.12 kB[22m[1m[22m[2m │ gzip:  5.64 kB[22m[2m │ map:  91.41 kB[22m
+2026-02-16T13:34:07.9269312Z [2mdist/[22m[2massets/[22m[36mBreakSchedule-DgQtv4Rx.js               [39m[1m[2m 39.30 kB[22m[1m[22m[2m │ gzip: 11.05 kB[22m[2m │ map: 124.65 kB[22m
+2026-02-16T13:34:07.9272000Z [2mdist/[22m[2massets/[22m[36mreact-query-C-YqaQtX.js                 [39m[1m[2m 42.92 kB[22m[1m[22m[2m │ gzip: 12.65 kB[22m[2m │ map: 157.60 kB[22m
+2026-02-16T13:34:07.9274228Z [2mdist/[22m[2massets/[22m[36mreact-vendor-2-_CVm5j.js                [39m[1m[2m160.22 kB[22m[1m[22m[2m │ gzip: 52.42 kB[22m[2m │ map: 706.23 kB[22m
+2026-02-16T13:34:07.9276424Z [2mdist/[22m[2massets/[22m[36msupabase-QeT-7LZZ.js                    [39m[1m[2m170.03 kB[22m[1m[22m[2m │ gzip: 43.21 kB[22m[2m │ map: 774.55 kB[22m
+2026-02-16T13:34:07.9277616Z [32m✓ built in 13.41s[39m
+2026-02-16T13:34:10.9552669Z 
+2026-02-16T13:34:10.9557661Z [36mPWA v0.21.2[39m
+2026-02-16T13:34:10.9562670Z mode      [35mgenerateSW[39m
+2026-02-16T13:34:10.9567631Z precache  [32m60 entries[39m [2m(814.76 KiB)[22m
+2026-02-16T13:34:10.9572544Z files generated
+2026-02-16T13:34:10.9577363Z   [2mdist/sw.js.map[22m
+2026-02-16T13:34:10.9582576Z   [2mdist/sw.js[22m
+2026-02-16T13:34:10.9583153Z   [2mdist/workbox-3896e580.js.map[22m
+2026-02-16T13:34:10.9584139Z   [2mdist/workbox-3896e580.js[22m
+2026-02-16T13:34:11.0746756Z ##[group]Run actions/upload-artifact@v4
+2026-02-16T13:34:11.0747040Z with:
+2026-02-16T13:34:11.0747219Z   name: build-artifacts
+2026-02-16T13:34:11.0747414Z   path: dist/
+2026-02-16T13:34:11.0747592Z   retention-days: 7
+2026-02-16T13:34:11.0747787Z   if-no-files-found: warn
+2026-02-16T13:34:11.0747992Z   compression-level: 6
+2026-02-16T13:34:11.0748186Z   overwrite: false
+2026-02-16T13:34:11.0748376Z   include-hidden-files: false
+2026-02-16T13:34:11.0748592Z ##[endgroup]
+2026-02-16T13:34:11.3671384Z With the provided path, there will be 110 files uploaded
+2026-02-16T13:34:11.3682548Z Artifact name is valid!
+2026-02-16T13:34:11.3684926Z Root directory input is valid!
+2026-02-16T13:34:11.5255527Z Beginning upload of artifact content to blob storage
+2026-02-16T13:34:12.2419412Z Uploaded bytes 1068356
+2026-02-16T13:34:12.2903624Z Finished uploading artifact content to blob storage!
+2026-02-16T13:34:12.2908651Z SHA256 digest of uploaded artifact zip is 63aa6dfae0471f9467a6fe04b76aff4774211f63e78233a5e0c5ca697bfe6e53
+2026-02-16T13:34:12.2911063Z Finalizing artifact upload
+2026-02-16T13:34:12.4639708Z Artifact build-artifacts.zip successfully finalized. Artifact ID 5525968163
+2026-02-16T13:34:12.4641074Z Artifact build-artifacts has been successfully uploaded! Final size is 1068356 bytes. Artifact ID is 5525968163
+2026-02-16T13:34:12.4644549Z Artifact download URL: https://github.com/AhmedEssamEsmail/WFM/actions/runs/22064759694/artifacts/5525968163
+2026-02-16T13:34:12.4816783Z Post job cleanup.
+2026-02-16T13:34:12.6628390Z Cache hit occurred on the primary key node-cache-Linux-x64-npm-767ae61738c31efec69c797f536283fba1a97f3115aa3ff7bbc4bcd30614af26, not saving cache.
+2026-02-16T13:34:12.6739851Z Post job cleanup.
+2026-02-16T13:34:12.7717116Z [command]/usr/bin/git version
+2026-02-16T13:34:12.7759832Z git version 2.52.0
+2026-02-16T13:34:12.7807029Z Temporarily overriding HOME='/home/runner/work/_temp/e052c43e-f2c8-43a3-b500-94f16d1a6bdb' before making global git config changes
+2026-02-16T13:34:12.7808919Z Adding repository directory to the temporary git global config as a safe directory
+2026-02-16T13:34:12.7814374Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/WFM/WFM
+2026-02-16T13:34:12.7874363Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-02-16T13:34:12.7927286Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-02-16T13:34:12.8331690Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-02-16T13:34:12.8374590Z http.https://github.com/.extraheader
+2026-02-16T13:34:12.8405703Z [command]/usr/bin/git config --local --unset-all http.https://github.com/.extraheader
+2026-02-16T13:34:12.8463812Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-02-16T13:34:12.8867373Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-02-16T13:34:12.8932901Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2026-02-16T13:34:12.9402582Z Cleaning up orphan processes

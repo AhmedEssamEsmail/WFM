@@ -462,11 +462,45 @@ describe('RequestManagement Page', () => {
     const user = userEvent.setup()
     mockDeleteSwapRequest.mockResolvedValue({})
 
-    // Mock user as requester
+    // Mock user as WFM (only WFM can revoke approved/rejected requests)
     vi.mocked(useAuthModule.useAuth).mockReturnValue({
-      user: { id: 'user-1', name: 'John Doe', email: 'john@example.com', role: 'agent', created_at: '2024-01-01' },
+      user: { id: 'wfm-1', name: 'WFM User', email: 'wfm@example.com', role: 'wfm', created_at: '2024-01-01' },
       signOut: vi.fn(),
       isLoading: false,
+    })
+
+    // Update mock to include an approved request
+    vi.mocked(useSwapRequestsModule.useSwapRequests).mockReturnValue({
+      swapRequests: [
+        ...mockSwapRequests,
+        {
+          id: 'swap-3',
+          requester_id: 'user-7',
+          target_user_id: 'user-8',
+          requester: { id: 'user-7', name: 'Test User', email: 'test@example.com' },
+          target: { id: 'user-8', name: 'Target User', email: 'target@example.com' },
+          status: 'approved' as const,
+          requester_shift_id: 'shift-5',
+          target_shift_id: 'shift-6',
+          created_at: '2024-01-13T10:00:00Z',
+          tl_approved_at: '2024-01-13T11:00:00Z',
+          wfm_approved_at: '2024-01-13T12:00:00Z',
+        }
+      ],
+      isLoading: false,
+      error: null,
+      totalItems: 3,
+      totalPages: 1,
+      currentPage: 1,
+      hasNextPage: false,
+      hasPreviousPage: false,
+      nextPage: vi.fn(),
+      prevPage: vi.fn(),
+      goToPage: vi.fn(),
+      useSwapRequest: vi.fn(),
+      createSwapRequest: { mutateAsync: vi.fn() } as any,
+      updateSwapRequest: { mutateAsync: mockUpdateSwapRequest } as any,
+      deleteSwapRequest: { mutateAsync: mockDeleteSwapRequest } as any,
     })
 
     renderComponent()
@@ -476,17 +510,17 @@ describe('RequestManagement Page', () => {
       expect(table).toBeInTheDocument()
     })
 
-    // Find the table and get the row with John Doe
+    // Find the table and get the row with Test User (approved request)
     const table = document.querySelector('table')!
     const rows = table.querySelectorAll('tbody tr')
-    const johnDoeRow = Array.from(rows).find(row => row.textContent?.includes('John Doe') && row.textContent?.includes('Jane Smith'))
-    expect(johnDoeRow).toBeDefined()
+    const approvedRow = Array.from(rows).find(row => row.textContent?.includes('Test User') && row.textContent?.includes('Target User'))
+    expect(approvedRow).toBeDefined()
 
-    const revokeButton = within(johnDoeRow as HTMLElement).getByText('Revoke')
+    const revokeButton = within(approvedRow as HTMLElement).getByText('Revoke')
     await user.click(revokeButton)
 
     await waitFor(() => {
-      expect(mockDeleteSwapRequest).toHaveBeenCalledWith('swap-1')
+      expect(mockDeleteSwapRequest).toHaveBeenCalledWith('swap-3')
     })
   })
 })
