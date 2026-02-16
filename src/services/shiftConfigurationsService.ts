@@ -5,6 +5,18 @@ import type { ShiftConfiguration } from '../types'
 
 const SHIFT_CONFIGURATIONS_TABLE = 'shift_configurations'
 
+/**
+ * Convert Supabase error to proper Error instance
+ */
+function toError(error: unknown): Error {
+  if (error instanceof Error) return error
+  if (typeof error === 'object' && error !== null) {
+    const err = error as { message?: string; code?: string }
+    return new Error(err.message || 'Unknown error')
+  }
+  return new Error(String(error))
+}
+
 export const shiftConfigurationsService = {
   /**
    * Get all shift configurations
@@ -15,7 +27,7 @@ export const shiftConfigurationsService = {
       .select('*')
       .order('display_order', { ascending: true })
 
-    if (error) throw error
+    if (error) throw toError(error)
     return data as ShiftConfiguration[]
   },
 
@@ -29,7 +41,7 @@ export const shiftConfigurationsService = {
       .eq('is_active', true)
       .order('display_order', { ascending: true })
 
-    if (error) throw error
+    if (error) throw toError(error)
     return data as ShiftConfiguration[]
   },
 
@@ -43,7 +55,7 @@ export const shiftConfigurationsService = {
       .eq('shift_code', shiftCode)
       .maybeSingle()
 
-    if (error) throw error
+    if (error) throw toError(error)
     return data as ShiftConfiguration | null
   },
 
@@ -59,7 +71,7 @@ export const shiftConfigurationsService = {
       .select()
       .single()
 
-    if (error) throw error
+    if (error) throw toError(error)
     return data as ShiftConfiguration
   },
 
@@ -77,7 +89,7 @@ export const shiftConfigurationsService = {
       .select()
       .single()
 
-    if (error) throw error
+    if (error) throw toError(error)
     return data as ShiftConfiguration
   },
 
@@ -90,7 +102,7 @@ export const shiftConfigurationsService = {
       .delete()
       .eq('id', id)
 
-    if (error) throw error
+    if (error) throw toError(error)
   },
 
   /**
@@ -104,7 +116,7 @@ export const shiftConfigurationsService = {
       .select()
       .single()
 
-    if (error) throw error
+    if (error) throw toError(error)
     return data as ShiftConfiguration
   },
 

@@ -5,6 +5,18 @@ import type { BreakScheduleRule } from '../types'
 
 const BREAK_RULES_TABLE = 'break_schedule_rules'
 
+/**
+ * Convert Supabase error to proper Error instance
+ */
+function toError(error: unknown): Error {
+  if (error instanceof Error) return error
+  if (typeof error === 'object' && error !== null) {
+    const err = error as { message?: string; code?: string }
+    return new Error(err.message || 'Unknown error')
+  }
+  return new Error(String(error))
+}
+
 export const breakRulesService = {
   /**
    * Get all break schedule rules
@@ -15,7 +27,7 @@ export const breakRulesService = {
       .select('*')
       .order('priority', { ascending: true })
 
-    if (error) throw error
+    if (error) throw toError(error)
     return data as BreakScheduleRule[]
   },
 
@@ -29,7 +41,7 @@ export const breakRulesService = {
       .eq('is_active', true)
       .order('priority', { ascending: true })
 
-    if (error) throw error
+    if (error) throw toError(error)
     return data as BreakScheduleRule[]
   },
 
@@ -43,7 +55,7 @@ export const breakRulesService = {
       .eq('id', ruleId)
       .single()
 
-    if (error) throw error
+    if (error) throw toError(error)
     return data as BreakScheduleRule
   },
 
@@ -57,7 +69,7 @@ export const breakRulesService = {
       .eq('rule_name', ruleName)
       .maybeSingle()
 
-    if (error) throw error
+    if (error) throw toError(error)
     return data as BreakScheduleRule | null
   },
 
@@ -83,7 +95,7 @@ export const breakRulesService = {
       .select()
       .single()
 
-    if (error) throw error
+    if (error) throw toError(error)
     return data as BreakScheduleRule
   },
 
@@ -98,7 +110,7 @@ export const breakRulesService = {
       .select()
       .single()
 
-    if (error) throw error
+    if (error) throw toError(error)
     return data as BreakScheduleRule
   },
 
@@ -217,7 +229,7 @@ export const breakRulesService = {
       .select()
       .single()
 
-    if (error) throw error
+    if (error) throw toError(error)
     return data as BreakScheduleRule
   },
 
@@ -227,6 +239,7 @@ export const breakRulesService = {
   async deleteRule(ruleId: string): Promise<void> {
     const { error } = await supabase.from(BREAK_RULES_TABLE).delete().eq('id', ruleId)
 
-    if (error) throw error
+    if (error) throw toError(error)
   },
 }
+

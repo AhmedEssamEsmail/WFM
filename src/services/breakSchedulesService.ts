@@ -22,12 +22,18 @@ import type {
 
 const { TABLE_NAMES: BREAK_SCHEDULES_TABLE_NAMES, HOURS, INTERVAL_MINUTES } = BREAK_SCHEDULE
 
-// Unused helper function - kept for potential future use
-// function toError(error: unknown): Error {
-//   if (error instanceof Error) return error
-//   if (typeof error === 'object' && error !== null) {
-//     const err = error as { message?: string; code?: string }
-//     return new Error(err.message || 'Unknown error')
+/**
+ * Convert Supabase error to proper Error instance
+ */
+function toError(error: unknown): Error {
+  if (error instanceof Error) return error
+  if (typeof error === 'object' && error !== null) {
+    const err = error as { message?: string; code?: string }
+    return new Error(err.message || 'Unknown error')
+  }
+  return new Error(String(error))
+}
+
 //   }
 //   return new Error(String(error))
 // }
@@ -503,7 +509,7 @@ export const breakSchedulesService = {
 
     const { data: shifts, error: shiftsError } = await shiftsQuery
 
-    if (shiftsError) throw shiftsError
+    if (shiftsError) throw toError(shiftsError)
 
     // Fetch break schedules for the date
     const { data: breakSchedules, error: breaksError } = await supabase
@@ -511,7 +517,7 @@ export const breakSchedulesService = {
       .select('*')
       .eq('schedule_date', date)
 
-    if (breaksError) throw breaksError
+    if (breaksError) throw toError(breaksError)
 
     // Fetch warnings for the date
     const { data: warnings, error: warningsError } = await supabase
@@ -520,7 +526,7 @@ export const breakSchedulesService = {
       .eq('schedule_date', date)
       .eq('is_resolved', false)
 
-    if (warningsError) throw warningsError
+    if (warningsError) throw toError(warningsError)
 
     // Build agent schedules
     const agents: AgentBreakSchedule[] = []
@@ -589,7 +595,7 @@ export const breakSchedulesService = {
       .eq('schedule_date', date)
       .eq('is_resolved', false)
 
-    if (error) throw error
+    if (error) throw toError(error)
     return data as BreakScheduleWarning[]
   },
 
@@ -670,7 +676,7 @@ export const breakSchedulesService = {
       .eq('date', schedule_date)
       .single()
 
-    if (shiftError) throw shiftError
+    if (shiftError) throw toError(shiftError)
 
     // Process each interval update
     for (const interval of intervals) {
@@ -686,7 +692,7 @@ export const breakSchedulesService = {
           .eq('schedule_date', schedule_date)
           .eq('interval_start', intervalStart)
 
-        if (deleteError) throw deleteError
+        if (deleteError) throw toError(deleteError)
       } else {
         // If setting a break type (HB1, B, HB2)
         // First, delete any existing break of the same type at any time
@@ -697,7 +703,7 @@ export const breakSchedulesService = {
           .eq('schedule_date', schedule_date)
           .eq('break_type', breakType)
 
-        if (deleteOldError) throw deleteOldError
+        if (deleteOldError) throw toError(deleteOldError)
 
         // Prepare intervals to insert
         // B (lunch) breaks span 2 consecutive 15-minute intervals (30 minutes)
@@ -745,7 +751,7 @@ export const breakSchedulesService = {
             ignoreDuplicates: false, // Update if exists
           })
 
-        if (upsertError) throw upsertError
+        if (upsertError) throw toError(upsertError)
       }
     }
 
@@ -786,7 +792,7 @@ export const breakSchedulesService = {
       .update({ is_resolved: true })
       .eq('id', warningId)
 
-    if (error) throw error
+    if (error) throw toError(error)
   },
 
   /**
@@ -799,7 +805,7 @@ export const breakSchedulesService = {
       .eq('id', id)
       .single()
 
-    if (error) throw error
+    if (error) throw toError(error)
     return data as BreakSchedule
   },
 
@@ -813,7 +819,7 @@ export const breakSchedulesService = {
       .eq('user_id', userId)
       .eq('schedule_date', date)
 
-    if (error) throw error
+    if (error) throw toError(error)
   },
 
   /**
@@ -825,7 +831,7 @@ export const breakSchedulesService = {
       .delete()
       .eq('schedule_date', date)
 
-    if (error) throw error
+    if (error) throw toError(error)
   },
 
   /**
