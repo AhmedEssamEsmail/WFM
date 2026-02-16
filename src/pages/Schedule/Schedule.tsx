@@ -1,13 +1,11 @@
-import { useState, useEffect, useCallback, useRef } from 'react'
-import { supabase } from '../../lib/supabase'
+import { useState } from 'react'
 import { useAuth } from '../../hooks/useAuth'
 import { useLeaveTypes } from '../../hooks/useLeaveTypes'
+import { useSchedule } from '../../hooks/useSchedule'
 import { User, Shift, ShiftType, LeaveType, LeaveRequest, HeadcountUser, Skill } from '../../types'
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, addMonths, subMonths, isWithinInterval, parseISO } from 'date-fns'
 import { SHIFT_COLORS, SHIFT_LABELS } from '../../lib/designSystem'
-import { shiftsService, leaveRequestsService } from '../../services'
 import { formatDateISO } from '../../utils'
-import { handleDatabaseError } from '../../lib/errorHandler'
 import SkillsFilter from '../../components/Schedule/SkillsFilter'
 
 interface ShiftWithSwap extends Shift {
@@ -20,11 +18,24 @@ export default function Schedule() {
   const { user } = useAuth()
   const { leaveTypes, isLoading: loadingLeaveTypes } = useLeaveTypes()
   const [currentDate, setCurrentDate] = useState(new Date())
-  const [users, setUsers] = useState<User[]>([])
-  const [shifts, setShifts] = useState<ShiftWithSwap[]>([])
-  const [approvedLeaves, setApprovedLeaves] = useState<LeaveRequest[]>([])
-  const [swappedUserNames, setSwappedUserNames] = useState<Record<string, string>>({})
-  const [loading, setLoading] = useState(true)
+  
+  // Use the custom hook for data fetching
+  const {
+    users,
+    shifts,
+    approvedLeaves,
+    swappedUserNames,
+    isLoading: loading,
+    createShift,
+    updateShift,
+    deleteShift: deleteShiftMutation,
+    createLeave,
+    updateLeave,
+    deleteLeave,
+  } = useSchedule({
+    currentDate,
+    userRole: user?.role || 'agent',
+  })
   
   // Shift editing state
   const [editingShift, setEditingShift] = useState<{ userId: string; date: string; shiftId?: string; existingLeave?: LeaveRequest | null } | null>(null)
@@ -35,7 +46,6 @@ export default function Schedule() {
   // Filter state
   const [selectedUserId, setSelectedUserId] = useState<string>('all')
   const [selectedSkillIds, setSelectedSkillIds] = useState<string[]>([])
-  const hasLoadedData = useRef(false)
 
   const canEdit = user?.role === 'tl' || user?.role === 'wfm'
   const monthStart = startOfMonth(currentDate)
@@ -53,104 +63,6 @@ export default function Schedule() {
       return selectedSkillIds.some(skillId => userSkillIds.includes(skillId))
     })
   }
-
-  const fetchScheduleData = useCallback(async () => {
-    if (!user) return
-    
-    // Only show loading on initial load or month change
-    if (!hasLoadedData.current) {
-      setLoading(true)
-    }
-
-    try {
-      // Fetch users based on role visibility
-      // - Agent: Can see all agents' schedules (but not TL/WFM)
-      // - TL: Can see all agents + TL + WFM schedules
-      // - WFM: Can see all agents + TL + WFM schedules
-      let usersQuery = supabase.from('v_headcount_active').select('*')
-      
-      if (user.role === 'agent') {
-        // Agents can see all agents' schedules, but not TL or WFM
-        usersQuery = usersQuery.eq('role', 'agent')
-      }
-      // TL and WFM see all users (agents, TL, and WFM)
-
-      const { data: usersData, error: usersError } = await usersQuery.order('name')
-      if (usersError) throw usersError
-
-      setUsers(usersData || [])
-
-      // Calculate dates inside the callback to ensure they're fresh
-      const startDate = formatDateISO(startOfMonth(currentDate))
-      const endDate = formatDateISO(endOfMonth(currentDate))
-
-      let shiftsQuery = supabase
-        .from('shifts')
-        .select('*, users!inner(role)')
-        .gte('date', startDate)
-        .lte('date', endDate)
-
-      if (user.role === 'agent') {
-        // Agents can only see shifts for users with role 'agent'
-        shiftsQuery = shiftsQuery.eq('users.role', 'agent')
-      }
-      // TL and WFM see all shifts
-
-      const { data: shiftsData, error: shiftsError } = await shiftsQuery
-      if (shiftsError) throw shiftsError
-
-      // Fetch approved leave requests that overlap with this month
-      let leavesQuery = supabase
-        .from('leave_requests')
-        .select('*, users!inner(role)')
-        .eq('status', 'approved')
-        .lte('start_date', endDate)
-        .gte('end_date', startDate)
-
-      if (user.role === 'agent') {
-        // Agents can only see leave requests for users with role 'agent'
-        leavesQuery = leavesQuery.eq('users.role', 'agent')
-      }
-      // TL and WFM see all leave requests
-
-      const { data: leavesData, error: leavesError } = await leavesQuery
-      if (leavesError) throw leavesError
-
-      setApprovedLeaves(leavesData || [])
-
-      // Fetch swapped user names for shifts with swaps
-      const swappedUserIds = (shiftsData || [])
-        .filter(s => s.swapped_with_user_id)
-        .map(s => s.swapped_with_user_id)
-        .filter((id, index, self) => id && self.indexOf(id) === index)
-
-      if (swappedUserIds.length > 0) {
-        const { data: swappedUsers } = await supabase
-          .from('users')
-          .select('id, name')
-          .in('id', swappedUserIds)
-
-        const namesMap: Record<string, string> = {}
-        swappedUsers?.forEach(u => {
-          namesMap[u.id] = u.name
-        })
-        setSwappedUserNames(namesMap)
-      }
-
-      setShifts(shiftsData || [])
-      hasLoadedData.current = true
-    } catch (error) {
-      handleDatabaseError(error, 'fetch schedule')
-    } finally {
-      setLoading(false)
-    }
-  }, [user, currentDate])
-
-  useEffect(() => {
-    // Reset hasLoadedData when month changes
-    hasLoadedData.current = false
-    fetchScheduleData()
-  }, [fetchScheduleData])
 
   // Helper function to get leave type label from code
   function getLeaveTypeLabel(leaveTypeCode: LeaveType): string {
@@ -198,15 +110,14 @@ export default function Schedule() {
       if (!selectedLeaveTypeCode && !selectedShiftType) {
         // Delete existing leave if any
         if (editingShift.existingLeave) {
-          await leaveRequestsService.deleteLeaveRequest(editingShift.existingLeave.id)
+          await deleteLeave.mutateAsync(editingShift.existingLeave.id)
         }
 
         // Delete existing shift if any
         if (editingShift.shiftId) {
-          await shiftsService.deleteShift(editingShift.shiftId)
+          await deleteShiftMutation.mutateAsync(editingShift.shiftId)
         }
 
-        await fetchScheduleData()
         setEditingShift(null)
         setSavingShift(false)
         return
@@ -223,58 +134,53 @@ export default function Schedule() {
 
         // If there's an existing leave with different type, UPDATE it instead of delete+insert
         if (editingShift.existingLeave) {
-          const { error: updateError } = await supabase
-            .from('leave_requests')
-            .update({ leave_type: selectedLeaveTypeCode })
-            .eq('id', editingShift.existingLeave.id)
-
-          if (updateError) throw updateError
+          await updateLeave.mutateAsync({
+            leaveId: editingShift.existingLeave.id,
+            updates: { leave_type: selectedLeaveTypeCode }
+          })
         } else {
           // No existing leave - create new one
-          const { error: leaveError } = await supabase
-            .from('leave_requests')
-            .insert({
-              user_id: editingShift.userId,
-              leave_type: selectedLeaveTypeCode,
-              start_date: editingShift.date,
-              end_date: editingShift.date,
-              notes: 'Assigned by TL/WFM from schedule',
-              status: 'approved'
-            })
-
-          if (leaveError) throw leaveError
+          await createLeave.mutateAsync({
+            user_id: editingShift.userId,
+            leave_type: selectedLeaveTypeCode,
+            start_date: editingShift.date,
+            end_date: editingShift.date,
+            notes: 'Assigned by TL/WFM from schedule',
+            status: 'approved'
+          } as any)
         }
 
         // Remove any existing shift for this day (leave takes precedence)
         if (editingShift.shiftId) {
-          await shiftsService.deleteShift(editingShift.shiftId)
+          await deleteShiftMutation.mutateAsync(editingShift.shiftId)
         }
       }
       // CASE 3: Assign/update shift (no leave selected)
       else if (selectedShiftType) {
         // First, remove any existing leave for this day
         if (editingShift.existingLeave) {
-          await leaveRequestsService.deleteLeaveRequest(editingShift.existingLeave.id)
+          await deleteLeave.mutateAsync(editingShift.existingLeave.id)
         }
 
         if (editingShift.shiftId) {
           // Update existing shift
-          await shiftsService.updateShift(editingShift.shiftId, { shift_type: selectedShiftType })
+          await updateShift.mutateAsync({
+            shiftId: editingShift.shiftId,
+            updates: { shift_type: selectedShiftType }
+          })
         } else {
           // Create new shift
-          await shiftsService.createShift({
+          await createShift.mutateAsync({
             user_id: editingShift.userId,
             date: editingShift.date,
             shift_type: selectedShiftType
-          })
+          } as any)
         }
       }
 
-      await fetchScheduleData()
       setEditingShift(null)
     } catch (error) {
-      handleDatabaseError(error, 'save shift')
-      alert('Failed to save shift/leave')
+      console.error('Failed to save shift/leave:', error)
     } finally {
       setSavingShift(false)
     }
@@ -287,19 +193,17 @@ export default function Schedule() {
     try {
       // Delete existing leave if any
       if (editingShift.existingLeave) {
-        await leaveRequestsService.deleteLeaveRequest(editingShift.existingLeave.id)
+        await deleteLeave.mutateAsync(editingShift.existingLeave.id)
       }
 
       // Delete existing shift if any
       if (editingShift.shiftId) {
-        await shiftsService.deleteShift(editingShift.shiftId)
+        await deleteShiftMutation.mutateAsync(editingShift.shiftId)
       }
 
-      await fetchScheduleData()
       setEditingShift(null)
     } catch (error) {
-      handleDatabaseError(error, 'delete shift')
-      alert('Failed to delete')
+      console.error('Failed to delete:', error)
     } finally {
       setSavingShift(false)
     }
@@ -314,7 +218,7 @@ export default function Schedule() {
   }
 
   return (
-    <div className="space-y-6 w-[95%]">
+    <div className="space-y-6 w-[95%] px-4 md:px-0">
       <div className="sm:flex sm:items-center sm:justify-between">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Schedule</h1>

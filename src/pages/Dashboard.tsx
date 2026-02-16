@@ -103,7 +103,7 @@ export default function Dashboard() {
   }, [swapRequests, leaveRequests, formatDate])
 
   return (
-    <div className="pb-4">
+    <div className="pb-4 px-4 md:px-0">
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
         <p className="mt-1 text-sm text-gray-500">
