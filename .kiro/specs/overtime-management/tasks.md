@@ -169,7 +169,7 @@ This implementation plan breaks down the Overtime Management System into discret
     - _Requirements: 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7_
 
 - [~] 9. Create overtime request card component
-  - [-] 9.1 Create `src/components/OvertimeRequests/OvertimeRequestCard.tsx`
+  - [x] 9.1 Create `src/components/OvertimeRequests/OvertimeRequestCard.tsx`
     - Display work date with calendar icon
     - Display overtime type badge (Regular/Double)
     - Display total hours
@@ -186,7 +186,7 @@ This implementation plan breaks down the Overtime Management System into discret
     - _Requirements: 4.4, 4.5_
 
 - [~] 10. Create overtime requests list page
-  - [~] 10.1 Create `src/pages/OvertimeRequests/OvertimeRequests.tsx`
+  - [-] 10.1 Create `src/pages/OvertimeRequests/OvertimeRequests.tsx`
     - Display list of overtime request cards
     - Implement status filter dropdown
     - Implement date range filter (This Week, Last 30 Days, Custom)
