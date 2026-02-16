@@ -5,6 +5,7 @@ import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
 import { queryClient } from './lib/queryClient'
 import { AuthProvider } from './contexts/AuthContext'
 import { ToastProvider, useToast } from './contexts/ToastContext'
+import { ThemeProvider } from './contexts/ThemeContext'
 import { initializeErrorHandler } from './lib/errorHandler'
 import ProtectedRoute from './components/ProtectedRoute'
 import PublicRoute from './components/PublicRoute'
@@ -65,10 +66,11 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
         <ToastProvider>
-          <ErrorHandlerInitializer />
-          <Router>
-            <Suspense fallback={<PageLoader />}>
-              <Routes>
+          <ThemeProvider>
+            <ErrorHandlerInitializer />
+            <Router>
+              <Suspense fallback={<PageLoader />}>
+                <Routes>
                 {/* Public routes */}
                 <Route path="/login" element={<PublicRoute><PageErrorBoundary><Login /></PageErrorBoundary></PublicRoute>} />
                 <Route path="/signup" element={<PublicRoute><PageErrorBoundary><Signup /></PageErrorBoundary></PublicRoute>} />
@@ -104,6 +106,7 @@ function App() {
               </Routes>
             </Suspense>
           </Router>
+          </ThemeProvider>
         </ToastProvider>
       </AuthProvider>
       {import.meta.env.DEV && <ReactQueryDevtools initialIsOpen={false} />}

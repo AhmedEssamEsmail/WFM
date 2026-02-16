@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
 import { useNavigation } from '../hooks/useNavigation'
+import { useTheme } from '../contexts/ThemeContext'
 import { ROLE_COLORS, ROLE_LABELS } from '../lib/designSystem'
 import {
   CloseIcon,
@@ -16,6 +17,7 @@ interface LayoutProps {
 export default function Layout({ children }: LayoutProps) {
   const { user, signOut } = useAuth()
   const { navItems, isRouteActive } = useNavigation()
+  useTheme() // Keep theme context active
 
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
@@ -71,15 +73,22 @@ export default function Layout({ children }: LayoutProps) {
             </div>
           )}
 
-          {/* Dark Mode Toggle - Placeholder for future implementation */}
+          {/* Dark Mode Toggle */}
           <button
+            onClick={toggleDarkMode}
             className="w-full flex items-center justify-between px-3 py-2 text-sm font-medium text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
             aria-label="Toggle dark mode"
           >
             <span>Dark Mode</span>
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
-            </svg>
+            {isDarkMode ? (
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+              </svg>
+            ) : (
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+              </svg>
+            )}
           </button>
 
           {/* Sign Out Button */}
@@ -127,15 +136,22 @@ export default function Layout({ children }: LayoutProps) {
             </div>
           )}
 
-          {/* Dark Mode Toggle - Placeholder for future implementation */}
+          {/* Dark Mode Toggle */}
           <button
+            onClick={toggleDarkMode}
             className="w-full flex items-center justify-between px-3 py-2 text-sm font-medium text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
             aria-label="Toggle dark mode"
           >
             <span>Dark Mode</span>
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
-            </svg>
+            {isDarkMode ? (
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+              </svg>
+            ) : (
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+              </svg>
+            )}
           </button>
 
           {/* Sign Out Button */}
