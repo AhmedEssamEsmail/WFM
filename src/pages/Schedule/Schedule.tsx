@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../hooks/useAuth'
 import { useLeaveTypes } from '../../hooks/useLeaveTypes'
@@ -35,6 +35,7 @@ export default function Schedule() {
   // Filter state
   const [selectedUserId, setSelectedUserId] = useState<string>('all')
   const [selectedSkillIds, setSelectedSkillIds] = useState<string[]>([])
+  const hasLoadedData = useRef(false)
 
   const canEdit = user?.role === 'tl' || user?.role === 'wfm'
   const monthStart = startOfMonth(currentDate)
@@ -55,7 +56,11 @@ export default function Schedule() {
 
   const fetchScheduleData = useCallback(async () => {
     if (!user) return
-    setLoading(true)
+    
+    // Only show loading on initial load or month change
+    if (!hasLoadedData.current) {
+      setLoading(true)
+    }
 
     try {
       // Fetch users based on role visibility
@@ -133,6 +138,7 @@ export default function Schedule() {
       }
 
       setShifts(shiftsData || [])
+      hasLoadedData.current = true
     } catch (error) {
       handleDatabaseError(error, 'fetch schedule')
     } finally {
@@ -141,6 +147,8 @@ export default function Schedule() {
   }, [user, currentDate])
 
   useEffect(() => {
+    // Reset hasLoadedData when month changes
+    hasLoadedData.current = false
     fetchScheduleData()
   }, [fetchScheduleData])
 
@@ -335,7 +343,7 @@ export default function Schedule() {
                 id="agent-filter"
                 value={selectedUserId}
                 onChange={(e) => setSelectedUserId(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500 bg-white text-sm"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500 bg-white text-sm text-gray-700"
               >
                 <option value="all">All Agents</option>
                 {users.map(u => (
