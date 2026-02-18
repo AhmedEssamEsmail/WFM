@@ -1,10 +1,17 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '../lib/supabase'
-import type { SwapRequest } from '../types'
+import type { Shift, SwapRequest } from '../types'
 import { useToast } from '../contexts/ToastContext'
 import { STALE_TIMES, QUERY_KEYS } from '../constants/cache'
 import type { PaginationParams, PaginatedResult } from '../types/pagination'
 import { DEFAULT_PAGINATION_PARAMS, calculateOffset, calculatePagination } from '../types/pagination'
+
+type SwapRequestWithRelations = SwapRequest & {
+  requester: { id: string; name: string; email: string }
+  target: { id: string; name: string; email: string }
+  requester_shift: Shift
+  target_shift: Shift
+}
 
 export function useSwapRequests(params: PaginationParams = {}) {
   const queryClient = useQueryClient()
@@ -14,12 +21,7 @@ export function useSwapRequests(params: PaginationParams = {}) {
   // Fetch paginated swap requests
   const { data: paginatedData, isLoading, error } = useQuery({
     queryKey: [QUERY_KEYS.SWAP_REQUESTS, mergedParams],
-    queryFn: async (): Promise<PaginatedResult<SwapRequest & {
-      requester: { id: string; name: string; email: string }
-      target: { id: string; name: string; email: string }
-      requester_shift: Record<string, unknown>
-      target_shift: Record<string, unknown>
-    }>> => {
+    queryFn: async (): Promise<PaginatedResult<SwapRequestWithRelations>> => {
       const offset = calculateOffset(mergedParams)
       const { data, error, count } = await supabase
         .from('swap_requests')

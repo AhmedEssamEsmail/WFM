@@ -79,10 +79,11 @@ export const swapRequestsService = {
 
     // Check if the stored procedure returned an error
     if (!result.success) {
+      const errorDetails = result.error_code ? { error_code: result.error_code } : undefined
       throw new SwapExecutionError(
         swapRequest.id,
         result.error || 'Unknown error during swap execution',
-        { error_code: result.error_code }
+        errorDetails
       )
     }
 

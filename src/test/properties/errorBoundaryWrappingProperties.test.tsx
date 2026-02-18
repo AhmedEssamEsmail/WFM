@@ -6,12 +6,12 @@
 
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import * as fc from 'fast-check'
-import { render, screen, waitFor } from '@testing-library/react'
+import { render, screen, fireEvent, cleanup } from '@testing-library/react'
 import { BrowserRouter } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { AuthContext } from '../../contexts/AuthContext'
-import { ToastProvider } from '../../lib/ToastContext'
-import { PageErrorBoundary } from '../../components/PageErrorBoundary'
+import { ToastProvider } from '../../contexts/ToastContext'
+import { PageErrorBoundary } from '../../components/shared/PageErrorBoundary'
 import type { User } from '../../types'
 
 // Mock console.error to suppress error boundary logs
@@ -27,17 +27,6 @@ const ThrowError = ({ shouldThrow, message }: { shouldThrow: boolean; message?: 
 
 // Arbitraries
 const errorMessageArb = fc.string({ minLength: 1, maxLength: 100 })
-const uuidArb = fc.stringMatching(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/)
-const timestampArb = fc.stringMatching(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$/)
-
-const userArb: fc.Arbitrary<User> = fc.record({
-  id: uuidArb,
-  email: fc.emailAddress(),
-  name: fc.string({ minLength: 1, maxLength: 50 }),
-  role: fc.constantFrom('agent', 'tl', 'wfm'),
-  created_at: timestampArb
-})
-
 describe('Error Boundary Wrapping Properties', () => {
   let queryClient: QueryClient
   let mockUser: User
@@ -73,6 +62,7 @@ describe('Error Boundary Wrapping Properties', () => {
           fc.boolean(),
           errorMessageArb,
           (shouldThrow, message) => {
+            cleanup()
             render(
               <QueryClientProvider client={queryClient}>
                 <BrowserRouter>
@@ -106,6 +96,7 @@ describe('Error Boundary Wrapping Properties', () => {
         fc.property(
           errorMessageArb,
           (message) => {
+            cleanup()
             render(
               <QueryClientProvider client={queryClient}>
                 <BrowserRouter>
@@ -132,6 +123,7 @@ describe('Error Boundary Wrapping Properties', () => {
         fc.property(
           errorMessageArb,
           (message) => {
+            cleanup()
             render(
               <QueryClientProvider client={queryClient}>
                 <BrowserRouter>
@@ -161,10 +153,11 @@ describe('Error Boundary Wrapping Properties', () => {
       fc.assert(
         fc.property(
           fc.boolean(),
-          fc.string({ minLength: 1, maxLength: 50 }),
+          fc.string({ minLength: 1, maxLength: 50 }).filter((s) => s.trim().length > 0),
           (shouldThrow, customMessage) => {
             const customFallback = <div data-testid="custom-fallback">{customMessage}</div>
 
+            cleanup()
             render(
               <QueryClientProvider client={queryClient}>
                 <BrowserRouter>
@@ -180,8 +173,9 @@ describe('Error Boundary Wrapping Properties', () => {
             )
 
             if (shouldThrow) {
-              expect(screen.getByTestId('custom-fallback')).toBeInTheDocument()
-              expect(screen.getByText(customMessage)).toBeInTheDocument()
+              const fallback = screen.getByTestId('custom-fallback')
+              expect(fallback).toBeInTheDocument()
+              expect(fallback.textContent).toBe(customMessage)
             } else {
               expect(screen.getByText('No error')).toBeInTheDocument()
             }
@@ -225,7 +219,7 @@ describe('Error Boundary Wrapping Properties', () => {
         </QueryClientProvider>
       )
 
-      expect(screen.getByText('First error')).not.toBeInTheDocument()
+      expect(screen.queryByText(/First error/)).not.toBeInTheDocument()
       expect(screen.getByText('Page Error')).toBeInTheDocument()
     })
   })

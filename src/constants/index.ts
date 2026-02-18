@@ -41,17 +41,31 @@ export function validateEnvironment(): void {
 // Lazy getters for environment variables to avoid module-load-time validation
 let _allowedEmailDomain: string | undefined
 
+export function normalizeEmailDomain(domain: string): string {
+  const normalized = domain.trim().toLowerCase()
+  if (!normalized) return ''
+  return normalized.startsWith('@') ? normalized : `@${normalized}`
+}
+
+export function isEmailInAllowedDomain(email: string, domain: string): boolean {
+  const normalizedDomain = normalizeEmailDomain(domain)
+  if (!normalizedDomain) return false
+  return email.trim().toLowerCase().endsWith(normalizedDomain)
+}
+
 export function getAllowedEmailDomain(): string {
   if (!_allowedEmailDomain) {
     validateEnvironment()
-    _allowedEmailDomain = import.meta.env.VITE_ALLOWED_EMAIL_DOMAIN as string
+    _allowedEmailDomain = normalizeEmailDomain(import.meta.env.VITE_ALLOWED_EMAIL_DOMAIN as string)
   }
   return _allowedEmailDomain!
 }
 
 // For backward compatibility, export as constant
 // In production, this should always be set. In tests, it may be empty string.
-export const ALLOWED_EMAIL_DOMAIN: string = (import.meta.env.VITE_ALLOWED_EMAIL_DOMAIN as string) || ''
+export const ALLOWED_EMAIL_DOMAIN: string = normalizeEmailDomain(
+  (import.meta.env.VITE_ALLOWED_EMAIL_DOMAIN as string) || ''
+)
 export const SESSION_STORAGE_KEY = 'wfm_session'
 
 // ============================================

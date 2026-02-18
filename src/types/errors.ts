@@ -2,6 +2,7 @@
  * Custom error types for the WFM application
  * These errors provide structured error handling with specific error codes
  */
+import type { JsonObject } from './json'
 
 /**
  * Base class for all WFM application errors
@@ -43,7 +44,7 @@ export class InsufficientLeaveBalanceError extends WFMError {
 export class InvalidSwapShiftsError extends WFMError {
   constructor(
     public readonly reason: string,
-    public readonly details?: Record<string, unknown>
+    public readonly details?: JsonObject
   ) {
     super(
       `Invalid swap request: ${reason}`,
@@ -166,7 +167,7 @@ export class SwapExecutionError extends WFMError {
   constructor(
     public readonly swapRequestId: string,
     public readonly reason: string,
-    public readonly details?: Record<string, unknown>
+    public readonly details?: JsonObject
   ) {
     super(
       `Swap execution failed for request ${swapRequestId}: ${reason}`,

@@ -1,3 +1,5 @@
+import type { JsonObject } from './json'
+
 export type UserRole = 'agent' | 'tl' | 'wfm'
 
 export type ShiftType = 'AM' | 'PM' | 'BET' | 'OFF'
@@ -9,6 +11,9 @@ export type LeaveRequestStatus = 'pending_tl' | 'pending_wfm' | 'approved' | 're
 export type LeaveType = string
 
 export type RequestType = 'swap' | 'leave' | 'overtime_request'
+
+// JSON types for strongly-typed JSONB payloads used across services/models
+export type { JsonPrimitive, JsonValue, JsonObject, JsonArray } from './json'
 
 // Export error types
 export * from './errors'
@@ -96,6 +101,17 @@ export interface LeaveBalance {
   leave_type: LeaveType
   balance: number
   year: number
+}
+
+export interface LeaveBalanceHistory {
+  id: string
+  user_id: string
+  leave_type: LeaveType
+  previous_balance: number
+  new_balance: number
+  change_reason: string | null
+  changed_by: string | null
+  created_at: string
 }
 
 export interface LeaveTypeConfig {
@@ -193,12 +209,23 @@ export interface HeadcountAuditLog {
   id: string
   user_id: string
   action: string
-  previous_values?: Record<string, unknown>
-  new_values?: Record<string, unknown>
+  previous_values?: JsonObject
+  new_values?: JsonObject
   performed_by?: string
   performed_at: string
   reason?: string
   effective_date: string
+}
+
+export interface HeadcountDepartmentSummary {
+  department: string | null
+  total_headcount: number
+  active_count: number
+  on_leave_count: number
+  agents_count: number
+  tls_count: number
+  wfm_count: number
+  contractors_count: number
 }
 
 export interface HeadcountMetrics {
@@ -206,6 +233,11 @@ export interface HeadcountMetrics {
   total_on_leave: number
   by_department: Record<string, number>
   by_role: Record<UserRole, number>
+}
+
+export interface HeadcountMetricRow {
+  metric_name: keyof HeadcountMetrics
+  metric_value: string
 }
 
 // ============================================
@@ -231,7 +263,7 @@ export interface BreakScheduleRule {
   rule_name: string
   rule_type: 'distribution' | 'ordering' | 'timing' | 'coverage'
   description: string | null
-  parameters: Record<string, unknown>
+  parameters: JsonObject
   is_active: boolean
   is_blocking: boolean
   priority: number

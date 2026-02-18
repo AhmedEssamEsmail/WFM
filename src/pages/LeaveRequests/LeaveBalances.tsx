@@ -150,11 +150,10 @@ export default function LeaveBalances() {
         await supabase.from('leave_balance_history').insert({
           user_id: editingCell.userId,
           leave_type: editingCell.leaveType,
-          change_amount: newBalance - currentBalance,
-          reason: 'manual_adjustment',
-          balance_before: currentBalance,
-          balance_after: newBalance,
-          created_by: user.id
+          previous_balance: currentBalance,
+          new_balance: newBalance,
+          change_reason: 'manual_adjustment',
+          changed_by: user.id
         })
       } catch (historyError) {
         // Ignore history errors - not critical
@@ -351,11 +350,10 @@ export default function LeaveBalances() {
               await supabase.from('leave_balance_history').insert({
                 user_id: row.userId,
                 leave_type: leaveType,
-                change_amount: newBalance - currentBalance,
-                reason: 'csv_import',
-                balance_before: currentBalance,
-                balance_after: newBalance,
-                created_by: user.id
+                previous_balance: currentBalance,
+                new_balance: newBalance,
+                change_reason: 'csv_import',
+                changed_by: user.id
               })
             } catch (historyError) {
               // Ignore history errors

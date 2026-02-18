@@ -2,6 +2,9 @@
 
 import { FILE_UPLOAD } from '../constants'
 
+type CSVCellValue = string | number | boolean | null | undefined
+type CSVRow = Record<string, CSVCellValue>
+
 /**
  * Parse CSV file to array of objects
  * Handles quoted fields properly (e.g., "Smith, John")
@@ -65,7 +68,7 @@ export function parseCSV<T = Record<string, string>>(csvText: string): T[] {
 /**
  * Convert array of objects to CSV string
  */
-export function arrayToCSV<T extends Record<string, unknown>>(data: T[]): string {
+export function arrayToCSV<T extends CSVRow>(data: T[]): string {
   if (data.length === 0) return ''
   
   // Get headers from first object

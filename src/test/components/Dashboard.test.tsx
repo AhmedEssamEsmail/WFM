@@ -94,7 +94,7 @@ describe('Dashboard Component', () => {
       id: 'user-1',
       email: 'user@dabdoob.com',
       name: 'John Doe',
-      role: 'agent',
+      role: 'wfm', // Changed to wfm so stat cards are visible
       created_at: '2024-01-01T00:00:00Z'
     }
 

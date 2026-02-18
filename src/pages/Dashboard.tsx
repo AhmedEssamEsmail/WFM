@@ -1,6 +1,7 @@
 import { useCallback, useMemo } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
+import { useRoleCheck } from '../hooks/useRoleCheck'
 import { useDashboardData } from '../hooks/useDashboardData'
 import { useDashboardStats } from '../hooks/useDashboardStats'
 import { useCoverageData } from '../hooks/useCoverageData'
@@ -59,6 +60,7 @@ const SwapIcon = (props: React.SVGProps<SVGSVGElement>) => (
 
 export default function Dashboard() {
   const { user } = useAuth()
+  const { isManager } = useRoleCheck()
   const navigate = useNavigate()
   const { data, isLoading: loading } = useDashboardData()
   const { data: stats, isLoading: statsLoading } = useDashboardStats()
@@ -66,9 +68,6 @@ export default function Dashboard() {
 
   const swapRequests = data?.swapRequests || []
   const leaveRequests = data?.leaveRequests || []
-  
-  // Check if user is TL or WFM for coverage overview visibility
-  const isManager = user?.role === 'tl' || user?.role === 'wfm'
 
   const formatDate = useCallback((dateString: string) => {
     return formatDateUtil(dateString)
@@ -112,57 +111,59 @@ export default function Dashboard() {
       </div>
 
       {/* Statistics Cards - Requirements 2.1, 2.2, 2.3, 2.4, 2.5, 2.6, 2.7 */}
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4 mb-6">
-        {statsLoading ? (
-          // Loading skeleton
-          <>
-            {[1, 2, 3, 4].map((i) => (
-              <div key={i} className="bg-white rounded-lg shadow p-6 animate-pulse">
-                <div className="flex items-center justify-between">
-                  <div className="flex-1">
-                    <div className="h-4 bg-gray-200 rounded w-24 mb-3"></div>
-                    <div className="h-8 bg-gray-200 rounded w-16"></div>
+      {isManager && (
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4 mb-6">
+          {statsLoading ? (
+            // Loading skeleton
+            <>
+              {[1, 2, 3, 4].map((i) => (
+                <div key={i} className="bg-white rounded-lg shadow p-6 animate-pulse">
+                  <div className="flex items-center justify-between">
+                    <div className="flex-1">
+                      <div className="h-4 bg-gray-200 rounded w-24 mb-3"></div>
+                      <div className="h-8 bg-gray-200 rounded w-16"></div>
+                    </div>
+                    <div className="bg-gray-200 rounded-lg p-3 w-14 h-14"></div>
                   </div>
-                  <div className="bg-gray-200 rounded-lg p-3 w-14 h-14"></div>
                 </div>
-              </div>
-            ))}
-          </>
-        ) : (
-          <>
-            <StatCard
-              title="Total Staff"
-              value={stats?.totalStaff || 0}
-              icon={UsersIcon}
-              bgColor="bg-blue-100"
-              iconColor="text-blue-600"
-            />
-            <StatCard
-              title="Active Shifts"
-              value={stats?.activeShifts || 0}
-              icon={CalendarIcon}
-              bgColor="bg-green-100"
-              iconColor="text-green-600"
-            />
-            <StatCard
-              title="Pending Requests"
-              value={stats?.pendingRequests || 0}
-              icon={ClockIcon}
-              bgColor="bg-yellow-100"
-              iconColor="text-yellow-600"
-              onClick={() => navigate(ROUTES.LEAVE_REQUESTS)}
-            />
-            <StatCard
-              title="Open Swaps"
-              value={stats?.openSwaps || 0}
-              icon={SwapIcon}
-              bgColor="bg-purple-100"
-              iconColor="text-purple-600"
-              onClick={() => navigate(ROUTES.SWAP_REQUESTS)}
-            />
-          </>
-        )}
-      </div>
+              ))}
+            </>
+          ) : (
+            <>
+              <StatCard
+                title="Total Staff"
+                value={stats?.totalStaff || 0}
+                icon={UsersIcon}
+                bgColor="bg-blue-100"
+                iconColor="text-blue-600"
+              />
+              <StatCard
+                title="Active Shifts"
+                value={stats?.activeShifts || 0}
+                icon={CalendarIcon}
+                bgColor="bg-green-100"
+                iconColor="text-green-600"
+              />
+              <StatCard
+                title="Pending Requests"
+                value={stats?.pendingRequests || 0}
+                icon={ClockIcon}
+                bgColor="bg-yellow-100"
+                iconColor="text-yellow-600"
+                onClick={() => navigate(ROUTES.LEAVE_REQUESTS)}
+              />
+              <StatCard
+                title="Open Swaps"
+                value={stats?.openSwaps || 0}
+                icon={SwapIcon}
+                bgColor="bg-purple-100"
+                iconColor="text-purple-600"
+                onClick={() => navigate(ROUTES.SWAP_REQUESTS)}
+              />
+            </>
+          )}
+        </div>
+      )}
 
       {/* Coverage Overview - Requirements 4.1, 4.2, 4.3, 4.4, 4.5 */}
       {isManager && (

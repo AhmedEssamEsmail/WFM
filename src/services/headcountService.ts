@@ -1,9 +1,68 @@
 // Headcount service
 
 import { supabase } from '../lib/supabase'
-import type { HeadcountUser, Department } from '../types'
+import type {
+  Department,
+  HeadcountAuditLog,
+  HeadcountDepartmentSummary,
+  HeadcountUser,
+  JsonObject,
+} from '../types'
 import { API_ENDPOINTS, PAGINATION } from '../constants'
 import type { PaginatedResponse } from '../hooks/usePaginatedQuery'
+
+type UserUpdatePayload = Partial<
+  Pick<
+    HeadcountUser,
+    'name' | 'email' | 'role' | 'employee_id' | 'status' | 'department' | 'hire_date' | 'manager_id'
+  >
+>
+
+type ProfileUpdatePayload = Partial<
+  Pick<
+    HeadcountUser,
+    | 'job_title'
+    | 'job_level'
+    | 'employment_type'
+    | 'location'
+    | 'time_zone'
+    | 'phone'
+    | 'skills'
+    | 'certifications'
+    | 'max_weekly_hours'
+    | 'cost_center'
+    | 'budget_code'
+    | 'termination_date'
+    | 'onboarding_status'
+  >
+> & { updated_at?: string }
+
+const userFields: (keyof UserUpdatePayload)[] = [
+  'name',
+  'email',
+  'role',
+  'employee_id',
+  'status',
+  'department',
+  'hire_date',
+  'manager_id',
+]
+
+const profileFields: (keyof ProfileUpdatePayload)[] = [
+  'job_title',
+  'job_level',
+  'employment_type',
+  'location',
+  'time_zone',
+  'phone',
+  'skills',
+  'certifications',
+  'max_weekly_hours',
+  'cost_center',
+  'budget_code',
+  'termination_date',
+  'onboarding_status',
+]
 
 export const headcountService = {
   /**
@@ -85,19 +144,18 @@ export const headcountService = {
    */
   async updateEmployee(id: string, updates: Partial<HeadcountUser>): Promise<void> {
     // Split updates between users and headcount_profiles tables
-    const userUpdates: Record<string, unknown> = {}
-    const profileUpdates: Record<string, unknown> = {}
-    
-    const userFields = ['name', 'email', 'role', 'employee_id', 'status', 'department', 'hire_date', 'manager_id']
-    const profileFields = ['job_title', 'job_level', 'employment_type', 'location', 'time_zone', 'phone', 'skills', 'certifications', 'max_weekly_hours', 'cost_center', 'budget_code', 'termination_date', 'onboarding_status']
-    
-    Object.entries(updates).forEach(([key, value]) => {
-      if (userFields.includes(key)) {
-        userUpdates[key] = value
-      } else if (profileFields.includes(key)) {
-        profileUpdates[key] = value
+    const userUpdates: UserUpdatePayload = {}
+    const profileUpdates: ProfileUpdatePayload = {}
+
+    for (const [key, value] of Object.entries(updates) as Array<
+      [keyof HeadcountUser, HeadcountUser[keyof HeadcountUser]]
+    >) {
+      if (userFields.includes(key as keyof UserUpdatePayload)) {
+        (userUpdates as any)[key] = value
+      } else if (profileFields.includes(key as keyof ProfileUpdatePayload)) {
+        (profileUpdates as any)[key] = value
       }
-    })
+    }
     
     // Update users table
     if (Object.keys(userUpdates).length > 0) {
@@ -138,19 +196,26 @@ export const headcountService = {
   /**
    * Get headcount metrics
    */
-  async getHeadcountMetrics(): Promise<unknown[]> {
+  async getHeadcountMetrics(): Promise<HeadcountDepartmentSummary[]> {
     const { data, error } = await supabase
       .from('v_department_summary')
       .select('*')
     
     if (error) throw error
-    return data
+    return (data || []) as HeadcountDepartmentSummary[]
   },
 
   /**
    * Log headcount audit
    */
-  async logAudit(userId: string, action: string, previousValues: Record<string, unknown>, newValues: Record<string, unknown>, performedBy: string, reason?: string): Promise<void> {
+  async logAudit(
+    userId: string,
+    action: string,
+    previousValues: JsonObject,
+    newValues: JsonObject,
+    performedBy: string,
+    reason?: string
+  ): Promise<void> {
     const { error } = await supabase
       .from(API_ENDPOINTS.HEADCOUNT_AUDIT_LOG)
       .insert({
@@ -169,7 +234,7 @@ export const headcountService = {
   /**
    * Get audit log for an employee
    */
-  async getEmployeeAuditLog(userId: string): Promise<unknown[]> {
+  async getEmployeeAuditLog(userId: string): Promise<HeadcountAuditLog[]> {
     const { data, error } = await supabase
       .from(API_ENDPOINTS.HEADCOUNT_AUDIT_LOG)
       .select('*')
@@ -177,6 +242,6 @@ export const headcountService = {
       .order('performed_at', { ascending: false })
     
     if (error) throw error
-    return data
+    return (data || []) as HeadcountAuditLog[]
   },
 }

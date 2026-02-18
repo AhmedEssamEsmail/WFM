@@ -24,7 +24,7 @@ export default function HeadcountDashboard() {
       getDepartmentSummary()
     ])
     setMetrics(metricsData)
-    setDeptSummary(summaryData)
+    setDeptSummary(summaryData as any)
   }, [getMetrics, getDepartmentSummary])
 
   useEffect(() => {

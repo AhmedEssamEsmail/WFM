@@ -122,6 +122,14 @@ export interface OvertimeSettings {
   }
 }
 
+export type OvertimeSettingKey = keyof OvertimeSettings
+export type OvertimeSettingValue<K extends OvertimeSettingKey> = OvertimeSettings[K]
+
+export interface OvertimeSettingRow {
+  setting_key: OvertimeSettingKey
+  setting_value: unknown
+}
+
 /**
  * Input data for creating a new overtime request
  */

@@ -1,7 +1,7 @@
 // Leave balances service
 
 import { supabase } from '../lib/supabase'
-import type { LeaveBalance, LeaveType } from '../types'
+import type { LeaveBalance, LeaveBalanceHistory, LeaveType } from '../types'
 import { API_ENDPOINTS } from '../constants'
 
 export const leaveBalancesService = {
@@ -90,7 +90,7 @@ export const leaveBalancesService = {
   /**
    * Get leave balance history
    */
-  async getLeaveBalanceHistory(userId: string): Promise<unknown[]> {
+  async getLeaveBalanceHistory(userId: string): Promise<LeaveBalanceHistory[]> {
     const { data, error } = await supabase
       .from(API_ENDPOINTS.LEAVE_BALANCE_HISTORY)
       .select('*')
@@ -98,7 +98,7 @@ export const leaveBalancesService = {
       .order('created_at', { ascending: false })
     
     if (error) throw error
-    return data
+    return (data || []) as LeaveBalanceHistory[]
   },
 
   /**

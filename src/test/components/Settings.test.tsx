@@ -4,7 +4,7 @@ import { BrowserRouter } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import Settings from '../../pages/Settings'
 import { AuthContext } from '../../contexts/AuthContext'
-import { ToastProvider } from '../../lib/ToastContext'
+import { ToastProvider } from '../../contexts/ToastContext'
 import type { User } from '../../types'
 
 // Mock services

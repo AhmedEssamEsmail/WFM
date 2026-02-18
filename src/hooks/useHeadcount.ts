@@ -1,6 +1,60 @@
 import { useCallback, useState } from 'react'
 import { supabase } from '../lib/supabase'
-import type { HeadcountUser, Department, HeadcountMetrics } from '../types'
+import type {
+  Department,
+  HeadcountDepartmentSummary,
+  HeadcountMetricRow,
+  HeadcountMetrics,
+  HeadcountUser,
+} from '../types'
+
+type UserUpdatePayload = Partial<
+  Pick<
+    HeadcountUser,
+    'employee_id' | 'status' | 'department' | 'hire_date' | 'manager_id' | 'role' | 'name'
+  >
+>
+
+type ProfileUpdatePayload = Partial<
+  Pick<
+    HeadcountUser,
+    | 'job_title'
+    | 'job_level'
+    | 'employment_type'
+    | 'location'
+    | 'time_zone'
+    | 'phone'
+    | 'skills'
+    | 'certifications'
+    | 'max_weekly_hours'
+    | 'cost_center'
+    | 'budget_code'
+  >
+>
+
+const userFields: (keyof UserUpdatePayload)[] = [
+  'employee_id',
+  'status',
+  'department',
+  'hire_date',
+  'manager_id',
+  'role',
+  'name',
+]
+
+const profileFields: (keyof ProfileUpdatePayload)[] = [
+  'job_title',
+  'job_level',
+  'employment_type',
+  'location',
+  'time_zone',
+  'phone',
+  'skills',
+  'certifications',
+  'max_weekly_hours',
+  'cost_center',
+  'budget_code',
+]
 
 export function useHeadcount() {
   const [loading, setLoading] = useState(false)
@@ -76,19 +130,18 @@ export function useHeadcount() {
     setError(null)
     
     try {
-      const userUpdates: Record<string, unknown> = {}
-      const profileUpdates: Record<string, unknown> = {}
-      
-      const userFields = ['employee_id', 'status', 'department', 'hire_date', 'manager_id', 'role']
-      const profileFields = ['job_title', 'job_level', 'employment_type', 'location', 'time_zone', 'phone', 'skills', 'certifications', 'max_weekly_hours', 'cost_center', 'budget_code']
-      
-      Object.entries(updates).forEach(([key, value]) => {
-        if (userFields.includes(key)) {
-          userUpdates[key] = value
-        } else if (profileFields.includes(key)) {
-          profileUpdates[key] = value
+      const userUpdates: UserUpdatePayload = {}
+      const profileUpdates: ProfileUpdatePayload = {}
+
+      for (const [key, value] of Object.entries(updates) as Array<
+        [keyof HeadcountUser, HeadcountUser[keyof HeadcountUser]]
+      >) {
+        if (userFields.includes(key as keyof UserUpdatePayload)) {
+          (userUpdates as any)[key] = value
+        } else if (profileFields.includes(key as keyof ProfileUpdatePayload)) {
+          (profileUpdates as any)[key] = value
         }
-      })
+      }
 
       if (Object.keys(userUpdates).length > 0) {
         const { error: userError } = await supabase
@@ -140,27 +193,44 @@ export function useHeadcount() {
         .rpc('get_headcount_metrics')
       
       if (error) throw error
-      
-      const metrics: Partial<HeadcountMetrics> = {}
-      data?.forEach((row: { metric_name: string; metric_value: string }) => {
-        const key = row.metric_name as keyof HeadcountMetrics
-        const value = parseInt(row.metric_value)
-        if (key === 'by_department' || key === 'by_role') {
-          // These are objects, not numbers
-          (metrics as Record<string, unknown>)[key] = {}
-        } else {
-          (metrics as Record<string, number>)[key] = value
+
+      const metrics: HeadcountMetrics = {
+        total_active: 0,
+        total_on_leave: 0,
+        by_department: {},
+        by_role: { agent: 0, tl: 0, wfm: 0 },
+      }
+
+      ;(data as HeadcountMetricRow[] | null)?.forEach((row) => {
+        if (row.metric_name === 'total_active' || row.metric_name === 'total_on_leave') {
+          metrics[row.metric_name] = parseInt(row.metric_value, 10) || 0
+          return
+        }
+
+        if (row.metric_name === 'by_department') {
+          const parsed = JSON.parse(row.metric_value) as Record<string, number>
+          metrics.by_department = parsed || {}
+          return
+        }
+
+        if (row.metric_name === 'by_role') {
+          const parsed = JSON.parse(row.metric_value) as Record<string, number>
+          metrics.by_role = {
+            agent: parsed.agent || 0,
+            tl: parsed.tl || 0,
+            wfm: parsed.wfm || 0,
+          }
         }
       })
-      
-      return metrics as HeadcountMetrics
+
+      return metrics
     } catch {
       return null
     }
   }, [])
 
   // Get department summary
-  const getDepartmentSummary = useCallback(async () => {
+  const getDepartmentSummary = useCallback(async (): Promise<HeadcountDepartmentSummary[]> => {
     try {
       const { data, error } = await supabase
         .from('v_department_summary')
@@ -168,7 +238,7 @@ export function useHeadcount() {
         .order('department')
       
       if (error) throw error
-      return data || []
+      return (data || []) as HeadcountDepartmentSummary[]
     } catch {
       return []
     }
@@ -207,18 +277,15 @@ export function useHeadcount() {
             .single()
 
           if (existingUser) {
-            const userUpdates: Record<string, unknown> = {}
-            const profileUpdates: Record<string, unknown> = {}
-            
-            const userFields = ['employee_id', 'status', 'department', 'hire_date', 'manager_id', 'role', 'name']
-            const profileFields = ['job_title', 'job_level', 'employment_type', 'location', 'time_zone', 'phone', 'max_weekly_hours', 'cost_center', 'budget_code']
-            
+            const userUpdates: UserUpdatePayload = {}
+            const profileUpdates: ProfileUpdatePayload = {}
+
             Object.entries(emp).forEach(([key, value]) => {
               if (value !== undefined && value !== '') {
-                if (userFields.includes(key)) {
-                  userUpdates[key] = value
-                } else if (profileFields.includes(key)) {
-                  profileUpdates[key] = value
+                if (userFields.includes(key as keyof UserUpdatePayload)) {
+                  (userUpdates as any)[key] = value
+                } else if (profileFields.includes(key as keyof ProfileUpdatePayload)) {
+                  (profileUpdates as any)[key] = value
                 }
               }
             })

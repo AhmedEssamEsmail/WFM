@@ -99,9 +99,9 @@ export default defineConfig({
     css: true,
     env: {
       // Test database configuration (Supabase Local)
-      VITE_SUPABASE_TEST_URL: 'http://127.0.0.1:54321',
-      VITE_SUPABASE_TEST_ANON_KEY: 'sb_publishable_ACJWlzQHlZjBrEguHvfOxg_3BJgxAaH',
-      VITE_SUPABASE_TEST_SERVICE_KEY: 'sb_secret_N7UND0UgjKTVK-Uodkm0Hg_xSvEMPvz',
+      VITE_SUPABASE_TEST_URL: process.env.VITE_SUPABASE_TEST_URL || 'http://127.0.0.1:54321',
+      VITE_SUPABASE_TEST_ANON_KEY: process.env.VITE_SUPABASE_TEST_ANON_KEY || '',
+      VITE_SUPABASE_TEST_SERVICE_KEY: process.env.VITE_SUPABASE_TEST_SERVICE_KEY || '',
     },
     coverage: {
       provider: 'v8',

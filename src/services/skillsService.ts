@@ -112,7 +112,7 @@ export const skillsService = {
       skill_id: string
       skills: Skill | null
     }
-    
+
     const skills = ((data || []) as unknown as UserSkillJoin[])
       .map((item) => item.skills)
       .filter((skill): skill is Skill => skill !== null)

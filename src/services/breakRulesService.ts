@@ -1,7 +1,7 @@
 // Break Schedule Rules Service
 
 import { supabase } from '../lib/supabase'
-import type { BreakScheduleRule } from '../types'
+import type { BreakScheduleRule, JsonObject } from '../types'
 
 const BREAK_RULES_TABLE = 'break_schedule_rules'
 
@@ -118,7 +118,7 @@ export const breakRulesService = {
    * Validate rule parameters based on rule type
    */
   validateRuleParameters(
-    parameters: Record<string, unknown>,
+    parameters: JsonObject,
     ruleType?: string
   ): string | null {
     if (!ruleType) return null
@@ -183,7 +183,7 @@ export const breakRulesService = {
 
           const validBreakTypes = ['HB1', 'B', 'HB2']
           for (const breakType of parameters.sequence) {
-            if (!validBreakTypes.includes(breakType)) {
+            if (typeof breakType === 'string' && !validBreakTypes.includes(breakType)) {
               return `Invalid break type in sequence: ${breakType}`
             }
           }

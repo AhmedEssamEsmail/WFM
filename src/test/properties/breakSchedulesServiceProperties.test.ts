@@ -80,9 +80,9 @@ describe('breakSchedulesService Properties', () => {
    * Validates: Requirements 6.1
    */
   describe('updateBreakSchedule', () => {
-    it('Property 14: Should handle any valid request without crashing', () => {
-      fc.assert(
-        fc.property(
+    it('Property 14: Should handle any valid request without crashing', async () => {
+      await fc.assert(
+        fc.asyncProperty(
           breakScheduleUpdateRequestArb,
           async (request) => {
             // The function should either:
@@ -107,9 +107,9 @@ describe('breakSchedulesService Properties', () => {
       )
     })
 
-    it('Property 14: Violations should have required properties', () => {
-      fc.assert(
-        fc.property(
+    it('Property 14: Violations should have required properties', async () => {
+      await fc.assert(
+        fc.asyncProperty(
           breakScheduleUpdateRequestArb,
           async (request) => {
             try {
@@ -132,9 +132,9 @@ describe('breakSchedulesService Properties', () => {
   })
 
   describe('bulkUpdateBreakSchedules', () => {
-    it('Property 14: Should handle bulk updates consistently', () => {
-      fc.assert(
-        fc.property(
+    it('Property 14: Should handle bulk updates consistently', async () => {
+      await fc.assert(
+        fc.asyncProperty(
           fc.array(breakScheduleUpdateRequestArb, { minLength: 1, maxLength: 5 }),
           async (updates) => {
             try {

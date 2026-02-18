@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { render, screen } from '@testing-library/react'
-import { ChunkErrorBoundary } from '../../components/ChunkErrorBoundary'
+import { ChunkErrorBoundary } from '../../components/shared/ChunkErrorBoundary'
 
 // Component that throws different types of errors
 const ThrowError = ({ errorType }: { errorType: 'chunk' | 'other' | 'none' }) => {

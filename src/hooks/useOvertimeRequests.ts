@@ -6,6 +6,20 @@ import { STALE_TIMES, QUERY_KEYS } from '../constants/cache'
 import type { PaginationParams, PaginatedResult } from '../types/pagination'
 import { DEFAULT_PAGINATION_PARAMS, calculateOffset, calculatePagination } from '../types/pagination'
 
+type OvertimeReviewUpdate = Pick<
+  OvertimeRequest,
+  | 'status'
+  | 'tl_reviewed_by'
+  | 'tl_reviewed_at'
+  | 'tl_decision'
+  | 'tl_notes'
+  | 'wfm_reviewed_by'
+  | 'wfm_reviewed_at'
+  | 'wfm_decision'
+  | 'wfm_notes'
+  | 'updated_at'
+>
+
 /**
  * React Query hooks for overtime request management
  * Provides queries and mutations for CRUD operations on overtime requests
@@ -204,7 +218,7 @@ export function useApproveOvertimeRequest() {
       if (requestError) throw requestError
 
       // Determine update based on role and current status
-      let updates: Record<string, unknown> = {}
+      let updates: Partial<OvertimeReviewUpdate> = {}
 
       if (userData.role === 'tl' && request.status === 'pending_tl') {
         // Team Lead approval
@@ -298,7 +312,7 @@ export function useRejectOvertimeRequest() {
       if (requestError) throw requestError
 
       // Determine update based on role and current status
-      let updates: Record<string, unknown> = {}
+      let updates: Partial<OvertimeReviewUpdate> = {}
 
       if (userData.role === 'tl' && request.status === 'pending_tl') {
         // Team Lead rejection

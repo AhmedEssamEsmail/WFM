@@ -53,16 +53,16 @@ describe('CoverageChart Component', () => {
   it('should display legend with all coverage levels', () => {
     render(<CoverageChart data={mockData} />)
     
-    expect(screen.getByText('Adequate (≥20)')).toBeInTheDocument()
-    expect(screen.getByText('Low (15-19)')).toBeInTheDocument()
-    expect(screen.getByText('Critical (<15)')).toBeInTheDocument()
+    expect(screen.getByText('Adequate (>12)')).toBeInTheDocument()
+    expect(screen.getByText('Low (8-12)')).toBeInTheDocument()
+    expect(screen.getByText('Critical (<8)')).toBeInTheDocument()
   })
 
   it('should render with empty data', () => {
     render(<CoverageChart data={[]} />)
     
     expect(screen.getByText('Coverage Overview')).toBeInTheDocument()
-    expect(screen.getByText('Adequate (≥20)')).toBeInTheDocument()
+    expect(screen.getByText('Adequate (>12)')).toBeInTheDocument()
   })
 
   it('should render with single day data', () => {
@@ -139,3 +139,4 @@ describe('CoverageChart Component', () => {
     expect(screen.getByText('50')).toBeInTheDocument()
   })
 })
+

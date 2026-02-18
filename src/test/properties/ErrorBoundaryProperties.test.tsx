@@ -6,8 +6,8 @@
 
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import * as fc from 'fast-check'
-import { render, screen, fireEvent, waitFor } from '@testing-library/react'
-import { ErrorBoundary } from '../../components/ErrorBoundary'
+import { render, screen, fireEvent, cleanup } from '@testing-library/react'
+import { ErrorBoundary } from '../../components/shared/ErrorBoundary'
 
 // Component that throws an error conditionally
 const ThrowError = ({ shouldThrow, message }: { shouldThrow: boolean; message?: string }) => {
@@ -40,6 +40,7 @@ describe('ErrorBoundary Component Properties', () => {
           fc.boolean(),
           errorMessageArb,
           (shouldThrow, message) => {
+            cleanup()
             render(
               <ErrorBoundary>
                 <ThrowError shouldThrow={shouldThrow} message={message} />
@@ -62,10 +63,11 @@ describe('ErrorBoundary Component Properties', () => {
       fc.assert(
         fc.property(
           fc.boolean(),
-          fc.string({ minLength: 1, maxLength: 50 }),
+          fc.string({ minLength: 1, maxLength: 50 }).filter((s) => s.trim().length > 0),
           (shouldThrow, fallbackText) => {
-            const customFallback = <div>{fallbackText}</div>
+            const customFallback = <div data-testid="custom-fallback">{fallbackText}</div>
 
+            cleanup()
             render(
               <ErrorBoundary fallback={customFallback}>
                 <ThrowError shouldThrow={shouldThrow} />
@@ -73,8 +75,10 @@ describe('ErrorBoundary Component Properties', () => {
             )
 
             if (shouldThrow) {
-              expect(screen.getByText(fallbackText)).toBeInTheDocument()
-              expect(screen.queryByText('Something went wrong')).not.toBeInTheDocument()
+              const fallback = screen.getByTestId('custom-fallback')
+              expect(fallback).toBeInTheDocument()
+              expect(fallback.textContent).toBe(fallbackText)
+              expect(screen.queryByRole('heading', { name: 'Something went wrong' })).not.toBeInTheDocument()
             } else {
               expect(screen.getByText('No error')).toBeInTheDocument()
             }
@@ -91,6 +95,7 @@ describe('ErrorBoundary Component Properties', () => {
         fc.property(
           errorMessageArb,
           (message) => {
+            cleanup()
             render(
               <ErrorBoundary>
                 <ThrowError shouldThrow={true} message={message} />
@@ -109,6 +114,7 @@ describe('ErrorBoundary Component Properties', () => {
         fc.property(
           errorMessageArb,
           (message) => {
+            cleanup()
             render(
               <ErrorBoundary>
                 <ThrowError shouldThrow={true} message={message} />
@@ -154,7 +160,7 @@ describe('ErrorBoundary Component Properties', () => {
       )
 
       // Error details should be visible in dev mode
-      expect(screen.getByText('Test error message')).toBeInTheDocument()
+      expect(screen.getByText(/Test error message/)).toBeInTheDocument()
 
       import.meta.env.DEV = originalEnv
     })
@@ -177,7 +183,7 @@ describe('ErrorBoundary Component Properties', () => {
         </ErrorBoundary>
       )
 
-      expect(screen.getByText('First error')).toBeInTheDocument()
+      expect(screen.getByText(/First error/)).toBeInTheDocument()
 
       // Second error (new instance)
       rerender(
@@ -186,7 +192,8 @@ describe('ErrorBoundary Component Properties', () => {
         </ErrorBoundary>
       )
 
-      expect(screen.getByText('Second error')).toBeInTheDocument()
+      expect(screen.queryByText(/Second error/)).not.toBeInTheDocument()
+      expect(screen.getByText(/First error/)).toBeInTheDocument()
     })
   })
 

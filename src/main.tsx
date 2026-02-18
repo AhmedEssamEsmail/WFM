@@ -4,6 +4,9 @@ import './index.css'
 import App from './App.tsx'
 import { ErrorBoundary } from './components/shared/ErrorBoundary.tsx'
 import { ChunkErrorBoundary } from './components/shared/ChunkErrorBoundary.tsx'
+import { initSentry } from './lib/sentry.ts'
+
+initSentry()
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>

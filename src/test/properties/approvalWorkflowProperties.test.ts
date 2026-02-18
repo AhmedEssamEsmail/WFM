@@ -10,8 +10,10 @@ import type { SwapRequest, LeaveRequest, OvertimeRequest } from '../../types'
 
 // Arbitraries for generating approval workflow data
 const uuidArb = fc.uuid()
-const dateArb = fc.date({ min: new Date('2020-01-01'), max: new Date('2030-12-31') }).map(d => d.toISOString().split('T')[0])
-const timestampArb = fc.date({ min: new Date('2020-01-01'), max: new Date('2030-12-31') }).map(d => d.toISOString())
+const minTs = Date.parse('2020-01-01T00:00:00.000Z')
+const maxTs = Date.parse('2030-12-31T23:59:59.999Z')
+const dateArb = fc.integer({ min: minTs, max: maxTs }).map(ts => new Date(ts).toISOString().split('T')[0])
+const timestampArb = fc.integer({ min: minTs, max: maxTs }).map(ts => new Date(ts).toISOString())
 
 // Status transitions for different request types
 const swapRequestStatuses = ['pending_acceptance', 'pending_tl', 'pending_wfm', 'approved', 'rejected'] as const

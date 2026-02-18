@@ -4,6 +4,7 @@ import Layout from './Layout'
 import { UnauthorizedAccessError } from '../../types/errors'
 import { logUnauthorizedAccess } from '../../lib/securityLogger'
 import type { UserRole } from '../../types'
+import { getAllowedEmailDomain, isEmailInAllowedDomain } from '../../constants'
 
 interface ProtectedRouteProps {
   children: React.ReactNode
@@ -13,7 +14,7 @@ interface ProtectedRouteProps {
 /**
  * ProtectedRoute component that handles:
  * 1. Authentication check - redirects to /login if not authenticated
- * 2. Domain-based access control - only @dabdoob.com emails allowed
+ * 2. Domain-based access control - only configured company domain emails allowed
  * 3. Role-based authorization - optional role restrictions
  * 4. Post-login redirect - preserves requested URL for redirect after login
  */
@@ -35,8 +36,9 @@ export default function ProtectedRoute({ children, requiredRoles }: ProtectedRou
     return <Navigate to="/login" state={{ from: location }} replace />
   }
   
-  // Domain-based access control: only @dabdoob.com emails allowed
-  if (user.email && !user.email.endsWith('@dabdoob.com')) {
+  // Domain-based access control: only configured company domain emails allowed
+  const allowedEmailDomain = getAllowedEmailDomain()
+  if (user.email && !isEmailInAllowedDomain(user.email, allowedEmailDomain)) {
     // Log the domain violation
     logUnauthorizedAccess(
       user.id,

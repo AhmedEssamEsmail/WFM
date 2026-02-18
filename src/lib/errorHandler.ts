@@ -30,18 +30,29 @@ const PII_FIELDS = [
   'apiKey',
 ]
 
+type ErrorContextValue =
+  | string
+  | number
+  | boolean
+  | null
+  | undefined
+  | { [key: string]: ErrorContextValue }
+  | ErrorContextValue[]
+
+type ErrorContext = { [key: string]: ErrorContextValue }
+
 interface ErrorOptions {
   userMessage?: string
   logToConsole?: boolean
   showToast?: boolean
-  context?: Record<string, unknown>
+  context?: ErrorContext
 }
 
 interface ErrorLog {
   timestamp: string
   error: unknown
   userMessage: string
-  context: Record<string, unknown>
+  context: ErrorContext
   stack?: string
 }
 
@@ -124,7 +135,7 @@ class ErrorHandler {
   /**
    * Sanitize a value to remove PII
    */
-  private sanitizeValue(value: unknown): unknown {
+  private sanitizeValue(value: ErrorContextValue): ErrorContextValue {
     if (typeof value === 'string') {
       let sanitized = value
       for (const { pattern } of PII_PATTERNS) {
@@ -132,17 +143,24 @@ class ErrorHandler {
       }
       return sanitized
     }
-    if (typeof value === 'object' && value !== null) {
-      return this.sanitizeObject(value as Record<string, unknown>)
+    if (Array.isArray(value)) {
+      return value.map((item) => this.sanitizeValue(item))
+    }
+    if (this.isContextObject(value)) {
+      return this.sanitizeObject(value)
     }
     return value
+  }
+
+  private isContextObject(value: ErrorContextValue): value is ErrorContext {
+    return typeof value === 'object' && value !== null && !Array.isArray(value)
   }
 
   /**
    * Sanitize an object to remove PII from values
    */
-  private sanitizeObject(obj: Record<string, unknown>): Record<string, unknown> {
-    const sanitized: Record<string, unknown> = {}
+  private sanitizeObject(obj: ErrorContext): ErrorContext {
+    const sanitized: ErrorContext = {}
     
     for (const [key, value] of Object.entries(obj)) {
       // Redact entire value if field name suggests PII
@@ -253,10 +271,11 @@ class ErrorHandler {
   private sendToErrorTracking(errorLog: ErrorLog): void {
     if (import.meta.env.PROD) {
       try {
+        const errorType = typeof errorLog.context.type === 'string' ? errorLog.context.type : 'unknown'
         Sentry.captureException(errorLog.error, {
           extra: errorLog.context,
           tags: {
-            errorType: errorLog.context.type as string,
+            errorType,
           },
         });
       } catch {

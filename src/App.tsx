@@ -83,15 +83,16 @@ function App() {
                 <Route path="/dashboard" element={<ProtectedRoute><PageErrorBoundary><Dashboard /></PageErrorBoundary></ProtectedRoute>} />
                 <Route path="/schedule" element={<ProtectedRoute><PageErrorBoundary><Schedule /></PageErrorBoundary></ProtectedRoute>} />
                 <Route path="/break-schedule" element={<ProtectedRoute><PageErrorBoundary><BreakSchedule /></PageErrorBoundary></ProtectedRoute>} />
-                <Route path="/requests" element={<ProtectedRoute><PageErrorBoundary><RequestManagement /></PageErrorBoundary></ProtectedRoute>} />
-                <Route path="/swap-requests" element={<ProtectedRoute><PageErrorBoundary><SwapRequests /></PageErrorBoundary></ProtectedRoute>} />
-                <Route path="/swap-requests/create" element={<ProtectedRoute><PageErrorBoundary><CreateSwapRequest /></PageErrorBoundary></ProtectedRoute>} />
-                <Route path="/swap-requests/:id" element={<ProtectedRoute><PageErrorBoundary><SwapRequestDetail /></PageErrorBoundary></ProtectedRoute>} />
+                <Route path="/requests" element={<ProtectedRoute requiredRoles={['wfm']}><PageErrorBoundary><RequestManagement /></PageErrorBoundary></ProtectedRoute>} />
+                <Route path="/swap-requests" element={<ProtectedRoute requiredRoles={['agent', 'tl']}><PageErrorBoundary><SwapRequests /></PageErrorBoundary></ProtectedRoute>} />
+                <Route path="/swap-requests/create" element={<ProtectedRoute requiredRoles={['agent', 'tl']}><PageErrorBoundary><CreateSwapRequest /></PageErrorBoundary></ProtectedRoute>} />
+                <Route path="/swap-requests/:id" element={<ProtectedRoute requiredRoles={['agent', 'tl']}><PageErrorBoundary><SwapRequestDetail /></PageErrorBoundary></ProtectedRoute>} />
                 <Route path="/leave-requests" element={<ProtectedRoute><PageErrorBoundary><LeaveRequests /></PageErrorBoundary></ProtectedRoute>} />
                 <Route path="/leave-requests/create" element={<ProtectedRoute><PageErrorBoundary><CreateLeaveRequest /></PageErrorBoundary></ProtectedRoute>} />
                 <Route path="/leave-requests/:id" element={<ProtectedRoute><PageErrorBoundary><LeaveRequestDetail /></PageErrorBoundary></ProtectedRoute>} />
                 <Route path="/overtime-requests" element={<ProtectedRoute><PageErrorBoundary><OvertimeRequests /></PageErrorBoundary></ProtectedRoute>} />
-                <Route path="/overtime-requests/new" element={<ProtectedRoute><PageErrorBoundary><CreateOvertimeRequest /></PageErrorBoundary></ProtectedRoute>} />
+                <Route path="/overtime-requests/create" element={<ProtectedRoute><PageErrorBoundary><CreateOvertimeRequest /></PageErrorBoundary></ProtectedRoute>} />
+                <Route path="/overtime-requests/new" element={<Navigate to="/overtime-requests/create" replace />} />
                 <Route path="/overtime-requests/:id" element={<ProtectedRoute><PageErrorBoundary><OvertimeRequestDetail /></PageErrorBoundary></ProtectedRoute>} />
                 <Route path="/leave-balances" element={<ProtectedRoute><PageErrorBoundary><LeaveBalances /></PageErrorBoundary></ProtectedRoute>} />
 

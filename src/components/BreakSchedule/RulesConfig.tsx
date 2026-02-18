@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { BreakScheduleRule } from '../../types'
+import type { BreakScheduleRule, JsonObject } from '../../types'
 import { BUTTON_STYLES, INPUT_STYLES, SEMANTIC_COLORS } from '../../lib/designSystem'
 
 interface RulesConfigProps {
@@ -10,12 +10,12 @@ interface RulesConfigProps {
 
 export default function RulesConfig({ rules, onUpdateRule, onToggleRule }: RulesConfigProps) {
   const [editingRule, setEditingRule] = useState<string | null>(null)
-  const [editedParams, setEditedParams] = useState<Record<string, unknown>>({})
+  const [editedParams, setEditedParams] = useState<JsonObject>({})
   const [isSaving, setIsSaving] = useState(false)
 
   const handleEdit = (rule: BreakScheduleRule) => {
     setEditingRule(rule.id)
-    setEditedParams(rule.parameters as Record<string, unknown>)
+    setEditedParams(rule.parameters)
   }
 
   const handleSave = async (ruleId: string) => {
@@ -50,7 +50,7 @@ export default function RulesConfig({ rules, onUpdateRule, onToggleRule }: Rules
       <div className="space-y-3">
         {rules.map((rule) => {
           const isEditing = editingRule === rule.id
-          const params = isEditing ? editedParams : (rule.parameters as Record<string, unknown>)
+          const params: JsonObject = isEditing ? editedParams : rule.parameters
 
           return (
             <div

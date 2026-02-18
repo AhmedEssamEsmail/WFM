@@ -86,11 +86,23 @@ export const emailSchema = z
 /**
  * Email with domain restriction
  */
-export const domainEmailSchema = (domain: string) =>
-  emailSchema.refine(
-    (email) => email.endsWith(domain),
-    `Email must be from ${domain} domain`
-  )
+function normalizeDomain(domain: string): string {
+  const normalized = domain.trim().toLowerCase()
+  if (!normalized) return ''
+  return normalized.startsWith('@') ? normalized : `@${normalized}`
+}
+
+export const domainEmailSchema = (domain: string) => {
+  const normalizedDomain = normalizeDomain(domain)
+  return emailSchema.refine((email) => {
+    if (!normalizedDomain) return false
+    return email.trim().toLowerCase().endsWith(normalizedDomain)
+  }, {
+    message: normalizedDomain
+      ? `Email must be from ${normalizedDomain} domain`
+      : 'Email domain is not configured',
+  })
+}
 
 // ============================================
 // Number Schemas

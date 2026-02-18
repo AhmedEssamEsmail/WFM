@@ -44,7 +44,7 @@ export const breakScheduleRuleSchema = z.object({
   rule_name: z.string().min(1),
   rule_type: ruleTypeSchema,
   description: z.string().nullable(),
-  parameters: z.record(z.string(), z.any()),
+  parameters: z.record(z.string(), z.unknown()),
   is_active: z.boolean(),
   is_blocking: z.boolean(),
   priority: z.number().int().min(0),
@@ -184,7 +184,7 @@ export const autoDistributePreviewSchema = z.object({
 // ============================================
 
 export const ruleUpdateSchema = z.object({
-  parameters: z.record(z.string(), z.any()).optional(),
+  parameters: z.record(z.string(), z.unknown()).optional(),
   is_active: z.boolean().optional(),
   is_blocking: z.boolean().optional(),
   priority: z.number().int().min(0).optional(),

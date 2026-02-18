@@ -46,7 +46,7 @@ export function logUnauthorizedAccess(
     try {
       Sentry.captureMessage(`Security Event: ${action}`, {
         level: 'warning',
-        extra: logEntry as unknown as Record<string, unknown>,
+        extra: logEntry as Record<string, any>,
         tags: {
           securityEvent: action,
           userRole,
