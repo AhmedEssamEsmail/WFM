@@ -13,7 +13,7 @@ import type { BreakScheduleUpdateRequest, AutoDistributeRequest, AgentBreakSched
 
 export default function BreakSchedule() {
   const { user } = useAuth()
-  const { success, error: showError } = useToast()
+  const { success, error: showError, loading, updateToast } = useToast()
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [currentDate, setCurrentDate] = useState(new Date())
   const [searchQuery, setSearchQuery] = useState('')
@@ -91,6 +91,9 @@ export default function BreakSchedule() {
       return
     }
     
+    // Show loading toast
+    const toastId = loading('Distributing breaks...')
+    
     try {
       const request: AutoDistributeRequest = {
         schedule_date: dateStr,
@@ -100,11 +103,15 @@ export default function BreakSchedule() {
       
       await autoDistribute.mutateAsync(request)
       
+      // Update toast to success
+      updateToast(toastId, 'Breaks distributed successfully!', 'success', 5000)
+      
       // Clear failed agents map on successful distribution
       setFailedAgentsMap({})
     } catch (error) {
       console.error('Auto-distribution failed:', error)
-      showError('Failed to auto-distribute breaks')
+      // Update toast to error
+      updateToast(toastId, 'Failed to auto-distribute breaks', 'error', 5000)
     }
   }
 
