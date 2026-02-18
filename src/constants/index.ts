@@ -4,7 +4,6 @@
 // REQUIRED ENVIRONMENT VARIABLES
 // ============================================
 export const REQUIRED_ENV_VARS = [
-  'VITE_ALLOWED_EMAIL_DOMAIN',
   'VITE_SUPABASE_URL',
   'VITE_SUPABASE_ANON_KEY',
 ] as const
@@ -55,16 +54,17 @@ export function isEmailInAllowedDomain(email: string, domain: string): boolean {
 
 export function getAllowedEmailDomain(): string {
   if (!_allowedEmailDomain) {
-    validateEnvironment()
-    _allowedEmailDomain = normalizeEmailDomain(import.meta.env.VITE_ALLOWED_EMAIL_DOMAIN as string)
+    const envDomain = import.meta.env.VITE_ALLOWED_EMAIL_DOMAIN as string
+    // Default to @dabdoob.com if not set
+    _allowedEmailDomain = normalizeEmailDomain(envDomain || '@dabdoob.com')
   }
   return _allowedEmailDomain!
 }
 
 // For backward compatibility, export as constant
-// In production, this should always be set. In tests, it may be empty string.
+// Defaults to @dabdoob.com if not set in environment
 export const ALLOWED_EMAIL_DOMAIN: string = normalizeEmailDomain(
-  (import.meta.env.VITE_ALLOWED_EMAIL_DOMAIN as string) || ''
+  (import.meta.env.VITE_ALLOWED_EMAIL_DOMAIN as string) || '@dabdoob.com'
 )
 export const SESSION_STORAGE_KEY = 'wfm_session'
 

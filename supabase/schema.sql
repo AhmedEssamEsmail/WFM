@@ -1157,7 +1157,11 @@ INSERT INTO break_schedule_rules (rule_name, rule_type, description, parameters,
 
 -- Function: Clear breaks on shift change
 CREATE OR REPLACE FUNCTION handle_shift_change()
-RETURNS TRIGGER AS $$
+RETURNS TRIGGER
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
 BEGIN
   -- Only proceed if shift type actually changed
   IF OLD.shift_type IS DISTINCT FROM NEW.shift_type THEN
@@ -1183,7 +1187,11 @@ $$ LANGUAGE plpgsql;
 
 -- Function: Swap breaks when swap approved
 CREATE OR REPLACE FUNCTION swap_break_schedules()
-RETURNS TRIGGER AS $$
+RETURNS TRIGGER
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
 DECLARE
   requester_date DATE;
   target_date DATE;
@@ -2118,7 +2126,10 @@ CREATE INDEX idx_user_skills_skill_id ON user_skills(skill_id);
 
 -- Trigger to update updated_at timestamp on skills table
 CREATE OR REPLACE FUNCTION update_skills_updated_at()
-RETURNS TRIGGER AS $$
+RETURNS TRIGGER
+LANGUAGE plpgsql
+SET search_path = public
+AS $$
 BEGIN
   NEW.updated_at = NOW();
   RETURN NEW;
@@ -2292,6 +2303,7 @@ CREATE OR REPLACE FUNCTION public.normalize_email_domain(domain_input TEXT)
 RETURNS TEXT
 LANGUAGE sql
 IMMUTABLE
+SET search_path = public
 AS $$
   SELECT CASE
     WHEN domain_input IS NULL OR btrim(domain_input) = '' THEN ''
@@ -2395,6 +2407,7 @@ CREATE OR REPLACE FUNCTION public.is_valid_email_domain(domain_input TEXT)
 RETURNS BOOLEAN
 LANGUAGE sql
 IMMUTABLE
+SET search_path = public
 AS $$
   SELECT public.normalize_email_domain(domain_input)
     ~ '^@[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?(?:\.[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?)+$';
