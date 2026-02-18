@@ -7,9 +7,9 @@ export default function DistributionSettingsForm() {
   const { settings, isLoading, updateSettings, resetToDefaults } = useDistributionSettings()
   
   const [formData, setFormData] = useState<Partial<Record<ShiftType, DistributionSettingsUpdate>>>({
-    AM: { shift_type: 'AM', hb1_start_column: 4, b_offset_minutes: 150, hb2_offset_minutes: 150 },
-    PM: { shift_type: 'PM', hb1_start_column: 16, b_offset_minutes: 150, hb2_offset_minutes: 150 },
-    BET: { shift_type: 'BET', hb1_start_column: 8, b_offset_minutes: 150, hb2_offset_minutes: 150 },
+    AM: { shift_type: 'AM', hb1_start_column: 4, b_offset_minutes: 150, hb2_offset_minutes: 150, ladder_increment: 1 },
+    PM: { shift_type: 'PM', hb1_start_column: 16, b_offset_minutes: 150, hb2_offset_minutes: 150, ladder_increment: 1 },
+    BET: { shift_type: 'BET', hb1_start_column: 8, b_offset_minutes: 150, hb2_offset_minutes: 150, ladder_increment: 1 },
   })
   
   const [errors, setErrors] = useState<Record<string, string>>({})
@@ -19,9 +19,9 @@ export default function DistributionSettingsForm() {
   useEffect(() => {
     if (settings && settings.length > 0) {
       const newFormData: Partial<Record<ShiftType, DistributionSettingsUpdate>> = {
-        AM: { shift_type: 'AM', hb1_start_column: 4, b_offset_minutes: 150, hb2_offset_minutes: 150 },
-        PM: { shift_type: 'PM', hb1_start_column: 16, b_offset_minutes: 150, hb2_offset_minutes: 150 },
-        BET: { shift_type: 'BET', hb1_start_column: 8, b_offset_minutes: 150, hb2_offset_minutes: 150 },
+        AM: { shift_type: 'AM', hb1_start_column: 4, b_offset_minutes: 150, hb2_offset_minutes: 150, ladder_increment: 1 },
+        PM: { shift_type: 'PM', hb1_start_column: 16, b_offset_minutes: 150, hb2_offset_minutes: 150, ladder_increment: 1 },
+        BET: { shift_type: 'BET', hb1_start_column: 8, b_offset_minutes: 150, hb2_offset_minutes: 150, ladder_increment: 1 },
       }
       
       for (const setting of settings) {
@@ -30,6 +30,7 @@ export default function DistributionSettingsForm() {
           hb1_start_column: setting.hb1_start_column,
           b_offset_minutes: setting.b_offset_minutes,
           hb2_offset_minutes: setting.hb2_offset_minutes,
+          ladder_increment: setting.ladder_increment,
         }
       }
       
@@ -65,6 +66,10 @@ export default function DistributionSettingsForm() {
       
       if (data.hb2_offset_minutes < 90) {
         newErrors[`${shiftType}_hb2_offset`] = 'HB2 offset must be at least 90 minutes'
+      }
+      
+      if (data.ladder_increment < 1 || data.ladder_increment > 20) {
+        newErrors[`${shiftType}_ladder_increment`] = 'Ladder increment must be between 1 and 20'
       }
     }
     
@@ -185,6 +190,36 @@ export default function DistributionSettingsForm() {
             />
             {errors[`${shiftType}_hb2_offset`] && (
               <p className="mt-1 text-sm text-red-600">{errors[`${shiftType}_hb2_offset`]}</p>
+            )}
+          </div>
+
+          {/* Ladder Increment */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Ladder Increment (intervals between agents)
+            </label>
+            <input
+              type="number"
+              min="1"
+              max="20"
+              value={data.ladder_increment}
+              onChange={(e) => {
+                const value = parseInt(e.target.value, 10)
+                if (!isNaN(value)) {
+                  setFormData(prev => ({
+                    ...prev,
+                    [shiftType]: { ...prev[shiftType], ladder_increment: value }
+                  }))
+                  setHasChanges(true)
+                }
+              }}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
+            />
+            <p className="mt-1 text-xs text-gray-500">
+              Number of 15-minute intervals to skip between each agent (e.g., 1 = 15 min, 11 = 2h 45min)
+            </p>
+            {errors[`${shiftType}_ladder_increment`] && (
+              <p className="mt-1 text-sm text-red-600">{errors[`${shiftType}_ladder_increment`]}</p>
             )}
           </div>
         </div>

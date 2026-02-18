@@ -492,8 +492,8 @@ export async function ladderDistributionStrategy(
           blockedBy: blockedByRules,
         })
         
-        // Move to next column for next agent
-        currentColumn++
+        // Move to next column for next agent using configured ladder increment
+        currentColumn += shiftSettings.ladder_increment
         continue
       }
 
@@ -527,8 +527,8 @@ export async function ladderDistributionStrategy(
         else if (interval.break_type === 'HB2') coverageSummary[time].hb2++
       }
 
-      // Increment column for next agent (ladder pattern)
-      currentColumn++
+      // Increment column for next agent using configured ladder increment
+      currentColumn += shiftSettings.ladder_increment
     }
   }
 

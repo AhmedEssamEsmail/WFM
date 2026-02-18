@@ -365,6 +365,7 @@ export interface DistributionSettings {
   hb1_start_column: number
   b_offset_minutes: number
   hb2_offset_minutes: number
+  ladder_increment: number
   created_at: string
   updated_at: string
 }
@@ -374,6 +375,7 @@ export interface DistributionSettingsUpdate {
   hb1_start_column: number
   b_offset_minutes: number
   hb2_offset_minutes: number
+  ladder_increment: number
 }
 
 export interface AutoDistributeRequest {
