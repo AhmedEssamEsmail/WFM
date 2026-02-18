@@ -6,11 +6,17 @@ import type {
   OvertimeStatus,
   CreateOvertimeRequestInput,
   OvertimeRequestFilters,
+  OvertimeStatistics,
+  OvertimeSummary,
+  OvertimeHours,
+  AgentOvertimeStats,
+  OvertimeTrend,
 } from '../types/overtime'
 import { API_ENDPOINTS } from '../constants'
 import { validateUUID } from '../validation'
 import { ResourceNotFoundError, ConcurrencyError, ValidationError } from '../types/errors'
 import { commentsService } from './commentsService'
+import { overtimeSettingsService } from './overtimeSettingsService'
 
 export const overtimeRequestsService = {
   /**
@@ -440,4 +446,184 @@ export const overtimeRequestsService = {
 
     return data as OvertimeRequest
   },
+
+  /**
+   * Get overtime statistics for reporting
+   */
+  async getOvertimeStatistics(filters: OvertimeRequestFilters = {}): Promise<OvertimeStatistics> {
+    // Build query
+    let query = supabase
+      .from('overtime_requests')
+      .select(`
+        *,
+        requester:users!overtime_requests_requester_id_fkey(id, name, department, employee_id)
+      `)
+
+    // Apply date filters
+    if (filters.date_from) {
+      query = query.gte('request_date', filters.date_from)
+    }
+
+    if (filters.date_to) {
+      query = query.lte('request_date', filters.date_to)
+    }
+
+    // Apply department filter
+    if (filters.department) {
+      // Will be filtered client-side
+    }
+
+    const { data, error } = await query
+
+    if (error) throw error
+
+    let requests = (data as OvertimeRequest[]) || []
+
+    // Apply client-side department filter
+    if (filters.department) {
+      requests = requests.filter(req => req.requester?.department === filters.department)
+    }
+
+    // Get settings for pay multipliers
+    const settings = await overtimeSettingsService.getOvertimeSettings()
+
+    // Calculate summary statistics
+    const totalRequests = requests.length
+    const approved = requests.filter(r => r.status === 'approved').length
+    const rejected = requests.filter(r => r.status === 'rejected').length
+    const pending = requests.filter(r => r.status === 'pending_tl' || r.status === 'pending_wfm').length
+    const approvalRate = totalRequests > 0 ? Math.round((approved / totalRequests) * 100) : 0
+
+    const summary: OvertimeSummary = {
+      total_requests: totalRequests,
+      approved,
+      rejected,
+      pending,
+      approval_rate: approvalRate,
+    }
+
+    // Calculate hours breakdown (only approved requests)
+    const approvedRequests = requests.filter(r => r.status === 'approved')
+    const regularHours = approvedRequests
+      .filter(r => r.overtime_type === 'regular')
+      .reduce((sum, r) => sum + r.total_hours, 0)
+    const doubleHours = approvedRequests
+      .filter(r => r.overtime_type === 'double')
+      .reduce((sum, r) => sum + r.total_hours, 0)
+    const totalHours = regularHours + doubleHours
+    const equivalentHours = 
+      (regularHours * settings.pay_multipliers.regular) + 
+      (doubleHours * settings.pay_multipliers.double)
+
+    const hours: OvertimeHours = {
+      total_hours: Number(totalHours.toFixed(2)),
+      regular_hours: Number(regularHours.toFixed(2)),
+      double_hours: Number(doubleHours.toFixed(2)),
+      equivalent_hours: Number(equivalentHours.toFixed(2)),
+    }
+
+    // Calculate by agent (top 5, only approved)
+    const agentMap = new Map<string, AgentOvertimeStats>()
+    
+    approvedRequests.forEach(req => {
+      if (!req.requester) return
+
+      const userId = req.requester.id
+      if (!agentMap.has(userId)) {
+        agentMap.set(userId, {
+          user_id: userId,
+          name: req.requester.name,
+          department: req.requester.department,
+          total_hours: 0,
+          regular_hours: 0,
+          double_hours: 0,
+          equivalent_hours: 0,
+          request_count: 0,
+        })
+      }
+
+      const stats = agentMap.get(userId)!
+      stats.total_hours += req.total_hours
+      stats.request_count += 1
+
+      if (req.overtime_type === 'regular') {
+        stats.regular_hours += req.total_hours
+        stats.equivalent_hours += req.total_hours * settings.pay_multipliers.regular
+      } else {
+        stats.double_hours += req.total_hours
+        stats.equivalent_hours += req.total_hours * settings.pay_multipliers.double
+      }
+    })
+
+    const byAgent = Array.from(agentMap.values())
+      .sort((a, b) => b.total_hours - a.total_hours)
+      .slice(0, 5)
+      .map(agent => ({
+        ...agent,
+        total_hours: Number(agent.total_hours.toFixed(2)),
+        regular_hours: Number(agent.regular_hours.toFixed(2)),
+        double_hours: Number(agent.double_hours.toFixed(2)),
+        equivalent_hours: Number(agent.equivalent_hours.toFixed(2)),
+      }))
+
+    // Calculate by type (all requests)
+    const regularCount = requests.filter(r => r.overtime_type === 'regular').length
+    const regularTypeHours = requests
+      .filter(r => r.overtime_type === 'regular')
+      .reduce((sum, r) => sum + r.total_hours, 0)
+    const doubleCount = requests.filter(r => r.overtime_type === 'double').length
+    const doubleTypeHours = requests
+      .filter(r => r.overtime_type === 'double')
+      .reduce((sum, r) => sum + r.total_hours, 0)
+
+    const byType = {
+      regular: {
+        count: regularCount,
+        hours: Number(regularTypeHours.toFixed(2)),
+      },
+      double: {
+        count: doubleCount,
+        hours: Number(doubleTypeHours.toFixed(2)),
+      },
+    }
+
+    // Calculate weekly trend (last 8 weeks, only approved)
+    const weekMap = new Map<string, number>()
+    
+    approvedRequests.forEach(req => {
+      const date = new Date(req.request_date)
+      const year = date.getFullYear()
+      const week = getWeekNumber(date)
+      const weekKey = `${year}-W${String(week).padStart(2, '0')}`
+      
+      weekMap.set(weekKey, (weekMap.get(weekKey) || 0) + req.total_hours)
+    })
+
+    const trend: OvertimeTrend[] = Array.from(weekMap.entries())
+      .map(([week, hours]) => ({
+        week,
+        hours: Number(hours.toFixed(2)),
+      }))
+      .sort((a, b) => a.week.localeCompare(b.week))
+      .slice(-8) // Last 8 weeks
+
+    return {
+      summary,
+      hours,
+      by_agent: byAgent,
+      by_type: byType,
+      trend,
+    }
+  },
+}
+
+/**
+ * Helper function to get ISO week number
+ */
+function getWeekNumber(date: Date): number {
+  const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()))
+  const dayNum = d.getUTCDay() || 7
+  d.setUTCDate(d.getUTCDate() + 4 - dayNum)
+  const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1))
+  return Math.ceil((((d.getTime() - yearStart.getTime()) / 86400000) + 1) / 7)
 }

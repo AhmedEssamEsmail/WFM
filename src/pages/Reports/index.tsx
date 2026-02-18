@@ -7,9 +7,11 @@ import ReportFilters from './ReportFilters'
 import MetricCards from './MetricCards'
 import SwapChart from './SwapChart'
 import LeaveChart from './LeaveChart'
+import { OvertimeStatistics } from '../../components/OvertimeRequests'
 
 export default function Reports() {
   const { user } = useAuth()
+  const [activeTab, setActiveTab] = useState<'overview' | 'overtime'>('overview')
   const [dateRange, setDateRange] = useState<'current' | 'last' | 'custom'>('current')
   const [startDate, setStartDate] = useState(format(startOfMonth(new Date()), 'yyyy-MM-dd'))
   const [endDate, setEndDate] = useState(format(endOfMonth(new Date()), 'yyyy-MM-dd'))
@@ -90,15 +92,43 @@ export default function Reports() {
             View team performance and request statistics
           </p>
         </div>
-        <button
-          onClick={exportToCSV}
-          className="mt-4 sm:mt-0 inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
-        >
-          <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-          </svg>
-          Export CSV
-        </button>
+        {activeTab === 'overview' && (
+          <button
+            onClick={exportToCSV}
+            className="mt-4 sm:mt-0 inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
+          >
+            <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
+            Export CSV
+          </button>
+        )}
+      </div>
+
+      {/* Tabs */}
+      <div className="border-b border-gray-200">
+        <nav className="-mb-px flex space-x-8">
+          <button
+            onClick={() => setActiveTab('overview')}
+            className={`${
+              activeTab === 'overview'
+                ? 'border-primary-500 text-primary-600'
+                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+            } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm`}
+          >
+            Overview
+          </button>
+          <button
+            onClick={() => setActiveTab('overtime')}
+            className={`${
+              activeTab === 'overtime'
+                ? 'border-primary-500 text-primary-600'
+                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+            } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm`}
+          >
+            Overtime
+          </button>
+        </nav>
       </div>
 
       {/* Date Range Selector */}
@@ -111,7 +141,8 @@ export default function Reports() {
         onEndDateChange={setEndDate}
       />
 
-      {metrics && (
+      {/* Tab Content */}
+      {activeTab === 'overview' && metrics && (
         <>
           {/* Summary Cards */}
           <MetricCards metrics={metrics} usersCount={users.length} />
@@ -122,6 +153,15 @@ export default function Reports() {
             <LeaveChart metrics={metrics} />
           </div>
         </>
+      )}
+
+      {activeTab === 'overtime' && (
+        <OvertimeStatistics
+          filters={{
+            date_from: startDate,
+            date_to: endDate,
+          }}
+        />
       )}
     </div>
   )
