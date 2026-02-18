@@ -14,10 +14,11 @@ export default function DistributionSettingsForm() {
   
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [hasChanges, setHasChanges] = useState(false)
+  const [isInitialized, setIsInitialized] = useState(false)
 
-  // Load settings into form when they're fetched
+  // Load settings into form only once on initial mount
   useEffect(() => {
-    if (settings && settings.length > 0) {
+    if (settings && settings.length > 0 && !isInitialized) {
       const newFormData: Partial<Record<ShiftType, DistributionSettingsUpdate>> = {
         AM: { shift_type: 'AM', hb1_start_column: 4, b_offset_minutes: 150, hb2_offset_minutes: 150, ladder_increment: 1 },
         PM: { shift_type: 'PM', hb1_start_column: 16, b_offset_minutes: 150, hb2_offset_minutes: 150, ladder_increment: 1 },
@@ -35,8 +36,9 @@ export default function DistributionSettingsForm() {
       }
       
       setFormData(newFormData)
+      setIsInitialized(true)
     }
-  }, [settings])
+  }, [settings, isInitialized])
 
   // Convert column to time string for display
   const columnToTime = (column: number): string => {
@@ -105,12 +107,14 @@ export default function DistributionSettingsForm() {
     const updates = Object.values(formData).filter((data): data is DistributionSettingsUpdate => data !== undefined)
     await updateSettings.mutateAsync(updates)
     setHasChanges(false)
+    // Don't reset isInitialized so the form doesn't reload after save
   }
 
   const handleReset = async () => {
     if (window.confirm('Are you sure you want to reset all settings to defaults?')) {
       await resetToDefaults.mutateAsync()
       setHasChanges(false)
+      setIsInitialized(false) // Allow form to reload with default values
     }
   }
 
