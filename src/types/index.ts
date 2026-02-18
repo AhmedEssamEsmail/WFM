@@ -366,6 +366,7 @@ export interface DistributionSettings {
   b_offset_minutes: number
   hb2_offset_minutes: number
   ladder_increment: number
+  max_agents_per_cycle: number
   created_at: string
   updated_at: string
 }
@@ -376,6 +377,7 @@ export interface DistributionSettingsUpdate {
   b_offset_minutes: number
   hb2_offset_minutes: number
   ladder_increment: number
+  max_agents_per_cycle: number
 }
 
 export interface AutoDistributeRequest {

@@ -28,21 +28,24 @@ function getDefaultSettings(): DistributionSettingsUpdate[] {
       hb1_start_column: 4,   // 9:45 AM
       b_offset_minutes: 150,  // 2.5 hours
       hb2_offset_minutes: 150, // 2.5 hours
-      ladder_increment: 1 // 15 minutes between agents
+      ladder_increment: 1, // 15 minutes between agents
+      max_agents_per_cycle: 5 // Reset after 5 agents
     },
     {
       shift_type: 'PM',
       hb1_start_column: 16,  // 1:00 PM
       b_offset_minutes: 150,
       hb2_offset_minutes: 150,
-      ladder_increment: 1
+      ladder_increment: 1,
+      max_agents_per_cycle: 5
     },
     {
       shift_type: 'BET',
       hb1_start_column: 8,   // 10:45 AM
       b_offset_minutes: 150,
       hb2_offset_minutes: 150,
-      ladder_increment: 1
+      ladder_increment: 1,
+      max_agents_per_cycle: 5
     }
   ]
 }

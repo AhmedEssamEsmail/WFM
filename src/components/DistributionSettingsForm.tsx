@@ -7,9 +7,9 @@ export default function DistributionSettingsForm() {
   const { settings, isLoading, updateSettings, resetToDefaults } = useDistributionSettings()
   
   const [formData, setFormData] = useState<Partial<Record<ShiftType, DistributionSettingsUpdate>>>({
-    AM: { shift_type: 'AM', hb1_start_column: 4, b_offset_minutes: 150, hb2_offset_minutes: 150, ladder_increment: 1 },
-    PM: { shift_type: 'PM', hb1_start_column: 16, b_offset_minutes: 150, hb2_offset_minutes: 150, ladder_increment: 1 },
-    BET: { shift_type: 'BET', hb1_start_column: 8, b_offset_minutes: 150, hb2_offset_minutes: 150, ladder_increment: 1 },
+    AM: { shift_type: 'AM', hb1_start_column: 4, b_offset_minutes: 150, hb2_offset_minutes: 150, ladder_increment: 1, max_agents_per_cycle: 5 },
+    PM: { shift_type: 'PM', hb1_start_column: 16, b_offset_minutes: 150, hb2_offset_minutes: 150, ladder_increment: 1, max_agents_per_cycle: 5 },
+    BET: { shift_type: 'BET', hb1_start_column: 8, b_offset_minutes: 150, hb2_offset_minutes: 150, ladder_increment: 1, max_agents_per_cycle: 5 },
   })
   
   const [errors, setErrors] = useState<Record<string, string>>({})
@@ -20,9 +20,9 @@ export default function DistributionSettingsForm() {
   useEffect(() => {
     if (settings && settings.length > 0 && !isInitialized) {
       const newFormData: Partial<Record<ShiftType, DistributionSettingsUpdate>> = {
-        AM: { shift_type: 'AM', hb1_start_column: 4, b_offset_minutes: 150, hb2_offset_minutes: 150, ladder_increment: 1 },
-        PM: { shift_type: 'PM', hb1_start_column: 16, b_offset_minutes: 150, hb2_offset_minutes: 150, ladder_increment: 1 },
-        BET: { shift_type: 'BET', hb1_start_column: 8, b_offset_minutes: 150, hb2_offset_minutes: 150, ladder_increment: 1 },
+        AM: { shift_type: 'AM', hb1_start_column: 4, b_offset_minutes: 150, hb2_offset_minutes: 150, ladder_increment: 1, max_agents_per_cycle: 5 },
+        PM: { shift_type: 'PM', hb1_start_column: 16, b_offset_minutes: 150, hb2_offset_minutes: 150, ladder_increment: 1, max_agents_per_cycle: 5 },
+        BET: { shift_type: 'BET', hb1_start_column: 8, b_offset_minutes: 150, hb2_offset_minutes: 150, ladder_increment: 1, max_agents_per_cycle: 5 },
       }
       
       for (const setting of settings) {
@@ -32,6 +32,7 @@ export default function DistributionSettingsForm() {
           b_offset_minutes: setting.b_offset_minutes,
           hb2_offset_minutes: setting.hb2_offset_minutes,
           ladder_increment: setting.ladder_increment,
+          max_agents_per_cycle: setting.max_agents_per_cycle,
         }
       }
       
@@ -72,6 +73,10 @@ export default function DistributionSettingsForm() {
       
       if (data.ladder_increment < 1 || data.ladder_increment > 20) {
         newErrors[`${shiftType}_ladder_increment`] = 'Ladder increment must be between 1 and 20'
+      }
+      
+      if (data.max_agents_per_cycle < 1 || data.max_agents_per_cycle > 50) {
+        newErrors[`${shiftType}_max_agents`] = 'Max agents per cycle must be between 1 and 50'
       }
     }
     
@@ -224,6 +229,36 @@ export default function DistributionSettingsForm() {
             </p>
             {errors[`${shiftType}_ladder_increment`] && (
               <p className="mt-1 text-sm text-red-600">{errors[`${shiftType}_ladder_increment`]}</p>
+            )}
+          </div>
+
+          {/* Max Agents Per Cycle */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Max Agents Per Cycle
+            </label>
+            <input
+              type="number"
+              min="1"
+              max="50"
+              value={data.max_agents_per_cycle}
+              onChange={(e) => {
+                const value = parseInt(e.target.value, 10)
+                if (!isNaN(value)) {
+                  setFormData(prev => ({
+                    ...prev,
+                    [shiftType]: { ...prev[shiftType], max_agents_per_cycle: value }
+                  }))
+                  setHasChanges(true)
+                }
+              }}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
+            />
+            <p className="mt-1 text-xs text-gray-500">
+              Number of agents to assign before resetting to start column (e.g., 5 = reset after 5 agents)
+            </p>
+            {errors[`${shiftType}_max_agents`] && (
+              <p className="mt-1 text-sm text-red-600">{errors[`${shiftType}_max_agents`]}</p>
             )}
           </div>
         </div>

@@ -452,8 +452,14 @@ export async function ladderDistributionStrategy(
     }
 
     let currentColumn = shiftSettings.hb1_start_column
+    let agentCount = 0 // Track number of agents processed in current cycle
 
     for (const agent of shiftAgents) {
+      // Reset to start column after max_agents_per_cycle
+      if (agentCount > 0 && agentCount % shiftSettings.max_agents_per_cycle === 0) {
+        currentColumn = shiftSettings.hb1_start_column
+      }
+
       // Calculate break times using ladder pattern
       const hb1Time = columnToTime(currentColumn)
       const bTime = addMinutesToTime(hb1Time, shiftSettings.b_offset_minutes)
@@ -494,6 +500,7 @@ export async function ladderDistributionStrategy(
         
         // Move to next column for next agent using configured ladder increment
         currentColumn += shiftSettings.ladder_increment
+        agentCount++
         continue
       }
 
@@ -529,6 +536,7 @@ export async function ladderDistributionStrategy(
 
       // Increment column for next agent using configured ladder increment
       currentColumn += shiftSettings.ladder_increment
+      agentCount++
     }
   }
 
