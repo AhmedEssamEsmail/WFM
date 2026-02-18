@@ -19,7 +19,7 @@ This implementation plan breaks down the role-based visibility feature into disc
   - **Property 4: Manager-Visible Dashboard Cards Are Shown to Managers**
   - **Validates: Requirements 3.1, 3.2, 3.3, 3.4, 3.5, 3.6, 3.7, 3.8, 3.9, 3.10, 3.11, 3.12**
 
-- [ ]* 1.2 Write unit tests for useRoleCheck hook
+- [x]* 1.2 Write unit tests for useRoleCheck hook
   - Test each role-checking function with different role combinations
   - Test error handling when used outside AuthContext
   - Test convenience boolean properties
@@ -35,7 +35,7 @@ This implementation plan breaks down the role-based visibility feature into disc
   - **Property 2: Unauthorized Access Attempts Are Logged**
   - **Validates: Requirements 1.2, 1.3, 1.4, 2.4, 6.1, 6.2**
 
-- [ ]* 2.2 Write unit tests for /requests route protection
+- [x]* 2.2 Write unit tests for /requests route protection
   - Test that wfm role can access /requests
   - Test that agent role is redirected from /requests
   - Test that tl role is redirected from /requests
@@ -52,7 +52,7 @@ This implementation plan breaks down the role-based visibility feature into disc
   - **Property 2: Unauthorized Access Attempts Are Logged**
   - **Validates: Requirements 1.2, 1.3, 2.3, 2.4, 6.1, 6.2**
 
-- [ ]* 3.2 Write unit tests for /swap-requests route protection
+- [x]* 3.2 Write unit tests for /swap-requests route protection
   - Test that agent role can access /swap-requests
   - Test that tl role can access /swap-requests
   - Test that wfm role is redirected from /swap-requests
@@ -69,7 +69,7 @@ This implementation plan breaks down the role-based visibility feature into disc
   - **Property 5: Navigation Items Match User Role Permissions**
   - **Validates: Requirements 5.1, 5.2, 5.3, 5.4, 5.5**
 
-- [ ]* 4.2 Write unit tests for navigation menu filtering
+- [x]* 4.2 Write unit tests for navigation menu filtering
   - Test that agent sees "Swap Requests" but not "Requests"
   - Test that tl sees "Swap Requests" but not "Requests"
   - Test that wfm sees "Requests" but not "Swap Requests"

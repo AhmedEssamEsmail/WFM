@@ -1,14 +1,36 @@
 import { useOvertimeStatistics } from '../../hooks/useOvertimeStatistics'
 import type { OvertimeRequestFilters } from '../../types/overtime'
 import { Download } from 'lucide-react'
+import { overtimeRequestsService } from '../../services/overtimeRequestsService'
+import { generateOvertimeCSVFilename } from '../../utils/overtimeCsvHelpers'
+import { downloadCSV } from '../../utils'
+import { useState } from 'react'
+import { useToast } from '../../contexts/ToastContext'
 
 interface OvertimeStatisticsProps {
   filters: OvertimeRequestFilters
   onExportCSV?: () => void
 }
 
-export default function OvertimeStatistics({ filters, onExportCSV }: OvertimeStatisticsProps) {
+export default function OvertimeStatistics({ filters }: OvertimeStatisticsProps) {
   const { data: statistics, isLoading, error } = useOvertimeStatistics(filters)
+  const [exporting, setExporting] = useState(false)
+  const { success, error: showError } = useToast()
+
+  async function handleExportCSV() {
+    setExporting(true)
+    try {
+      const csvContent = await overtimeRequestsService.exportOvertimeCSV(filters)
+      const filename = generateOvertimeCSVFilename(filters.date_from, filters.date_to)
+      downloadCSV(filename, csvContent)
+      success('CSV exported successfully')
+    } catch (err) {
+      console.error('Export error:', err)
+      showError('Failed to export CSV')
+    } finally {
+      setExporting(false)
+    }
+  }
 
   if (isLoading) {
     return (
@@ -37,20 +59,19 @@ export default function OvertimeStatistics({ filters, onExportCSV }: OvertimeSta
   return (
     <div className="space-y-6">
       {/* Export Button */}
-      {onExportCSV && (
-        <div className="flex justify-end">
-          <button
-            onClick={onExportCSV}
-            className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-          >
-            <Download className="h-4 w-4 mr-2" />
-            Export CSV
-          </button>
-        </div>
-      )}
+      <div className="flex justify-end">
+        <button
+          onClick={handleExportCSV}
+          disabled={exporting}
+          className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          <Download className="h-4 w-4 mr-2" />
+          {exporting ? 'Exporting...' : 'Export CSV'}
+        </button>
+      </div>
 
       {/* Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
         <div className="bg-white rounded-lg shadow p-6">
           <div className="text-sm font-medium text-gray-500">Total Requests</div>
           <div className="mt-2 text-3xl font-semibold text-gray-900">
@@ -83,7 +104,7 @@ export default function OvertimeStatistics({ filters, onExportCSV }: OvertimeSta
       {/* Hours Breakdown */}
       <div className="bg-white rounded-lg shadow p-6">
         <h3 className="text-lg font-medium text-gray-900 mb-4">Hours Breakdown</h3>
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
           <div>
             <div className="text-sm font-medium text-gray-500">Total Hours</div>
             <div className="mt-1 text-2xl font-semibold text-gray-900">
@@ -180,7 +201,7 @@ export default function OvertimeStatistics({ filters, onExportCSV }: OvertimeSta
       {/* Overtime by Type */}
       <div className="bg-white rounded-lg shadow p-6">
         <h3 className="text-lg font-medium text-gray-900 mb-4">Overtime Distribution by Type</h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
           <div className="border rounded-lg p-4">
             <div className="flex items-center justify-between mb-2">
               <div className="text-sm font-medium text-gray-700">Regular Overtime (1.5x)</div>

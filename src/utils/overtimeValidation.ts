@@ -296,3 +296,81 @@ export function validateOvertimeRequest(
     warnings
   }
 }
+
+/**
+ * Shift information for validation
+ */
+export interface ShiftInfo {
+  shift_type: string
+  start_time: string
+  end_time: string
+  date: string
+}
+
+/**
+ * Check if overtime is during or outside scheduled shift
+ * 
+ * @param input - The overtime request input
+ * @param shift - The agent's shift for that date (if any)
+ * @param settings - Current overtime settings
+ * @returns Object with shift verification result
+ */
+export function checkShiftVerification(
+  input: CreateOvertimeRequestInput,
+  shift: ShiftInfo | null,
+  settings: OvertimeSettings
+): { 
+  hasShift: boolean
+  outsideShift: boolean
+  shiftInfo?: string
+  warning?: string
+} {
+  // If shift verification is not required, skip check
+  if (!settings.require_shift_verification.enabled) {
+    return { hasShift: !!shift, outsideShift: false }
+  }
+
+  // No shift found
+  if (!shift) {
+    return {
+      hasShift: false,
+      outsideShift: false,
+      warning: 'No scheduled shift found for this date'
+    }
+  }
+
+  // Check if overtime is outside shift hours
+  const overtimeStart = toMinutes(input.start_time)
+  const overtimeEnd = toMinutes(input.end_time)
+  const shiftStart = toMinutes(shift.start_time)
+  const shiftEnd = toMinutes(shift.end_time)
+
+  const beforeShift = overtimeEnd <= shiftStart
+  const afterShift = overtimeStart >= shiftEnd
+  const outsideShift = beforeShift || afterShift
+
+  const shiftInfo = `Scheduled shift: ${shift.shift_type} (${shift.start_time} - ${shift.end_time})`
+
+  if (outsideShift) {
+    return {
+      hasShift: true,
+      outsideShift: true,
+      shiftInfo,
+      warning: 'Overtime is outside your scheduled shift hours'
+    }
+  }
+
+  return {
+    hasShift: true,
+    outsideShift: false,
+    shiftInfo
+  }
+}
+
+/**
+ * Helper to convert time string to minutes
+ */
+function toMinutes(time: string): number {
+  const [hours, minutes, seconds = 0] = time.split(':').map(Number)
+  return hours * 60 + minutes + seconds / 60
+}

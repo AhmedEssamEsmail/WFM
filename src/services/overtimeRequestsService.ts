@@ -615,6 +615,52 @@ export const overtimeRequestsService = {
       trend,
     }
   },
+
+  /**
+   * Export overtime requests to CSV
+   */
+  async exportOvertimeCSV(filters: OvertimeRequestFilters = {}): Promise<string> {
+    // Build query for approved requests only
+    let query = supabase
+      .from('overtime_requests')
+      .select(`
+        *,
+        requester:users!overtime_requests_requester_id_fkey(id, name, department, employee_id)
+      `)
+      .eq('status', 'approved')
+
+    // Apply date filters
+    if (filters.date_from) {
+      query = query.gte('request_date', filters.date_from)
+    }
+
+    if (filters.date_to) {
+      query = query.lte('request_date', filters.date_to)
+    }
+
+    // Apply department filter
+    if (filters.department) {
+      // Will be filtered client-side
+    }
+
+    const { data, error } = await query
+
+    if (error) throw error
+
+    let requests = (data as OvertimeRequest[]) || []
+
+    // Apply client-side department filter
+    if (filters.department) {
+      requests = requests.filter(req => req.requester?.department === filters.department)
+    }
+
+    // Get settings for pay multipliers
+    const settings = await overtimeSettingsService.getOvertimeSettings()
+
+    // Generate CSV using helper
+    const { generateOvertimeCSV } = await import('../utils/overtimeCsvHelpers')
+    return generateOvertimeCSV(requests, settings)
+  },
 }
 
 /**

@@ -4,7 +4,7 @@ import { useAuth } from '../../hooks/useAuth'
 import { useCreateOvertimeRequest, useOvertimeRequests } from '../../hooks/useOvertimeRequests'
 import { useOvertimeSettings } from '../../hooks/useOvertimeSettings'
 import { shiftsService } from '../../services'
-import { calculateHours, validateOvertimeRequest } from '../../utils/overtimeValidation'
+import { calculateHours, validateOvertimeRequest, checkShiftVerification } from '../../utils/overtimeValidation'
 import type { OvertimeType, Shift } from '../../types'
 import { ROUTES } from '../../constants'
 
@@ -79,9 +79,29 @@ export default function CreateOvertimeRequest() {
 
     const validation = validateOvertimeRequest(input, settings, existingRequests)
     
+    // Add shift verification warnings
+    if (settings.require_shift_verification.enabled && shift) {
+      const shiftCheck = checkShiftVerification(
+        input,
+        {
+          shift_type: shift.shift_type,
+          start_time: '00:00:00', // Placeholder - we'd need to join with shift_configurations
+          end_time: '23:59:59',   // Placeholder - we'd need to join with shift_configurations
+          date: shift.date
+        },
+        settings
+      )
+      
+      if (shiftCheck.warning) {
+        validation.warnings.push(shiftCheck.warning)
+      }
+    } else if (settings.require_shift_verification.enabled && !shift && !loadingShift) {
+      validation.warnings.push('No scheduled shift found for this date')
+    }
+    
     setErrors(validation.errors)
     setWarnings(validation.warnings)
-  }, [requestDate, startTime, endTime, overtimeType, reason, settings, existingRequests])
+  }, [requestDate, startTime, endTime, overtimeType, reason, settings, existingRequests, shift])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
