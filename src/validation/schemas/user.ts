@@ -5,7 +5,7 @@
 
 import { z } from 'zod'
 import { uuidSchema, emailSchema, domainEmailSchema } from './common'
-import { VALIDATION, ALLOWED_EMAIL_DOMAIN, REGEX } from '../../constants'
+import { VALIDATION, getAllowedEmailDomain, REGEX } from '../../constants'
 
 // ============================================
 // Auth Schemas
@@ -13,11 +13,14 @@ import { VALIDATION, ALLOWED_EMAIL_DOMAIN, REGEX } from '../../constants'
 
 /**
  * Login schema
+ * Uses lazy evaluation to get the allowed email domain at runtime
  */
 export const loginSchema = z.object({
-  email: domainEmailSchema(ALLOWED_EMAIL_DOMAIN).max(
-    VALIDATION.EMAIL_MAX_LENGTH,
-    `Email must be less than ${VALIDATION.EMAIL_MAX_LENGTH} characters`
+  email: z.lazy(() => 
+    domainEmailSchema(getAllowedEmailDomain()).max(
+      VALIDATION.EMAIL_MAX_LENGTH,
+      `Email must be less than ${VALIDATION.EMAIL_MAX_LENGTH} characters`
+    )
   ),
   password: z
     .string()
