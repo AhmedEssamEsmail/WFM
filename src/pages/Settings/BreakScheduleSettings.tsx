@@ -4,11 +4,13 @@ import { breakRulesService } from '../../services'
 import type { BreakScheduleRule } from '../../types'
 import { handleDatabaseError } from '../../lib/errorHandler'
 import RulesConfig from '../../components/BreakSchedule/RulesConfig'
+import DistributionSettingsForm from '../../components/DistributionSettingsForm'
 
 export default function BreakScheduleSettings() {
   const { success, error: showError } = useToast()
   const [breakRules, setBreakRules] = useState<BreakScheduleRule[]>([])
   const [loadingBreakRules, setLoadingBreakRules] = useState(false)
+  const [activeSection, setActiveSection] = useState<'rules' | 'distribution'>('distribution')
 
   useEffect(() => {
     fetchBreakRules()
@@ -50,17 +52,55 @@ export default function BreakScheduleSettings() {
   }
 
   return (
-    <div className="bg-white rounded-lg shadow p-6">
-      {loadingBreakRules ? (
-        <div className="flex items-center justify-center h-32">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
+    <div className="space-y-6">
+      {/* Sub-tabs for Break Schedule Settings */}
+      <div className="border-b border-gray-200">
+        <nav className="-mb-px flex space-x-8">
+          <button
+            onClick={() => setActiveSection('distribution')}
+            className={`${
+              activeSection === 'distribution'
+                ? 'border-primary-500 text-primary-600'
+                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+            } whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm`}
+          >
+            Distribution Settings
+          </button>
+          <button
+            onClick={() => setActiveSection('rules')}
+            className={`${
+              activeSection === 'rules'
+                ? 'border-primary-500 text-primary-600'
+                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+            } whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm`}
+          >
+            Validation Rules
+          </button>
+        </nav>
+      </div>
+
+      {/* Distribution Settings Section */}
+      {activeSection === 'distribution' && (
+        <div className="bg-white rounded-lg shadow p-6">
+          <DistributionSettingsForm />
         </div>
-      ) : (
-        <RulesConfig
-          rules={breakRules}
-          onUpdateRule={handleUpdateRule}
-          onToggleRule={handleToggleRule}
-        />
+      )}
+
+      {/* Rules Configuration Section */}
+      {activeSection === 'rules' && (
+        <div className="bg-white rounded-lg shadow p-6">
+          {loadingBreakRules ? (
+            <div className="flex items-center justify-center h-32">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
+            </div>
+          ) : (
+            <RulesConfig
+              rules={breakRules}
+              onUpdateRule={handleUpdateRule}
+              onToggleRule={handleToggleRule}
+            />
+          )}
+        </div>
       )}
     </div>
   )
