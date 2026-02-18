@@ -132,7 +132,7 @@ This implementation plan breaks down the Overtime Management System into discret
     - Test error conditions
     - _Requirements: 7.3, 7.4, 7.5, 9.2_
 
-- [~] 6. Checkpoint - Ensure all tests pass
+- [ ] 6. Checkpoint - Ensure all tests pass
   - Ensure all tests pass, ask the user if questions arise.
 
 - [-] 7. Implement React hooks for overtime requests
@@ -151,7 +151,7 @@ This implementation plan breaks down the Overtime Management System into discret
     - Implement `useUpdateOvertimeSetting()` mutation hook
     - _Requirements: 11.1, 11.2, 11.3, 11.4, 11.5_
 
-- [~] 8. Create overtime request submission form
+- [ ] 8. Create overtime request submission form
   - [x] 8.1 Create `src/pages/OvertimeRequests/CreateOvertimeRequest.tsx`
     - Build form with date picker, time inputs, overtime type radio buttons, and reason textarea
     - Implement client-side validation using validation utilities
@@ -168,7 +168,7 @@ This implementation plan breaks down the Overtime Management System into discret
     - Test error handling
     - _Requirements: 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7_
 
-- [~] 9. Create overtime request card component
+- [ ] 9. Create overtime request card component
   - [x] 9.1 Create `src/components/OvertimeRequests/OvertimeRequestCard.tsx`
     - Display work date with calendar icon
     - Display overtime type badge (Regular/Double)
@@ -185,7 +185,7 @@ This implementation plan breaks down the Overtime Management System into discret
     - Test click handling
     - _Requirements: 4.4, 4.5_
 
-- [~] 10. Create overtime requests list page
+- [ ] 10. Create overtime requests list page
   - [x] 10.1 Create `src/pages/OvertimeRequests/OvertimeRequests.tsx`
     - Display list of overtime request cards
     - Implement status filter dropdown
@@ -204,7 +204,7 @@ This implementation plan breaks down the Overtime Management System into discret
     - Test role-based display
     - _Requirements: 4.1, 4.2, 4.3, 5.1, 5.2, 5.3, 5.4_
 
-- [~] 11. Create approval timeline component
+- [ ] 11. Create approval timeline component
   - [x] 11.1 Create `src/components/OvertimeRequests/ApprovalTimeline.tsx`
     - Display submission stage (always shown)
     - Display TL approval stage (pending/completed)
@@ -219,7 +219,7 @@ This implementation plan breaks down the Overtime Management System into discret
     - Test auto-approve scenario display
     - _Requirements: 6.2, 6.4_
 
-- [~] 12. Create overtime request detail page
+- [ ] 12. Create overtime request detail page
   - [x] 12.1 Create `src/pages/OvertimeRequests/OvertimeRequestDetail.tsx`
     - Display request details card with all information
     - Display ApprovalTimeline component
@@ -242,7 +242,7 @@ This implementation plan breaks down the Overtime Management System into discret
     - Test cancel flow
     - _Requirements: 7.1, 7.2, 7.3, 7.4, 7.5, 9.1_
 
-- [~] 13. Implement system comment generation
+- [ ] 13. Implement system comment generation
   - [x] 13.1 Update overtime requests service to create system comments
     - Add system comment on approval
     - Add system comment on rejection
@@ -266,11 +266,11 @@ This implementation plan breaks down the Overtime Management System into discret
     - **Property 22: Comment Data Recording**
     - **Validates: Requirements 10.2**
 
-- [~] 14. Checkpoint - Ensure all tests pass
+- [ ] 14. Checkpoint - Ensure all tests pass
   - Ensure all tests pass, ask the user if questions arise.
 
-- [~] 15. Create overtime settings panel
-  - [~] 15.1 Create `src/components/Settings/OvertimeSettings.tsx`
+- [ ] 15. Create overtime settings panel
+  - [ ] 15.1 Create `src/components/Settings/OvertimeSettings.tsx`
     - Display auto-approve toggle
     - Display daily limits inputs (regular/double)
     - Display weekly limits inputs (regular/double)
@@ -282,7 +282,7 @@ This implementation plan breaks down the Overtime Management System into discret
     - Display success toast on save
     - _Requirements: 11.1, 11.2, 11.3, 11.4, 11.5, 11.6, 11.7, 11.8, 11.9_
 
-  - [~] 15.2 Integrate overtime settings into Settings page
+  - [ ] 15.2 Integrate overtime settings into Settings page
     - Add "Overtime Settings" section to `src/pages/Settings.tsx`
     - Restrict access to WFM role only
     - _Requirements: 11.1_
@@ -296,8 +296,8 @@ This implementation plan breaks down the Overtime Management System into discret
     - Test save functionality
     - _Requirements: 11.7, 11.8, 11.9_
 
-- [~] 16. Implement overtime statistics service
-  - [~] 16.1 Add statistics methods to `src/services/overtimeRequestsService.ts`
+- [ ] 16. Implement overtime statistics service
+  - [ ] 16.1 Add statistics methods to `src/services/overtimeRequestsService.ts`
     - Implement `getOvertimeStatistics(filters)` function
     - Calculate summary statistics (total, approved, rejected, pending, approval rate)
     - Calculate hours breakdown (total, regular, double, equivalent)
@@ -324,8 +324,8 @@ This implementation plan breaks down the Overtime Management System into discret
     - Test edge cases (no data, single request)
     - _Requirements: 12.1, 12.2, 12.3, 12.4_
 
-- [~] 17. Create overtime statistics component
-  - [~] 17.1 Create `src/components/OvertimeRequests/OvertimeStatistics.tsx`
+- [ ] 17. Create overtime statistics component
+  - [ ] 17.1 Create `src/components/OvertimeRequests/OvertimeStatistics.tsx`
     - Display summary card (total requests, approval rate)
     - Display hours breakdown (regular, double, equivalent)
     - Display top 5 agents table
@@ -341,8 +341,8 @@ This implementation plan breaks down the Overtime Management System into discret
     - Test empty state
     - _Requirements: 12.1, 12.2, 12.3, 12.4_
 
-- [~] 18. Integrate overtime statistics into Reports page
-  - [~] 18.1 Update `src/pages/Reports.tsx`
+- [ ] 18. Integrate overtime statistics into Reports page
+  - [ ] 18.1 Update `src/pages/Reports.tsx`
     - Add "Overtime" tab or section
     - Display OvertimeStatistics component
     - Apply date range filter from Reports page
@@ -416,10 +416,10 @@ This implementation plan breaks down the Overtime Management System into discret
     - Test with setting enabled/disabled
     - _Requirements: 3.1, 3.5_
 
-- [~] 21. Checkpoint - Ensure all tests pass
+- [ ] 21. Checkpoint - Ensure all tests pass
   - Ensure all tests pass, ask the user if questions arise.
 
-- [~] 22. Add routing and navigation
+- [ ] 22. Add routing and navigation
   - [x] 22.1 Update application routing
     - Add route for `/overtime-requests` (list page)
     - Add route for `/overtime-requests/new` (create form)
@@ -468,7 +468,7 @@ This implementation plan breaks down the Overtime Management System into discret
     - Use existing Toast component
     - _Requirements: 1.8, 7.3, 7.4, 7.5, 9.2, 11.2_
 
-- [~] 26. Write integration tests
+- [ ] 26. Write integration tests
   - [ ]* 26.1 Write end-to-end workflow tests
     - Test complete submission and approval workflow
     - Test auto-approve workflow
@@ -484,17 +484,17 @@ This implementation plan breaks down the Overtime Management System into discret
     - Test approval permissions
     - _Requirements: 4.1, 4.2, 4.3, 7.1, 7.2_
 
-- [~] 27. Final checkpoint - Ensure all tests pass
+- [ ] 27. Final checkpoint - Ensure all tests pass
   - Ensure all tests pass, ask the user if questions arise.
 
-- [~] 28. Documentation and polish
-  - [~] 28.1 Add inline code documentation
+- [ ] 28. Documentation and polish
+  - [ ] 28.1 Add inline code documentation
     - Document complex validation logic
     - Document state transition rules
     - Document calculation formulas
     - _Requirements: All_
 
-  - [~] 28.2 Update user-facing documentation
+  - [ ] 28.2 Update user-facing documentation
     - Document overtime submission process
     - Document approval workflow
     - Document settings configuration
