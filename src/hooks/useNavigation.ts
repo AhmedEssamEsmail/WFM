@@ -30,7 +30,7 @@ const NAV_ITEMS: NavItem[] = [
   { name: 'Break Schedule', href: '/break-schedule', roles: ['agent', 'tl', 'wfm'], icon: BreakScheduleIcon },
   { name: 'Requests', href: '/requests', roles: ['wfm'], icon: RequestsIcon },
   { name: 'Swap Requests', href: '/swap-requests', roles: ['agent', 'tl'], icon: SwapIcon },
-  { name: 'Leave Requests', href: '/leave-requests', roles: ['agent', 'tl', 'wfm'], icon: LeaveIcon },
+  { name: 'Leave Requests', href: '/leave-requests', roles: ['agent', 'tl'], icon: LeaveIcon },
   { name: 'Overtime Requests', href: '/overtime-requests', roles: ['agent', 'tl', 'wfm'], icon: OvertimeIcon },
   { name: 'Leave Balances', href: '/leave-balances', roles: ['agent', 'tl', 'wfm'], icon: BalanceIcon },
   { name: 'Reports', href: '/reports', roles: ['tl', 'wfm'], icon: ReportsIcon },
