@@ -475,12 +475,20 @@ $$;
 -- ---------------------------------------------------------------------------
 
 CREATE OR REPLACE FUNCTION public.update_updated_at_column()
-RETURNS TRIGGER LANGUAGE PLPGSQL AS $$
+RETURNS TRIGGER
+LANGUAGE PLPGSQL
+SECURITY DEFINER
+SET search_path = ''
+AS $$
 BEGIN NEW.updated_at = now(); RETURN NEW; END;
 $$;
 
 CREATE OR REPLACE FUNCTION public.update_skills_updated_at()
-RETURNS TRIGGER LANGUAGE PLPGSQL AS $$
+RETURNS TRIGGER
+LANGUAGE PLPGSQL
+SECURITY DEFINER
+SET search_path = ''
+AS $$
 BEGIN NEW.updated_at = NOW(); RETURN NEW; END;
 $$;
 
@@ -494,7 +502,11 @@ RETURNS TEXT LANGUAGE SQL AS $$
 $$;
 
 CREATE OR REPLACE FUNCTION public.enforce_allowed_email_domain_setting()
-RETURNS TRIGGER LANGUAGE PLPGSQL SECURITY DEFINER AS $$
+RETURNS TRIGGER
+LANGUAGE PLPGSQL
+SECURITY DEFINER
+SET search_path = ''
+AS $$
 BEGIN
   IF NEW.key = 'allowed_email_domain' THEN
     NEW.value := public.normalize_email_domain(NEW.value);
@@ -508,7 +520,11 @@ END;
 $$;
 
 CREATE OR REPLACE FUNCTION public.check_email_domain()
-RETURNS TRIGGER LANGUAGE PLPGSQL SECURITY DEFINER AS $$
+RETURNS TRIGGER
+LANGUAGE PLPGSQL
+SECURITY DEFINER
+SET search_path = ''
+AS $$
 BEGIN
   IF NOT public.is_allowed_email_domain(NEW.email) THEN
     RAISE EXCEPTION 'Only % email addresses are allowed', public.get_allowed_email_domain()
@@ -519,7 +535,11 @@ END;
 $$;
 
 CREATE OR REPLACE FUNCTION public.check_auth_user_email_domain()
-RETURNS TRIGGER LANGUAGE PLPGSQL SECURITY DEFINER AS $$
+RETURNS TRIGGER
+LANGUAGE PLPGSQL
+SECURITY DEFINER
+SET search_path = ''
+AS $$
 BEGIN
   IF NEW.email IS NULL OR NOT public.is_allowed_email_domain(NEW.email) THEN
     RAISE EXCEPTION 'Only % email addresses are allowed', public.get_allowed_email_domain()
@@ -530,7 +550,11 @@ END;
 $$;
 
 CREATE OR REPLACE FUNCTION public.handle_new_user()
-RETURNS TRIGGER LANGUAGE PLPGSQL SECURITY DEFINER AS $$
+RETURNS TRIGGER
+LANGUAGE PLPGSQL
+SECURITY DEFINER
+SET search_path = ''
+AS $$
 BEGIN
   INSERT INTO public.users (id, email, name, role)
   VALUES (
@@ -547,7 +571,11 @@ END;
 $$;
 
 CREATE OR REPLACE FUNCTION public.sync_user_role_to_app_metadata()
-RETURNS TRIGGER LANGUAGE PLPGSQL SECURITY DEFINER AS $$
+RETURNS TRIGGER
+LANGUAGE PLPGSQL
+SECURITY DEFINER
+SET search_path = ''
+AS $$
 BEGIN
   UPDATE auth.users
   SET raw_app_meta_data = COALESCE(raw_app_meta_data, '{}'::jsonb) || jsonb_build_object('role', NEW.role)
@@ -557,7 +585,10 @@ END;
 $$;
 
 CREATE OR REPLACE FUNCTION public.initialize_leave_balances()
-RETURNS TRIGGER LANGUAGE PLPGSQL AS $$
+RETURNS TRIGGER
+LANGUAGE PLPGSQL
+SET search_path = ''
+AS $$
 BEGIN
   INSERT INTO leave_balances (user_id, leave_type, balance)
   SELECT NEW.id, lt.code, 0
@@ -571,7 +602,10 @@ END;
 $$;
 
 CREATE OR REPLACE FUNCTION public.create_headcount_profile()
-RETURNS TRIGGER LANGUAGE PLPGSQL AS $$
+RETURNS TRIGGER
+LANGUAGE PLPGSQL
+SET search_path = ''
+AS $$
 BEGIN
   INSERT INTO public.headcount_profiles (user_id) VALUES (NEW.id)
   ON CONFLICT (user_id) DO NOTHING;
@@ -583,7 +617,11 @@ END;
 $$;
 
 CREATE OR REPLACE FUNCTION public.deduct_leave_balance()
-RETURNS TRIGGER LANGUAGE PLPGSQL SECURITY DEFINER AS $$
+RETURNS TRIGGER
+LANGUAGE PLPGSQL
+SECURITY DEFINER
+SET search_path = ''
+AS $$
 DECLARE days_requested INTEGER;
 BEGIN
   IF NEW.status = 'approved' AND OLD.status != 'approved' THEN
@@ -598,7 +636,11 @@ $$;
 
 -- Trigger-based swap (fires on swap_requests update to approved)
 CREATE OR REPLACE FUNCTION public.execute_shift_swap()
-RETURNS TRIGGER LANGUAGE PLPGSQL SECURITY DEFINER AS $$
+RETURNS TRIGGER
+LANGUAGE PLPGSQL
+SECURITY DEFINER
+SET search_path = ''
+AS $$
 DECLARE
   requester_shift_type public.shift_type;
   target_shift_type    public.shift_type;
@@ -614,7 +656,11 @@ END;
 $$;
 
 CREATE OR REPLACE FUNCTION public.swap_break_schedules()
-RETURNS TRIGGER LANGUAGE PLPGSQL SECURITY DEFINER AS $$
+RETURNS TRIGGER
+LANGUAGE PLPGSQL
+SECURITY DEFINER
+SET search_path = ''
+AS $$
 DECLARE
   requester_date DATE;
   target_date    DATE;
@@ -652,7 +698,11 @@ END;
 $$;
 
 CREATE OR REPLACE FUNCTION public.handle_shift_change()
-RETURNS TRIGGER LANGUAGE PLPGSQL SECURITY DEFINER AS $$
+RETURNS TRIGGER
+LANGUAGE PLPGSQL
+SECURITY DEFINER
+SET search_path = ''
+AS $$
 BEGIN
   IF OLD.shift_type IS DISTINCT FROM NEW.shift_type THEN
     DELETE FROM break_schedules WHERE user_id = NEW.user_id AND schedule_date = NEW.date;
@@ -666,7 +716,10 @@ END;
 $$;
 
 CREATE OR REPLACE FUNCTION public.log_user_changes()
-RETURNS TRIGGER LANGUAGE PLPGSQL AS $$
+RETURNS TRIGGER
+LANGUAGE PLPGSQL
+SET search_path = ''
+AS $$
 DECLARE
   action_type TEXT;
   old_vals JSONB;

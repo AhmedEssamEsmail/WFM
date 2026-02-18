@@ -82,12 +82,16 @@ CREATE POLICY "Allow WFM to delete distribution settings"
 
 -- Add trigger to update updated_at timestamp
 CREATE OR REPLACE FUNCTION update_distribution_settings_updated_at()
-RETURNS TRIGGER AS $$
+RETURNS TRIGGER
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = ''
+AS $$
 BEGIN
   NEW.updated_at = NOW();
   RETURN NEW;
 END;
-$$ LANGUAGE plpgsql;
+$$;
 
 CREATE TRIGGER distribution_settings_updated_at
   BEFORE UPDATE ON distribution_settings

@@ -8,7 +8,6 @@ import DateNavigation from '../components/BreakSchedule/DateNavigation'
 import FilterBar from '../components/BreakSchedule/FilterBar'
 import BreakScheduleTable from '../components/BreakSchedule/BreakScheduleTable'
 import WarningPopup from '../components/BreakSchedule/WarningPopup'
-import AutoDistributeModal from '../components/BreakSchedule/AutoDistributeModal'
 import { exportToCSV, importFromCSV } from '../lib/breakScheduleCSV'
 import type { BreakScheduleUpdateRequest, AutoDistributeRequest, AgentBreakSchedule } from '../types'
 
@@ -19,7 +18,6 @@ export default function BreakSchedule() {
   const [currentDate, setCurrentDate] = useState(new Date())
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedDepartment, setSelectedDepartment] = useState('')
-  const [showAutoDistribute, setShowAutoDistribute] = useState(false)
   const [selectedWarning, setSelectedWarning] = useState<string | null>(null)
   const [isImporting, setIsImporting] = useState(false)
   const [failedAgentsMap, setFailedAgentsMap] = useState<Record<string, string>>({}) // Store failure reasons by user_id
@@ -87,24 +85,27 @@ export default function BreakSchedule() {
     await updateBreakSchedules.mutateAsync(updates)
   }
 
-  // Handle auto-distribute
-  const handleAutoDistribute = async (request: Omit<AutoDistributeRequest, 'schedule_date'>, failedAgents: Array<{ user_id: string; name: string; reason: string; blockedBy?: string[] }>) => {
-    const fullRequest = { ...request, schedule_date: dateStr }
-    await autoDistribute.mutateAsync(fullRequest)
-    
-    // Store failed agents information
-    const failuresMap: Record<string, string> = {}
-    for (const agent of failedAgents) {
-      failuresMap[agent.user_id] = agent.reason
+  // Handle auto-distribute - directly apply ladder strategy to all agents
+  const handleAutoDistribute = async () => {
+    if (!window.confirm('This will automatically assign breaks to all agents using the ladder distribution pattern. Continue?')) {
+      return
     }
-    setFailedAgentsMap(failuresMap)
-  }
-
-  // Handle auto-distribute preview
-  const handleAutoDistributePreview = async (request: Omit<AutoDistributeRequest, 'schedule_date'>) => {
-    const { generateDistributionPreview } = await import('../lib/autoDistribution')
-    const fullRequest = { ...request, schedule_date: dateStr }
-    return await generateDistributionPreview(fullRequest)
+    
+    try {
+      const request: AutoDistributeRequest = {
+        schedule_date: dateStr,
+        strategy: 'ladder',
+        apply_mode: 'all_agents',
+      }
+      
+      await autoDistribute.mutateAsync(request)
+      
+      // Clear failed agents map on successful distribution
+      setFailedAgentsMap({})
+    } catch (error) {
+      console.error('Auto-distribution failed:', error)
+      showError('Failed to auto-distribute breaks')
+    }
   }
 
   // Handle CSV import
@@ -252,7 +253,7 @@ export default function BreakSchedule() {
         onDepartmentChange={setSelectedDepartment}
         departments={departments}
         isWFM={isWFM}
-        onAutoDistribute={() => setShowAutoDistribute(true)}
+        onAutoDistribute={handleAutoDistribute}
         onImport={handleImport}
         onExport={handleExport}
         onClearAll={handleClearAll}
@@ -265,16 +266,6 @@ export default function BreakSchedule() {
         isEditable={isEditable}
         scheduleDate={dateStr}
       />
-
-      {/* Auto-distribute modal */}
-      {showAutoDistribute && (
-        <AutoDistributeModal
-          onClose={() => setShowAutoDistribute(false)}
-          onApply={handleAutoDistribute}
-          onPreview={handleAutoDistributePreview}
-          departments={departments}
-        />
-      )}
 
       {/* Warning popup */}
       {activeWarning && (
