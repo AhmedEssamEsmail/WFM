@@ -30,6 +30,35 @@ function formatValidationErrors(violations: ValidationViolation[]): string {
 }
 
 /**
+ * Convert column index to time string
+ * Column 0 = 9:00 AM, each column = 15 minutes
+ */
+export function columnToTime(column: number): string {
+  const baseMinutes = 9 * 60 // 9:00 AM in minutes
+  const totalMinutes = baseMinutes + (column * 15)
+  return minutesToTime(totalMinutes)
+}
+
+/**
+ * Convert time string to column index
+ * Returns the column index (0-47) for a given time
+ */
+export function timeToColumn(time: string): number {
+  const baseMinutes = 9 * 60 // 9:00 AM in minutes
+  const timeMinutes = timeToMinutes(time)
+  return Math.floor((timeMinutes - baseMinutes) / 15)
+}
+
+/**
+ * Add minutes to a time string
+ */
+export function addMinutesToTime(time: string, minutes: number): string {
+  const timeMinutes = timeToMinutes(time)
+  const newMinutes = timeMinutes + minutes
+  return minutesToTime(newMinutes)
+}
+
+/**
  * Get shift hours from database configuration
  */
 async function getShiftHours(): Promise<Record<ShiftType, { start: string; end: string } | null>> {
@@ -344,6 +373,145 @@ export async function staggeredTimingStrategy(
 }
 
 /**
+ * Ladder Distribution Strategy
+ * Distributes breaks sequentially with predictable 15-minute increments
+ */
+export async function ladderDistributionStrategy(
+  agents: AgentBreakSchedule[],
+  scheduleDate: string,
+  rules: BreakScheduleRule[]
+): Promise<{
+  schedules: AgentBreakSchedule[]
+  failed: Array<{ user_id: string; name: string; reason: string; blockedBy?: string[] }>
+}> {
+  const schedules: AgentBreakSchedule[] = []
+  const failed: Array<{ user_id: string; name: string; reason: string; blockedBy?: string[] }> = []
+
+  // Get distribution settings from database
+  const { distributionSettingsService } = await import('../services/distributionSettingsService')
+  const settings = await distributionSettingsService.getSettings()
+
+  // Get current coverage
+  const response = await breakSchedulesService.getScheduleForDate(scheduleDate)
+  const coverageSummary = response.summary
+
+  // Group agents by shift type
+  const agentsByShift: Record<string, AgentBreakSchedule[]> = {}
+  for (const agent of agents) {
+    if (!agent.shift_type || agent.shift_type === 'OFF') {
+      continue
+    }
+    if (!agentsByShift[agent.shift_type]) {
+      agentsByShift[agent.shift_type] = []
+    }
+    agentsByShift[agent.shift_type].push(agent)
+  }
+
+  // Process each shift type in order: AM, BET, PM
+  const shiftOrder: ShiftType[] = ['AM', 'BET', 'PM']
+  
+  for (const shiftType of shiftOrder) {
+    const shiftAgents = agentsByShift[shiftType]
+    if (!shiftAgents || shiftAgents.length === 0) {
+      continue
+    }
+
+    const shiftSettings = settings.get(shiftType)
+    if (!shiftSettings) {
+      // Skip if no settings for this shift type
+      for (const agent of shiftAgents) {
+        failed.push({
+          user_id: agent.user_id,
+          name: agent.name,
+          reason: `No distribution settings found for shift type ${shiftType}`,
+        })
+      }
+      continue
+    }
+
+    let currentColumn = shiftSettings.hb1_start_column
+
+    for (const agent of shiftAgents) {
+      // Calculate break times using ladder pattern
+      const hb1Time = columnToTime(currentColumn)
+      const bTime = addMinutesToTime(hb1Time, shiftSettings.b_offset_minutes)
+      const hb2Time = addMinutesToTime(bTime, shiftSettings.hb2_offset_minutes)
+
+      // Build intervals array (B break spans 2 consecutive 15-minute intervals)
+      const intervals = [
+        { interval_start: hb1Time, break_type: 'HB1' as BreakType },
+        { interval_start: bTime, break_type: 'B' as BreakType },
+        { interval_start: addMinutesToTime(bTime, 15), break_type: 'B' as BreakType },
+        { interval_start: hb2Time, break_type: 'HB2' as BreakType },
+      ]
+
+      // Validate against rules
+      const validation = await getRuleViolations(
+        {
+          user_id: agent.user_id,
+          schedule_date: scheduleDate,
+          intervals,
+        },
+        rules,
+        agent.shift_type!
+      )
+
+      if (validation.hasBlockingViolations) {
+        const errorViolations = validation.violations.filter((v) => v.severity === 'error')
+        const errorMessages = formatValidationErrors(errorViolations)
+        const blockedByRules = errorViolations.map((v) => v.rule_name)
+        
+        failed.push({
+          user_id: agent.user_id,
+          name: agent.name,
+          reason: errorMessages || 'Validation failed',
+          blockedBy: blockedByRules,
+        })
+        
+        // Move to next column for next agent
+        currentColumn++
+        continue
+      }
+
+      // Build interval map
+      const intervalMap: Record<string, BreakType> = {}
+      for (const interval of intervals) {
+        const time = interval.interval_start.substring(0, 5)
+        intervalMap[time] = interval.break_type
+      }
+
+      schedules.push({
+        ...agent,
+        breaks: {
+          HB1: hb1Time.substring(0, 5),
+          B: bTime.substring(0, 5),
+          HB2: hb2Time.substring(0, 5),
+        },
+        intervals: intervalMap,
+      })
+
+      // Update coverage summary for next agent
+      for (const interval of intervals) {
+        const time = interval.interval_start.substring(0, 5)
+        if (!coverageSummary[time]) {
+          coverageSummary[time] = { in: 0, hb1: 0, b: 0, hb2: 0 }
+        }
+        
+        coverageSummary[time].in = Math.max(0, coverageSummary[time].in - 1)
+        if (interval.break_type === 'HB1') coverageSummary[time].hb1++
+        else if (interval.break_type === 'B') coverageSummary[time].b++
+        else if (interval.break_type === 'HB2') coverageSummary[time].hb2++
+      }
+
+      // Increment column for next agent (ladder pattern)
+      currentColumn++
+    }
+  }
+
+  return { schedules, failed }
+}
+
+/**
  * Generate distribution preview
  */
 export async function generateDistributionPreview(
@@ -376,8 +544,13 @@ export async function generateDistributionPreview(
 
   if (request.strategy === 'balanced_coverage') {
     result = await balancedCoverageStrategy(agentsToSchedule, request.schedule_date, rules)
-  } else {
+  } else if (request.strategy === 'staggered_timing') {
     result = await staggeredTimingStrategy(agentsToSchedule, request.schedule_date, rules)
+  } else if (request.strategy === 'ladder') {
+    result = await ladderDistributionStrategy(agentsToSchedule, request.schedule_date, rules)
+  } else {
+    // Default to ladder strategy
+    result = await ladderDistributionStrategy(agentsToSchedule, request.schedule_date, rules)
   }
 
   // Calculate coverage statistics

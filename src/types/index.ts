@@ -355,8 +355,26 @@ export interface ImportResult {
 }
 
 // Auto-Distribution Types
-export type DistributionStrategy = 'balanced_coverage' | 'staggered_timing'
+export type DistributionStrategy = 'balanced_coverage' | 'staggered_timing' | 'ladder'
 export type ApplyMode = 'only_unscheduled' | 'all_agents'
+
+// Distribution Settings Types
+export interface DistributionSettings {
+  id: string
+  shift_type: ShiftType
+  hb1_start_column: number
+  b_offset_minutes: number
+  hb2_offset_minutes: number
+  created_at: string
+  updated_at: string
+}
+
+export interface DistributionSettingsUpdate {
+  shift_type: ShiftType
+  hb1_start_column: number
+  b_offset_minutes: number
+  hb2_offset_minutes: number
+}
 
 export interface AutoDistributeRequest {
   schedule_date: string

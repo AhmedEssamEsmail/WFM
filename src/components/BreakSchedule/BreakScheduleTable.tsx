@@ -37,7 +37,9 @@ export default function BreakScheduleTable({
       if (onUpdate && pendingUpdates.length > 0) {
         setIsSaving(true)
         try {
-          await onUpdate(pendingUpdates)
+          // Merge all updates for the same user into single requests
+          const merged = mergePendingUpdates(pendingUpdates)
+          await onUpdate(merged)
           setPendingUpdates([])
         } catch (error) {
           console.error('Failed to save updates:', error)
@@ -49,6 +51,35 @@ export default function BreakScheduleTable({
 
     return () => clearTimeout(timer)
   }, [pendingUpdates, onUpdate])
+
+  /**
+   * Merge pending updates for the same user into single requests
+   * This prevents multiple toast notifications when placing B breaks (2 intervals)
+   */
+  const mergePendingUpdates = (
+    updates: BreakScheduleUpdateRequest[]
+  ): BreakScheduleUpdateRequest[] => {
+    const byUser = new Map<string, BreakScheduleUpdateRequest>()
+    
+    for (const update of updates) {
+      const existing = byUser.get(update.user_id)
+      if (existing) {
+        // Merge intervals, avoiding duplicates
+        const existingIntervalKeys = new Set(
+          existing.intervals.map(i => i.interval_start)
+        )
+        for (const interval of update.intervals) {
+          if (!existingIntervalKeys.has(interval.interval_start)) {
+            existing.intervals.push(interval)
+          }
+        }
+      } else {
+        byUser.set(update.user_id, { ...update, intervals: [...update.intervals] })
+      }
+    }
+    
+    return Array.from(byUser.values())
+  }
 
   const handleBreakClick = useCallback(
     (userId: string, intervalStart: string, selectedBreakType: BreakType) => {

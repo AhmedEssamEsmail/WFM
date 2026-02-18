@@ -53,6 +53,22 @@ export default function AutoDistributionSettings({
             <input
               type="radio"
               name="strategy"
+              value="ladder"
+              checked={strategy === 'ladder'}
+              onChange={(e) => setStrategy(e.target.value as DistributionStrategy)}
+              className="mt-1"
+            />
+            <div>
+              <div className="font-medium text-sm">Ladder Distribution</div>
+              <div className="text-xs text-gray-600">
+                Assigns breaks sequentially with predictable 15-minute increments
+              </div>
+            </div>
+          </label>
+          <label className="flex items-start gap-3 p-3 border rounded-lg cursor-pointer hover:bg-gray-50">
+            <input
+              type="radio"
+              name="strategy"
               value="balanced_coverage"
               checked={strategy === 'balanced_coverage'}
               onChange={(e) => setStrategy(e.target.value as DistributionStrategy)}

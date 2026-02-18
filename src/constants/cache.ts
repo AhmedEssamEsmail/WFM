@@ -41,6 +41,9 @@ export const STALE_TIMES = {
   /** Break rules - changes infrequently (5 minutes) */
   BREAK_RULES: 5 * 60 * 1000,
   
+  /** Distribution settings - changes infrequently (5 minutes) */
+  DISTRIBUTION_SETTINGS: 5 * 60 * 1000,
+  
   /** Overtime requests - frequent updates (1 minute) */
   OVERTIME_REQUESTS: 1 * 60 * 1000,
   
@@ -79,6 +82,7 @@ export const QUERY_KEYS = {
   BREAK_SCHEDULES: 'breakSchedules',
   BREAK_WARNINGS: 'breakWarnings',
   BREAK_RULES: 'breakRules',
+  DISTRIBUTION_SETTINGS: 'distributionSettings',
   OVERTIME_REQUESTS: 'overtimeRequests',
   OVERTIME_SETTINGS: 'overtimeSettings',
   SKILLS: 'skills',
