@@ -29,14 +29,14 @@ const mockWFM: User = {
   created_at: '2024-01-01'
 }
 
-const createWrapper = (user: User | null) => {
+const createWrapper = (user: User | null, loading = false) => {
   return ({ children }: { children: React.ReactNode }) => (
     <AuthContext.Provider
       value={{
         user,
         supabaseUser: null,
         session: null,
-        loading: false,
+        loading,
         isAuthenticated: !!user,
         signUp: async () => ({ error: null }),
         signIn: async () => ({ error: null, session: null }),
@@ -173,13 +173,28 @@ describe('useRoleCheck Hook', () => {
   })
 
   describe('Error handling', () => {
-    it('should throw error in development when used outside AuthContext', () => {
+    it('should return safe defaults during loading state', () => {
+      const { result } = renderHook(() => useRoleCheck(), {
+        wrapper: createWrapper(null, true), // loading = true
+      })
+
+      expect(result.current.isAgent).toBe(false)
+      expect(result.current.isTL).toBe(false)
+      expect(result.current.isWFM).toBe(false)
+      expect(result.current.isManager).toBe(false)
+      expect(result.current.hasRole('agent')).toBe(false)
+      expect(result.current.hasRole(['agent', 'tl'])).toBe(false)
+      expect(result.current.hasAnyRole(['agent', 'tl'])).toBe(false)
+      expect(result.current.hasAllRoles(['agent'])).toBe(false)
+    })
+
+    it('should throw error in development when used outside AuthContext (not loading, no user)', () => {
       const originalEnv = process.env.NODE_ENV
       process.env.NODE_ENV = 'development'
 
       expect(() => {
         renderHook(() => useRoleCheck(), {
-          wrapper: createWrapper(null),
+          wrapper: createWrapper(null, false), // loading = false, user = null
         })
       }).toThrow('useRoleCheck must be used within AuthContext with an authenticated user')
 
@@ -191,7 +206,7 @@ describe('useRoleCheck Hook', () => {
       process.env.NODE_ENV = 'production'
 
       const { result } = renderHook(() => useRoleCheck(), {
-        wrapper: createWrapper(null),
+        wrapper: createWrapper(null, false), // loading = false, user = null
       })
 
       expect(result.current.isAgent).toBe(false)

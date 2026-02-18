@@ -33,14 +33,28 @@ export interface UseRoleCheckReturn {
  * ```
  */
 export function useRoleCheck(): UseRoleCheckReturn {
-  const { user } = useAuth()
+  const { user, loading } = useAuth()
   
   // Error handling for usage outside AuthContext
-  if (!user) {
+  // Don't throw error during loading state - wait for auth to complete
+  if (!user && !loading) {
     if (process.env.NODE_ENV === 'development') {
       throw new Error('useRoleCheck must be used within AuthContext with an authenticated user')
     }
     // Safe defaults in production - deny all permissions
+    return {
+      hasRole: () => false,
+      hasAnyRole: () => false,
+      hasAllRoles: () => false,
+      isManager: false,
+      isAgent: false,
+      isWFM: false,
+      isTL: false,
+    }
+  }
+  
+  // Return safe defaults during loading
+  if (loading || !user) {
     return {
       hasRole: () => false,
       hasAnyRole: () => false,
