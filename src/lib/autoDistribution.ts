@@ -416,6 +416,9 @@ export async function ladderDistributionStrategy(
       continue
     }
 
+    // Sort agents alphabetically by name to match visual display order
+    shiftAgents.sort((a, b) => a.name.localeCompare(b.name))
+
     const shiftSettings = settings.get(shiftType)
     if (!shiftSettings) {
       // Skip if no settings for this shift type
@@ -435,7 +438,8 @@ export async function ladderDistributionStrategy(
       // Calculate break times using ladder pattern
       const hb1Time = columnToTime(currentColumn)
       const bTime = addMinutesToTime(hb1Time, shiftSettings.b_offset_minutes)
-      const hb2Time = addMinutesToTime(bTime, shiftSettings.hb2_offset_minutes)
+      // HB2 is 150 minutes after B END (B spans 30 minutes)
+      const hb2Time = addMinutesToTime(bTime, 30 + shiftSettings.hb2_offset_minutes)
 
       // Build intervals array (B break spans 2 consecutive 15-minute intervals)
       const intervals = [
