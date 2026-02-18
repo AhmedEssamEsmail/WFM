@@ -210,7 +210,8 @@ export async function validateShiftBoundary(
 async function validateAgainstRule(
   request: BreakScheduleUpdateRequest,
   rule: BreakScheduleRule,
-  shiftType: ShiftType
+  shiftType: ShiftType,
+  existingSchedules?: Array<{ user_id: string; intervals: Record<string, BreakType> }>
 ): Promise<ValidationViolation[]> {
   const violations: ValidationViolation[] = []
 
@@ -246,9 +247,23 @@ async function validateAgainstRule(
       break
     }
 
-    case 'coverage':
-      // Coverage rules are validated at the schedule level, not per-user
+    case 'coverage': {
+      if (rule.rule_name === 'minimum_break_spacing' && existingSchedules) {
+        const minIntervals = (rule.parameters.min_intervals as number | undefined) || 10
+        const appliesTo = (rule.parameters.applies_to as Array<'HB1' | 'B' | 'HB2'> | undefined) || ['HB1', 'B', 'HB2']
+        const spacingViolations = await validateMinimumBreakSpacing(
+          request,
+          existingSchedules,
+          minIntervals,
+          appliesTo
+        )
+        for (const violation of spacingViolations) {
+          violation.severity = rule.is_blocking ? 'error' : 'warning'
+          violations.push(violation)
+        }
+      }
       break
+    }
 
     case 'distribution':
       // Distribution rules are for auto-distribution, not validation
@@ -264,7 +279,8 @@ async function validateAgainstRule(
 export async function validateAgainstRules(
   request: BreakScheduleUpdateRequest,
   rules: BreakScheduleRule[],
-  shiftType: ShiftType
+  shiftType: ShiftType,
+  existingSchedules?: Array<{ user_id: string; intervals: Record<string, BreakType> }>
 ): Promise<ValidationViolation[]> {
   const violations: ValidationViolation[] = []
 
@@ -274,7 +290,7 @@ export async function validateAgainstRules(
     .sort((a, b) => a.priority - b.priority)
 
   for (const rule of sortedRules) {
-    const ruleViolations = await validateAgainstRule(request, rule, shiftType)
+    const ruleViolations = await validateAgainstRule(request, rule, shiftType, existingSchedules)
     violations.push(...ruleViolations)
   }
 
@@ -287,12 +303,13 @@ export async function validateAgainstRules(
 export async function getRuleViolations(
   request: BreakScheduleUpdateRequest,
   rules: BreakScheduleRule[],
-  shiftType: ShiftType
+  shiftType: ShiftType,
+  existingSchedules?: Array<{ user_id: string; intervals: Record<string, BreakType> }>
 ): Promise<{
   violations: ValidationViolation[]
   hasBlockingViolations: boolean
 }> {
-  const violations = await validateAgainstRules(request, rules, shiftType)
+  const violations = await validateAgainstRules(request, rules, shiftType, existingSchedules)
 
   // Remove duplicate violations (keep highest priority)
   const uniqueViolations = violations.reduce((acc, violation) => {
@@ -349,4 +366,53 @@ export function validateFullBreakDuration(
   }
 
   return null
+}
+
+/**
+ * Validate minimum break spacing between agents
+ * Checks if breaks of the same type are too close together across different agents
+ */
+export async function validateMinimumBreakSpacing(
+  request: BreakScheduleUpdateRequest,
+  existingSchedules: Array<{ user_id: string; intervals: Record<string, BreakType> }>,
+  minIntervals: number = 10,
+  appliesTo: Array<'HB1' | 'B' | 'HB2'> = ['HB1', 'B', 'HB2']
+): Promise<ValidationViolation[]> {
+  const violations: ValidationViolation[] = []
+  
+  // Extract break times from the request
+  const requestBreaks = extractBreakTimes(request.intervals)
+  
+  // Check each break type
+  for (const breakType of appliesTo) {
+    const requestBreakTime = requestBreaks[breakType]
+    if (!requestBreakTime) continue
+    
+    const requestMinutes = timeToMinutes(requestBreakTime + ':00')
+    
+    // Check against all existing schedules (excluding the current user)
+    for (const schedule of existingSchedules) {
+      if (schedule.user_id === request.user_id) continue
+      
+      // Find breaks of the same type in this schedule
+      for (const [time, type] of Object.entries(schedule.intervals)) {
+        if (type !== breakType) continue
+        
+        const existingMinutes = timeToMinutes(time + ':00')
+        const intervalsDiff = Math.abs(requestMinutes - existingMinutes) / 15
+        
+        if (intervalsDiff < minIntervals && intervalsDiff > 0) {
+          violations.push({
+            rule_name: 'minimum_break_spacing',
+            message: `${breakType} break is only ${intervalsDiff} intervals away from another agent (minimum ${minIntervals} required)`,
+            severity: 'warning',
+            affected_intervals: [requestBreakTime],
+          })
+          break // Only report once per break type
+        }
+      }
+    }
+  }
+  
+  return violations
 }

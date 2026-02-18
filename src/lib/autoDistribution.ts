@@ -154,6 +154,12 @@ export async function balancedCoverageStrategy(
   // Get current coverage
   const response = await breakSchedulesService.getScheduleForDate(scheduleDate)
   const coverageSummary = response.summary
+  
+  // Build existing schedules for validation
+  const existingSchedules = response.agents.map(agent => ({
+    user_id: agent.user_id,
+    intervals: agent.intervals
+  }))
 
   for (const agent of agents) {
     if (!agent.shift_type || agent.shift_type === 'OFF') {
@@ -219,7 +225,8 @@ export async function balancedCoverageStrategy(
         intervals,
       },
       rules,
-      agent.shift_type
+      agent.shift_type,
+      existingSchedules
     )
 
     if (validation.hasBlockingViolations) {
@@ -285,6 +292,13 @@ export async function staggeredTimingStrategy(
   const schedules: AgentBreakSchedule[] = []
   const failed: Array<{ user_id: string; name: string; reason: string; blockedBy?: string[] }> = []
   const SHIFT_HOURS = await getShiftHours()
+  
+  // Get existing schedules for validation
+  const response = await breakSchedulesService.getScheduleForDate(scheduleDate)
+  const existingSchedules = response.agents.map(agent => ({
+    user_id: agent.user_id,
+    intervals: agent.intervals
+  }))
 
   for (const agent of agents) {
     if (!agent.shift_type || agent.shift_type === 'OFF') {
@@ -334,7 +348,8 @@ export async function staggeredTimingStrategy(
         intervals,
       },
       rules,
-      agent.shift_type
+      agent.shift_type,
+      existingSchedules
     )
 
     if (validation.hasBlockingViolations) {
@@ -391,9 +406,13 @@ export async function ladderDistributionStrategy(
   const { distributionSettingsService } = await import('../services/distributionSettingsService')
   const settings = await distributionSettingsService.getSettings()
 
-  // Get current coverage
+  // Get current coverage and existing schedules for validation
   const response = await breakSchedulesService.getScheduleForDate(scheduleDate)
   const coverageSummary = response.summary
+  const existingSchedules = response.agents.map(agent => ({
+    user_id: agent.user_id,
+    intervals: agent.intervals
+  }))
 
   // Group agents by shift type
   const agentsByShift: Record<string, AgentBreakSchedule[]> = {}
@@ -457,7 +476,8 @@ export async function ladderDistributionStrategy(
           intervals,
         },
         rules,
-        agent.shift_type!
+        agent.shift_type!,
+        existingSchedules
       )
 
       if (validation.hasBlockingViolations) {
@@ -592,6 +612,12 @@ export async function generateDistributionPreview(
   let totalViolations = 0
   let blockingViolations = 0
   let warningViolations = 0
+  
+  // Get existing schedules for validation
+  const existingSchedules = response.agents.map(agent => ({
+    user_id: agent.user_id,
+    intervals: agent.intervals
+  }))
 
   for (const agent of result.schedules) {
     const intervals = Object.entries(agent.intervals)
@@ -608,7 +634,8 @@ export async function generateDistributionPreview(
         intervals,
       },
       rules,
-      agent.shift_type!
+      agent.shift_type!,
+      existingSchedules
     )
 
     totalViolations += validation.violations.length
