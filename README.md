@@ -127,6 +127,44 @@ A comprehensive Workforce Management system for shift scheduling, swap requests,
 - Reduced API calls and improved response times
 - Better offline experience with cached data
 
+### Overtime Management
+- **Overtime Request System**: Submit and track overtime work requests
+  - Support for regular overtime (1.5x pay) and double-time (2.0x pay)
+  - Date, time range, and reason tracking
+  - Multi-level approval workflow (TL → WFM)
+  - Configurable overtime settings (WFM only)
+- **Overtime Settings** (WFM only):
+  - Auto-approve toggle (bypass WFM approval after TL approval)
+  - Daily and weekly hour limits (regular and double-time)
+  - Pay multipliers configuration (1.5x regular, 2.0x double)
+  - Shift verification requirements
+  - Submission deadline configuration (days)
+- **Overtime Statistics Dashboard**:
+  - Total overtime hours by type
+  - Approval rates and pending requests
+  - Monthly trends and analytics
+- **Approval Timeline**: Visual timeline showing approval progress and reviewer actions
+
+### Skills Management
+- **Skills System**: Centralized skills tracking and management
+  - Create, edit, and manage employee skills (WFM only)
+  - Color-coded skill badges for visual identification
+  - Active/inactive status for skill lifecycle management
+  - Skills assignment to employees via headcount profiles
+- **Skills Multi-Select**: Tag-based interface for assigning multiple skills to employees
+- **Skills Filter**: Filter schedules and employees by required skills
+- **Skills Badges**: Visual skill indicators on employee cards and profiles
+
+### Break Distribution Settings
+- **Ladder-Based Distribution Algorithm**: Configurable parameters for automated break scheduling
+  - Shift-specific settings (AM, PM, BET)
+  - HB1 start column configuration (first break timing)
+  - Break offset minutes (spacing between HB1, B, HB2)
+  - Ladder increment (time between consecutive agent breaks)
+  - Max agents per cycle (reset pattern after N agents)
+- **Distribution Settings Form**: WFM interface to configure algorithm parameters
+- **Auto-Distribution Modal**: Preview and apply automated break assignments with coverage statistics
+
 ### Recent Improvements (February 2026)
 
 #### Audit-Driven Improvements (February 2026)
@@ -274,15 +312,27 @@ Following a comprehensive codebase audit, we implemented critical security, arch
   - Color customization with hex color codes
   - Display order management for UI consistency
   - All changes reflect immediately across the application
+- **Overtime Settings**: Configure overtime system parameters (WFM only)
+  - Auto-approve toggle for overtime requests
+  - Daily and weekly hour limits (regular and double-time)
+  - Pay multipliers (1.5x regular, 2.0x double)
+  - Shift verification requirements
+  - Submission deadline configuration
+- **Skills Management**: Create and manage employee skills (WFM only)
+  - Add/edit/deactivate skills
+  - Color customization for skill badges
+  - Skills assignment to employees
+- **Break Schedule Settings**: Configure break validation rules and distribution algorithm
+- **Shift Configuration**: Manage shift types and timing
 - Real-time settings updates across the application
 
 ### Role-Based Access Control (RBAC)
 
 | Role | Capabilities |
 |------|-------------|
-| **Agent** | View own shifts, request swaps and leaves, comment on own requests, view own leave balances, view own break schedule |
-| **Team Lead (TL)** | All Agent permissions + approve/reject team requests, add comments on team requests, view headcount directory (read-only), view team break schedules |
-| **WFM** | All TL permissions + final approval authority, manage settings, schedule upload, auto-approve configuration, full headcount management (create/edit/delete), bulk imports, leave balance management, full break schedule planning and management |
+| **Agent** | View own shifts, request swaps and leaves, comment on own requests, view own leave balances, view own break schedule, submit overtime requests |
+| **Team Lead (TL)** | All Agent permissions + approve/reject team requests, add comments on team requests, view headcount directory (read-only), view team break schedules, approve overtime requests |
+| **WFM** | All TL permissions + final approval authority, manage settings, schedule upload, auto-approve configuration, full headcount management (create/edit/delete), bulk imports, leave balance management, full break schedule planning and management, overtime settings configuration, skills management |
 
 ### Domain Restriction
 - Email domain validation (@dabdoob.com)
@@ -521,7 +571,7 @@ WFM/
 │   │   │   ├── ProtectedRoute.tsx   # Route guard for authenticated users
 │   │   │   ├── PublicRoute.tsx      # Route guard for unauthenticated users
 │   │   │   └── Pagination.tsx       # Pagination component for lists
-│   │   ├── icons/                   # SVG icon components (15 icons)
+│   │   ├── icons/                   # SVG icon components (20 icons)
 │   │   │   ├── index.ts             # Icon barrel exports
 │   │   │   ├── DashboardIcon.tsx
 │   │   │   ├── ScheduleIcon.tsx
@@ -539,7 +589,8 @@ WFM/
 │   │   │   ├── UploadIcon.tsx
 │   │   │   ├── CalendarIcon.tsx
 │   │   │   ├── ClockIcon.tsx
-│   │   │   └── OvertimeIcon.tsx
+│   │   │   ├── OvertimeIcon.tsx
+│   │   │   └── RequestsIcon.tsx
 │   │   ├── BreakSchedule/           # Break schedule components (10 files)
 │   │   │   ├── index.tsx            # Barrel exports
 │   │   │   ├── BreakScheduleTable.tsx
@@ -558,17 +609,19 @@ WFM/
 │   │   │   ├── EmployeeCard.tsx
 │   │   │   ├── EditEmployeeModal.tsx
 │   │   │   └── ProtectedEdit.tsx
-│   │   ├── OvertimeRequests/        # Overtime request components (2 files)
+│   │   ├── OvertimeRequests/        # Overtime request components (4 files)
 │   │   │   ├── index.tsx            # Barrel exports
 │   │   │   ├── OvertimeRequestCard.tsx
+│   │   │   ├── OvertimeStatistics.tsx
 │   │   │   └── ApprovalTimeline.tsx
-│   │   ├── Skills/                  # Skills components (2 files)
+│   │   ├── Skills/                  # Skills components (3 files)
 │   │   │   ├── index.tsx            # Barrel exports
 │   │   │   ├── SkillsBadges.tsx
 │   │   │   └── SkillsMultiSelect.tsx
 │   │   ├── Schedule/                # Schedule components (1 file - no index needed)
 │   │   │   └── SkillsFilter.tsx
 │   │   ├── AutoDistributionSettings.tsx # Flattened from Settings/ (moved)
+│   │   ├── DistributionSettingsForm.tsx # Break distribution settings form
 │   │   ├── ShiftConfigurations.tsx  # Flattened from Settings/ (moved)
 │   │   ├── Toast.tsx                # Toast notification component
 │   │   ├── ToastContainer.tsx       # Toast container with positioning
@@ -584,11 +637,21 @@ WFM/
 │   │   ├── useSwapRequests.ts       # Swap requests with React Query
 │   │   ├── useLeaveRequests.ts      # Leave requests with React Query
 │   │   ├── useOvertimeRequests.ts   # Overtime requests with React Query
+│   │   ├── useOvertimeSettings.ts   # Overtime settings management
+│   │   ├── useOvertimeStatistics.ts # Overtime statistics and analytics
 │   │   ├── useLeaveTypes.ts         # Leave types with React Query (centralized)
 │   │   ├── useSettings.ts           # Settings management with React Query
 │   │   ├── useSkills.ts             # Skills management with React Query
+│   │   ├── useBreakSchedules.ts     # Break schedules with React Query
+│   │   ├── useCoverageData.ts       # Break coverage data and calculations
+│   │   ├── useDistributionSettings.ts # Break distribution settings
+│   │   ├── useShiftConfigurations.ts # Shift configurations
+│   │   ├── useSchedule.ts           # Schedule data fetching
 │   │   ├── useDashboardData.ts      # Dashboard data fetching hook (extracted)
+│   │   ├── useDashboardStats.ts     # Dashboard statistics
 │   │   ├── useReportData.ts         # Reports data fetching hook (extracted)
+│   │   ├── usePaginatedQuery.ts     # Pagination helper hook
+│   │   ├── useRoleCheck.ts          # Role-based access control hook
 │   │   └── useNavigation.ts         # Navigation items with RBAC
 │   ├── lib/
 │   │   ├── supabase.ts              # Supabase client initialization with auth config
@@ -600,7 +663,10 @@ WFM/
 │   │   ├── errorHandler.ts          # Centralized error handling with TTL and ring buffer
 │   │   ├── performance.ts           # Performance utilities (debounce, throttle, etc.)
 │   │   ├── securityLogger.ts        # Security event logging
-│   │   └── sentry.ts                # Sentry SDK initialization and configuration
+│   │   ├── sentry.ts                # Sentry SDK initialization and configuration
+│   │   ├── autoDistribution.ts      # Break auto-distribution algorithms
+│   │   ├── breakScheduleCSV.ts      # Break schedule CSV import/export
+│   │   └── breakValidation.ts       # Break schedule validation logic
 │   ├── pages/
 │   │   ├── Dashboard.tsx            # Main dashboard with pending requests
 │   │   ├── BreakSchedule.tsx        # Break schedule page
@@ -631,7 +697,7 @@ WFM/
 │   │   │   ├── LeaveRequestDetail.tsx # Individual leave request details
 │   │   │   ├── CreateLeaveRequest.tsx # Create new leave request
 │   │   │   └── LeaveBalances.tsx    # Leave balance management (WFM only)
-│   │   ├── OvertimeRequests/        # Overtime request pages (3 files)
+│   │   ├── OvertimeRequests/        # Overtime request pages (4 files)
 │   │   │   ├── index.ts             # Barrel exports
 │   │   │   ├── OvertimeRequests.tsx # List of overtime requests
 │   │   │   ├── OvertimeRequestDetail.tsx # Individual overtime request details
@@ -642,12 +708,14 @@ WFM/
 │   │   │   ├── MetricCards.tsx      # Summary cards (~80 lines)
 │   │   │   ├── SwapChart.tsx        # Swap bar chart (~60 lines)
 │   │   │   └── LeaveChart.tsx       # Leave pie chart (~60 lines)
-│   │   └── Settings/                # Settings pages (5 files, decomposed)
+│   │   └── Settings/                # Settings pages (7 files, decomposed)
 │   │       ├── index.tsx            # Settings tab navigation shell (~80 lines)
 │   │       ├── GeneralSettings.tsx  # Auto-approve, exceptions toggles (~80 lines)
 │   │       ├── LeaveTypeManager.tsx # Leave type CRUD (~150 lines)
 │   │       ├── BreakScheduleSettings.tsx # Break schedule config (~100 lines)
-│   │       └── ShiftConfigSettings.tsx # Shift configuration (~100 lines)
+│   │       ├── ShiftConfigSettings.tsx # Shift configuration (~100 lines)
+│   │       ├── OvertimeSettings.tsx # Overtime system configuration (~150 lines)
+│   │       └── SkillsManager.tsx    # Skills management (~120 lines)
 │   ├── services/                    # API service layer (unified data-fetching)
 │   │   ├── index.ts                 # Service barrel exports (all services)
 │   │   ├── authService.ts           # Authentication services
@@ -656,6 +724,7 @@ WFM/
 │   │   ├── leaveBalancesService.ts  # Leave balance operations
 │   │   ├── leaveRequestsService.ts  # Leave request operations
 │   │   ├── overtimeRequestsService.ts # Overtime request operations
+│   │   ├── overtimeSettingsService.ts # Overtime settings management
 │   │   ├── leaveTypesService.ts     # Leave types CRUD operations (centralized)
 │   │   ├── settingsService.ts       # Settings management
 │   │   ├── shiftsService.ts         # Shift operations
@@ -664,12 +733,17 @@ WFM/
 │   │   ├── reportsService.ts        # Reports data service (extracted)
 │   │   ├── breakSchedulesService.ts # Break schedule operations
 │   │   ├── breakRulesService.ts     # Break validation rules
-│   │   └── shiftConfigurationsService.ts # Shift configuration operations
+│   │   ├── distributionSettingsService.ts # Break distribution algorithm settings
+│   │   ├── shiftConfigurationsService.ts # Shift configuration operations
+│   │   └── skillsService.ts         # Skills management operations
 │   ├── utils/                       # Utility functions
+│   │   ├── index.ts                 # Utility barrel exports
 │   │   ├── csvHelpers.ts            # CSV parsing and generation
 │   │   ├── dateHelpers.ts           # Date manipulation utilities
 │   │   ├── formatters.ts            # Data formatting utilities
-│   │   └── sanitize.ts              # Input sanitization
+│   │   ├── sanitize.ts              # Input sanitization
+│   │   ├── overtimeCsvHelpers.ts    # Overtime CSV import/export
+│   │   └── overtimeValidation.ts    # Overtime validation logic
 │   ├── validation/                  # Consolidated validation module (Zod-based)
 │   │   ├── index.ts                 # Validation barrel exports
 │   │   ├── validators.ts            # Imperative validators derived from Zod
@@ -680,19 +754,31 @@ WFM/
 │   │       ├── leaveRequest.ts      # Leave request schemas
 │   │       ├── swapRequest.ts       # Swap request schemas
 │   │       ├── breakSchedule.ts     # Break schedule schemas
-│   │       └── settings.ts          # Settings schemas
+│   │       ├── settings.ts          # Settings schemas
+│   │       └── skillSchema.ts       # Skills schemas
 │   ├── test/                        # Unit tests (568 passing tests)
 │   │   ├── setup.ts                 # Test configuration
+│   │   ├── README.md                # Test documentation
+│   │   ├── seed-test-data.ts        # Test data seeding script
 │   │   ├── components/              # Component tests
 │   │   ├── hooks/                   # Hook tests
 │   │   ├── lib/                     # Library tests
 │   │   ├── utils/                   # Utility tests
-│   │   ├── properties/              # Property-based tests
-│   │   └── integration/             # Integration tests
+│   │   ├── services/                # Service layer tests
+│   │   ├── pages/                   # Page component tests
+│   │   ├── properties/              # Property-based tests (fast-check)
+│   │   ├── integration/             # Integration tests
+│   │   ├── backend/                 # Backend/RLS policy tests
+│   │   ├── business-logic/          # Business logic tests
+│   │   ├── edge-cases/              # Edge case tests
+│   │   ├── performance/             # Performance benchmark tests
+│   │   └── generators/              # Test data generators
 │   ├── types/
 │   │   ├── index.ts                 # TypeScript type definitions
 │   │   ├── errors.ts                # Custom error types
-│   │   └── pagination.ts            # Pagination types
+│   │   ├── pagination.ts            # Pagination types
+│   │   ├── json.ts                  # JSON type utilities
+│   │   └── overtime.ts              # Overtime system types
 │   └── constants/
 │       ├── index.ts                 # Application constants (unified localStorage keys, routes, etc.)
 │       └── cache.ts                 # Cache configuration constants
@@ -734,38 +820,7 @@ Following the February 2026 restructure, the codebase follows clear organization
 - Predictable structure with clear rules
 - Easy to locate and delete features
 - Cleaner imports with barrel exports
-- Scales naturally as project grows── leaveRequest.ts      # Leave request schemas
-│   │       ├── swapRequest.ts       # Swap request schemas
-│   │       ├── breakSchedule.ts     # Break schedule schemas
-│   │       └── settings.ts          # Settings schemas
-│   ├── test/                        # Unit tests (36 passing tests)
-│   │   ├── setup.ts                 # Test configuration
-│   │   ├── components/              # Component tests
-│   │   ├── hooks/                   # Hook tests
-│   │   ├── lib/                     # Library tests
-│   │   ├── utils/                   # Utility tests
-│   │   └── integration/             # Integration tests
-│   ├── types/
-│   │   ├── index.ts                 # TypeScript type definitions
-│   │   ├── errors.ts                # Custom error types
-│   │   └── pagination.ts            # Pagination types
-│   ├── constants/
-│       ├── index.ts                 # Application constants (unified localStorage keys, routes, etc.)
-│       └── cache.ts                 # Cache configuration constants
-├── .env.example                     # Environment variable template (secure placeholders)
-├── .env.test.example                # Test environment template
-├── .gitignore                       # Git ignore rules (includes coverage/)
-├── package.json                     # Package name: "wfm"
-├── package.json
-├── tailwind.config.ts
-├── tsconfig.json
-├── tsconfig.app.json
-├── tsconfig.node.json
-├── eslint.config.js
-├── postcss.config.js
-├── vercel.json                      # Vercel config (SPA rewrites + hardened CSP)
-└── vite.config.ts                   # Vite config (secure test environment)
-```
+- Scales naturally as project grows
 
 ---
 
@@ -792,6 +847,10 @@ Following the February 2026 restructure, the codebase follows clear organization
 | **departments** | Department hierarchy and structure | id, name, code, parent_department_id, head_id, cost_center, active |
 | **headcount_audit_log** | Audit trail for headcount changes | id, user_id, action, previous_values, new_values, performed_by, reason, effective_date |
 | **leave_types** | Configurable leave type definitions (centralized management) | id, code, label, description, color, display_order, is_active, created_at |
+| **skills** | Employee skills and competencies | id, name, description, color, is_active, created_at, updated_at |
+| **overtime_requests** | Overtime work requests with approval workflow | id, requester_id, request_date, start_time, end_time, total_hours, overtime_type, reason, status, tl_reviewed_by, wfm_reviewed_by, created_at |
+| **overtime_settings** | Overtime system configuration | id, key, value (auto_approve, max_daily_hours, max_weekly_hours, pay_multipliers, etc.) |
+| **distribution_settings** | Break distribution algorithm parameters by shift type | id, shift_type, hb1_start_column, b_offset_minutes, hb2_offset_minutes, ladder_increment, max_agents_per_cycle |
 | **break_schedules** | Agent break schedules by 15-minute intervals | id, user_id, schedule_date, shift_type, interval_start, break_type, created_by |
 | **break_schedule_rules** | Configurable validation rules for break scheduling | id, rule_name, rule_type, parameters, is_active, is_blocking, priority |
 | **break_schedule_warnings** | Warnings when shifts change and breaks are cleared | id, user_id, schedule_date, warning_type, old_shift_type, new_shift_type, is_resolved |
@@ -810,6 +869,8 @@ Following the February 2026 restructure, the codebase follows clear organization
 - **shift_type**: `AM`, `PM`, `BET`, `OFF`
 - **swap_request_status**: `pending_acceptance`, `pending_tl`, `pending_wfm`, `approved`, `rejected`
 - **leave_request_status**: `pending_tl`, `pending_wfm`, `approved`, `rejected`, `denied`
+- **overtime_status**: `pending_tl`, `pending_wfm`, `approved`, `rejected`, `cancelled`
+- **overtime_type**: `regular`, `double`
 - **leave_type**: `sick`, `annual`, `casual`, `public_holiday`, `bereavement`
 - **request_type**: `swap`, `leave`
 - **break_type**: `IN`, `HB1`, `B`, `HB2`
