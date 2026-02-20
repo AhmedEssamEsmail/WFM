@@ -1,8 +1,8 @@
 // Shifts service
 
-import { supabase } from '../lib/supabase'
-import type { Shift } from '../types'
-import { API_ENDPOINTS } from '../constants'
+import { supabase } from '../lib/supabase';
+import type { Shift } from '../types';
+import { API_ENDPOINTS } from '../constants';
 
 export const shiftsService = {
   /**
@@ -12,18 +12,18 @@ export const shiftsService = {
     let query = supabase
       .from(API_ENDPOINTS.SHIFTS)
       .select('*, users(name, email)')
-      .order('date', { ascending: true })
-    
+      .order('date', { ascending: true });
+
     if (startDate) {
-      query = query.gte('date', startDate)
+      query = query.gte('date', startDate);
     }
     if (endDate) {
-      query = query.lte('date', endDate)
+      query = query.lte('date', endDate);
     }
-    
-    const { data, error } = await query
-    if (error) throw error
-    return data as Shift[]
+
+    const { data, error } = await query;
+    if (error) throw error;
+    return data as Shift[];
   },
 
   /**
@@ -34,18 +34,18 @@ export const shiftsService = {
       .from(API_ENDPOINTS.SHIFTS)
       .select('*')
       .eq('user_id', userId)
-      .order('date', { ascending: true })
-    
+      .order('date', { ascending: true });
+
     if (startDate) {
-      query = query.gte('date', startDate)
+      query = query.gte('date', startDate);
     }
     if (endDate) {
-      query = query.lte('date', endDate)
+      query = query.lte('date', endDate);
     }
-    
-    const { data, error } = await query
-    if (error) throw error
-    return data as Shift[]
+
+    const { data, error } = await query;
+    if (error) throw error;
+    return data as Shift[];
   },
 
   /**
@@ -56,10 +56,10 @@ export const shiftsService = {
       .from(API_ENDPOINTS.SHIFTS)
       .select('*')
       .eq('id', shiftId)
-      .single()
-    
-    if (error) throw error
-    return data as Shift
+      .single();
+
+    if (error) throw error;
+    return data as Shift;
   },
 
   /**
@@ -70,10 +70,10 @@ export const shiftsService = {
       .from(API_ENDPOINTS.SHIFTS)
       .insert(shift)
       .select()
-      .single()
-    
-    if (error) throw error
-    return data as Shift
+      .single();
+
+    if (error) throw error;
+    return data as Shift;
   },
 
   /**
@@ -85,35 +85,29 @@ export const shiftsService = {
       .update(updates)
       .eq('id', shiftId)
       .select()
-      .single()
-    
-    if (error) throw error
-    return data as Shift
+      .single();
+
+    if (error) throw error;
+    return data as Shift;
   },
 
   /**
    * Delete a shift
    */
   async deleteShift(shiftId: string): Promise<void> {
-    const { error } = await supabase
-      .from(API_ENDPOINTS.SHIFTS)
-      .delete()
-      .eq('id', shiftId)
-    
-    if (error) throw error
+    const { error } = await supabase.from(API_ENDPOINTS.SHIFTS).delete().eq('id', shiftId);
+
+    if (error) throw error;
   },
 
   /**
    * Bulk create shifts
    */
   async bulkCreateShifts(shifts: Omit<Shift, 'id' | 'created_at'>[]): Promise<Shift[]> {
-    const { data, error } = await supabase
-      .from(API_ENDPOINTS.SHIFTS)
-      .insert(shifts)
-      .select()
-    
-    if (error) throw error
-    return data as Shift[]
+    const { data, error } = await supabase.from(API_ENDPOINTS.SHIFTS).insert(shifts).select();
+
+    if (error) throw error;
+    return data as Shift[];
   },
 
   /**
@@ -123,9 +117,9 @@ export const shiftsService = {
     const { data, error } = await supabase
       .from(API_ENDPOINTS.SHIFTS)
       .upsert(shifts, { onConflict: 'user_id,date' })
-      .select()
-    
-    if (error) throw error
-    return data as Shift[]
+      .select();
+
+    if (error) throw error;
+    return data as Shift[];
   },
-}
+};

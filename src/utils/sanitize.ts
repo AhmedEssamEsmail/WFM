@@ -3,7 +3,7 @@
  * Uses DOMPurify for robust XSS protection
  */
 
-import DOMPurify from 'dompurify'
+import DOMPurify from 'dompurify';
 
 /**
  * Sanitize HTML content to prevent XSS attacks
@@ -11,12 +11,12 @@ import DOMPurify from 'dompurify'
  * @returns Sanitized HTML string safe for rendering
  */
 export function sanitizeHtml(dirty: string | null | undefined): string {
-  if (!dirty) return ''
+  if (!dirty) return '';
   return DOMPurify.sanitize(dirty, {
     ALLOWED_TAGS: ['b', 'i', 'em', 'strong', 'a', 'p', 'br', 'ul', 'ol', 'li'],
     ALLOWED_ATTR: ['href', 'target'],
     ALLOW_DATA_ATTR: false,
-  })
+  });
 }
 
 /**
@@ -25,11 +25,11 @@ export function sanitizeHtml(dirty: string | null | undefined): string {
  * @returns Plain text with all HTML removed
  */
 export function sanitizeText(dirty: string | null | undefined): string {
-  if (!dirty) return ''
+  if (!dirty) return '';
   return DOMPurify.sanitize(dirty, {
     ALLOWED_TAGS: [],
     KEEP_CONTENT: false, // Remove script content too
-  })
+  });
 }
 
 /**
@@ -39,12 +39,12 @@ export function sanitizeText(dirty: string | null | undefined): string {
  * @returns Sanitized string safe for display
  */
 export function sanitizeUserInput(dirty: string | null | undefined): string {
-  if (!dirty) return ''
+  if (!dirty) return '';
   return DOMPurify.sanitize(dirty, {
     ALLOWED_TAGS: ['b', 'i', 'em', 'strong', 'br', 'p'],
     ALLOWED_ATTR: [],
     ALLOW_DATA_ATTR: false,
-  }).trim()
+  }).trim();
 }
 
 /**
@@ -53,7 +53,7 @@ export function sanitizeUserInput(dirty: string | null | undefined): string {
  * @returns Escaped text safe for HTML context
  */
 export function escapeHtml(text: string): string {
-  const div = document.createElement('div')
-  div.appendChild(document.createTextNode(text))
-  return div.innerHTML
+  const div = document.createElement('div');
+  div.appendChild(document.createTextNode(text));
+  return div.innerHTML;
 }

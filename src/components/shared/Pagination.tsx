@@ -1,12 +1,12 @@
 interface PaginationProps {
-  hasMore: boolean
-  hasPrevious: boolean
-  isLoading: boolean
-  onNextPage: () => void
-  onPrevPage: () => void
-  currentPage?: number
-  totalItems?: number
-  pageSize?: number
+  hasMore: boolean;
+  hasPrevious: boolean;
+  isLoading: boolean;
+  onNextPage: () => void;
+  onPrevPage: () => void;
+  currentPage?: number;
+  totalItems?: number;
+  pageSize?: number;
 }
 
 /**
@@ -42,7 +42,7 @@ export function Pagination({
           Next
         </button>
       </div>
-      
+
       <div className="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
         {/* Desktop pagination info */}
         <div>
@@ -54,9 +54,7 @@ export function Pagination({
                   {Math.min((currentPage - 1) * pageSize + 1, totalItems)}
                 </span>{' '}
                 to{' '}
-                <span className="font-medium">
-                  {Math.min(currentPage * pageSize, totalItems)}
-                </span>{' '}
+                <span className="font-medium">{Math.min(currentPage * pageSize, totalItems)}</span>{' '}
                 of <span className="font-medium">{totalItems}</span> results
               </>
             ) : (
@@ -68,10 +66,13 @@ export function Pagination({
             )}
           </p>
         </div>
-        
+
         {/* Desktop pagination controls */}
         <div>
-          <nav className="isolate inline-flex -space-x-px rounded-md shadow-sm" aria-label="Pagination">
+          <nav
+            className="isolate inline-flex -space-x-px rounded-md shadow-sm"
+            aria-label="Pagination"
+          >
             <button
               onClick={onPrevPage}
               disabled={!hasPrevious || isLoading}
@@ -87,13 +88,13 @@ export function Pagination({
                 />
               </svg>
             </button>
-            
+
             {isLoading && (
               <span className="relative inline-flex items-center px-4 py-2 text-sm font-semibold text-gray-700 ring-1 ring-inset ring-gray-300">
                 Loading...
               </span>
             )}
-            
+
             <button
               onClick={onNextPage}
               disabled={!hasMore || isLoading}
@@ -113,5 +114,5 @@ export function Pagination({
         </div>
       </div>
     </div>
-  )
+  );
 }

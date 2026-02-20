@@ -1,28 +1,34 @@
-import { ValidationViolation } from '../../types'
-import { BUTTON_STYLES, SEMANTIC_COLORS } from '../../lib/designSystem'
+import { ValidationViolation } from '../../types';
+import { BUTTON_STYLES, SEMANTIC_COLORS } from '../../lib/designSystem';
 
 interface ValidationBannerProps {
-  violations: ValidationViolation[]
-  onSaveAnyway?: () => void
-  onDismiss?: () => void
+  violations: ValidationViolation[];
+  onSaveAnyway?: () => void;
+  onDismiss?: () => void;
 }
 
-export default function ValidationBanner({ violations, onSaveAnyway, onDismiss }: ValidationBannerProps) {
-  if (violations.length === 0) return null
+export default function ValidationBanner({
+  violations,
+  onSaveAnyway,
+  onDismiss,
+}: ValidationBannerProps) {
+  if (violations.length === 0) return null;
 
-  const errors = violations.filter(v => v.severity === 'error')
-  const warnings = violations.filter(v => v.severity === 'warning')
-  const hasErrors = errors.length > 0
-  const hasWarnings = warnings.length > 0
+  const errors = violations.filter((v) => v.severity === 'error');
+  const warnings = violations.filter((v) => v.severity === 'warning');
+  const hasErrors = errors.length > 0;
+  const hasWarnings = warnings.length > 0;
 
   return (
     <div className="space-y-3">
       {/* Error banner */}
       {hasErrors && (
-        <div className={`${SEMANTIC_COLORS.error.bg} border ${SEMANTIC_COLORS.error.border} rounded-lg p-4`}>
+        <div
+          className={`${SEMANTIC_COLORS.error.bg} border ${SEMANTIC_COLORS.error.border} rounded-lg p-4`}
+        >
           <div className="flex items-start gap-3">
             <svg
-              className={`w-5 h-5 ${SEMANTIC_COLORS.error.icon} flex-shrink-0 mt-0.5`}
+              className={`h-5 w-5 ${SEMANTIC_COLORS.error.icon} mt-0.5 flex-shrink-0`}
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -38,13 +44,13 @@ export default function ValidationBanner({ violations, onSaveAnyway, onDismiss }
               <h3 className={`text-sm font-medium ${SEMANTIC_COLORS.error.text}`}>
                 {errors.length} Blocking {errors.length === 1 ? 'Error' : 'Errors'}
               </h3>
-              <div className="mt-2 text-sm ${SEMANTIC_COLORS.error.text}">
-                <ul className="list-disc list-inside space-y-1">
+              <div className="${SEMANTIC_COLORS.error.text} mt-2 text-sm">
+                <ul className="list-inside list-disc space-y-1">
                   {errors.map((error, idx) => (
                     <li key={idx}>
                       <span className="font-medium">{error.rule_name}:</span> {error.message}
                       {error.affected_intervals && error.affected_intervals.length > 0 && (
-                        <span className="text-xs ml-2">
+                        <span className="ml-2 text-xs">
                           (Intervals: {error.affected_intervals.join(', ')})
                         </span>
                       )}
@@ -52,7 +58,7 @@ export default function ValidationBanner({ violations, onSaveAnyway, onDismiss }
                   ))}
                 </ul>
               </div>
-              <p className="mt-2 text-sm ${SEMANTIC_COLORS.error.text}">
+              <p className="${SEMANTIC_COLORS.error.text} mt-2 text-sm">
                 These errors must be fixed before saving.
               </p>
             </div>
@@ -62,8 +68,13 @@ export default function ValidationBanner({ violations, onSaveAnyway, onDismiss }
                 className="flex-shrink-0 text-gray-400 hover:text-gray-600"
                 aria-label="Dismiss"
               >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M6 18L18 6M6 6l12 12"
+                  />
                 </svg>
               </button>
             )}
@@ -73,10 +84,12 @@ export default function ValidationBanner({ violations, onSaveAnyway, onDismiss }
 
       {/* Warning banner */}
       {hasWarnings && (
-        <div className={`${SEMANTIC_COLORS.warning.bg} border ${SEMANTIC_COLORS.warning.border} rounded-lg p-4`}>
+        <div
+          className={`${SEMANTIC_COLORS.warning.bg} border ${SEMANTIC_COLORS.warning.border} rounded-lg p-4`}
+        >
           <div className="flex items-start gap-3">
             <svg
-              className={`w-5 h-5 ${SEMANTIC_COLORS.warning.icon} flex-shrink-0 mt-0.5`}
+              className={`h-5 w-5 ${SEMANTIC_COLORS.warning.icon} mt-0.5 flex-shrink-0`}
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -92,13 +105,13 @@ export default function ValidationBanner({ violations, onSaveAnyway, onDismiss }
               <h3 className={`text-sm font-medium ${SEMANTIC_COLORS.warning.text}`}>
                 {warnings.length} {warnings.length === 1 ? 'Warning' : 'Warnings'}
               </h3>
-              <div className="mt-2 text-sm ${SEMANTIC_COLORS.warning.text}">
-                <ul className="list-disc list-inside space-y-1">
+              <div className="${SEMANTIC_COLORS.warning.text} mt-2 text-sm">
+                <ul className="list-inside list-disc space-y-1">
                   {warnings.map((warning, idx) => (
                     <li key={idx}>
                       <span className="font-medium">{warning.rule_name}:</span> {warning.message}
                       {warning.affected_intervals && warning.affected_intervals.length > 0 && (
-                        <span className="text-xs ml-2">
+                        <span className="ml-2 text-xs">
                           (Intervals: {warning.affected_intervals.join(', ')})
                         </span>
                       )}
@@ -110,7 +123,7 @@ export default function ValidationBanner({ violations, onSaveAnyway, onDismiss }
                 {onSaveAnyway && (
                   <button
                     onClick={onSaveAnyway}
-                    className={`${BUTTON_STYLES.warning} text-xs px-3 py-1`}
+                    className={`${BUTTON_STYLES.warning} px-3 py-1 text-xs`}
                   >
                     Save Anyway
                   </button>
@@ -118,7 +131,7 @@ export default function ValidationBanner({ violations, onSaveAnyway, onDismiss }
                 {onDismiss && (
                   <button
                     onClick={onDismiss}
-                    className={`${BUTTON_STYLES.secondary} text-xs px-3 py-1`}
+                    className={`${BUTTON_STYLES.secondary} px-3 py-1 text-xs`}
                   >
                     Cancel
                   </button>
@@ -129,5 +142,5 @@ export default function ValidationBanner({ violations, onSaveAnyway, onDismiss }
         </div>
       )}
     </div>
-  )
+  );
 }

@@ -1,13 +1,15 @@
-import { useState } from 'react'
-import { ShiftConfiguration } from '../types'
-import { BUTTON_STYLES, INPUT_STYLES } from '../lib/designSystem'
+import { useState } from 'react';
+import { ShiftConfiguration } from '../types';
+import { BUTTON_STYLES, INPUT_STYLES } from '../lib/designSystem';
 
 interface ShiftConfigurationsProps {
-  shifts: ShiftConfiguration[]
-  onUpdateShift: (shiftId: string, updates: Partial<ShiftConfiguration>) => Promise<void>
-  onToggleShift: (shiftId: string, isActive: boolean) => Promise<void>
-  onCreateShift: (shift: Omit<ShiftConfiguration, 'id' | 'created_at' | 'updated_at'>) => Promise<void>
-  onDeleteShift: (shiftId: string) => Promise<void>
+  shifts: ShiftConfiguration[];
+  onUpdateShift: (shiftId: string, updates: Partial<ShiftConfiguration>) => Promise<void>;
+  onToggleShift: (shiftId: string, isActive: boolean) => Promise<void>;
+  onCreateShift: (
+    shift: Omit<ShiftConfiguration, 'id' | 'created_at' | 'updated_at'>
+  ) => Promise<void>;
+  onDeleteShift: (shiftId: string) => Promise<void>;
 }
 
 export default function ShiftConfigurations({
@@ -17,10 +19,10 @@ export default function ShiftConfigurations({
   onCreateShift,
   onDeleteShift,
 }: ShiftConfigurationsProps) {
-  const [editingShift, setEditingShift] = useState<string | null>(null)
-  const [editedShift, setEditedShift] = useState<Partial<ShiftConfiguration>>({})
-  const [isSaving, setIsSaving] = useState(false)
-  const [showAddForm, setShowAddForm] = useState(false)
+  const [editingShift, setEditingShift] = useState<string | null>(null);
+  const [editedShift, setEditedShift] = useState<Partial<ShiftConfiguration>>({});
+  const [isSaving, setIsSaving] = useState(false);
+  const [showAddForm, setShowAddForm] = useState(false);
   const [newShift, setNewShift] = useState({
     shift_code: '',
     shift_label: '',
@@ -29,55 +31,55 @@ export default function ShiftConfigurations({
     description: '',
     display_order: shifts.length + 1,
     is_active: true,
-  })
+  });
 
   const handleEdit = (shift: ShiftConfiguration) => {
-    setEditingShift(shift.id)
+    setEditingShift(shift.id);
     setEditedShift({
       shift_label: shift.shift_label,
       start_time: shift.start_time,
       end_time: shift.end_time,
       description: shift.description,
       display_order: shift.display_order,
-    })
-  }
+    });
+  };
 
   const handleSave = async (shiftId: string) => {
-    setIsSaving(true)
+    setIsSaving(true);
     try {
-      await onUpdateShift(shiftId, editedShift)
-      setEditingShift(null)
-      setEditedShift({})
+      await onUpdateShift(shiftId, editedShift);
+      setEditingShift(null);
+      setEditedShift({});
     } catch (error) {
-      console.error('Failed to update shift:', error)
+      console.error('Failed to update shift:', error);
     } finally {
-      setIsSaving(false)
+      setIsSaving(false);
     }
-  }
+  };
 
   const handleCancel = () => {
-    setEditingShift(null)
-    setEditedShift({})
-  }
+    setEditingShift(null);
+    setEditedShift({});
+  };
 
   const handleToggle = async (shiftId: string, currentStatus: boolean) => {
     try {
-      await onToggleShift(shiftId, !currentStatus)
+      await onToggleShift(shiftId, !currentStatus);
     } catch (error) {
-      console.error('Failed to toggle shift:', error)
+      console.error('Failed to toggle shift:', error);
     }
-  }
+  };
 
   const handleCreate = async () => {
     if (!newShift.shift_code || !newShift.shift_label) {
-      alert('Please fill in shift code and label')
-      return
+      alert('Please fill in shift code and label');
+      return;
     }
 
-    setIsSaving(true)
+    setIsSaving(true);
     try {
-      await onCreateShift(newShift)
-      setShowAddForm(false)
+      await onCreateShift(newShift);
+      setShowAddForm(false);
       setNewShift({
         shift_code: '',
         shift_label: '',
@@ -86,65 +88,66 @@ export default function ShiftConfigurations({
         description: '',
         display_order: shifts.length + 1,
         is_active: true,
-      })
+      });
     } catch (error) {
-      console.error('Failed to create shift:', error)
+      console.error('Failed to create shift:', error);
     } finally {
-      setIsSaving(false)
+      setIsSaving(false);
     }
-  }
+  };
 
   const handleDelete = async (shiftId: string, shiftCode: string) => {
-    if (!confirm(`Are you sure you want to delete the ${shiftCode} shift? This cannot be undone.`)) {
-      return
+    if (
+      !confirm(`Are you sure you want to delete the ${shiftCode} shift? This cannot be undone.`)
+    ) {
+      return;
     }
 
     try {
-      await onDeleteShift(shiftId)
+      await onDeleteShift(shiftId);
     } catch (error) {
-      console.error('Failed to delete shift:', error)
+      console.error('Failed to delete shift:', error);
     }
-  }
+  };
 
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <div>
           <h3 className="text-lg font-medium text-gray-900">Shift Configurations</h3>
-          <p className="text-sm text-gray-500 mt-1">
+          <p className="mt-1 text-sm text-gray-500">
             Configure shift times for break schedule management
           </p>
         </div>
-        <button
-          onClick={() => setShowAddForm(true)}
-          className={`${BUTTON_STYLES.primary} text-sm`}
-        >
+        <button onClick={() => setShowAddForm(true)} className={`${BUTTON_STYLES.primary} text-sm`}>
           Add Shift
         </button>
       </div>
 
       {/* Add new shift form */}
       {showAddForm && (
-        <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
-          <h4 className="text-sm font-medium text-gray-900 mb-3">Add New Shift</h4>
+        <div className="rounded-lg border border-gray-200 bg-gray-50 p-4">
+          <h4 className="mb-3 text-sm font-medium text-gray-900">Add New Shift</h4>
           <div className="space-y-3">
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1">
+                <label className="mb-1 block text-xs font-medium text-gray-700">
                   Shift Code <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="text"
                   value={newShift.shift_code}
-                  onChange={(e) => setNewShift({ ...newShift, shift_code: e.target.value.toUpperCase() })}
+                  onChange={(e) =>
+                    setNewShift({ ...newShift, shift_code: e.target.value.toUpperCase() })
+                  }
                   className={`${INPUT_STYLES.default} text-sm`}
                   placeholder="e.g., NIGHT"
                   maxLength={10}
                 />
-                <p className="text-xs text-gray-500 mt-1">Unique code (uppercase)</p>
+                <p className="mt-1 text-xs text-gray-500">Unique code (uppercase)</p>
               </div>
               <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1">
+                <label className="mb-1 block text-xs font-medium text-gray-700">
                   Shift Label <span className="text-red-500">*</span>
                 </label>
                 <input
@@ -158,7 +161,7 @@ export default function ShiftConfigurations({
             </div>
             <div className="grid grid-cols-3 gap-4">
               <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1">Start Time</label>
+                <label className="mb-1 block text-xs font-medium text-gray-700">Start Time</label>
                 <input
                   type="time"
                   step="900"
@@ -168,7 +171,7 @@ export default function ShiftConfigurations({
                 />
               </div>
               <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1">End Time</label>
+                <label className="mb-1 block text-xs font-medium text-gray-700">End Time</label>
                 <input
                   type="time"
                   step="900"
@@ -178,18 +181,22 @@ export default function ShiftConfigurations({
                 />
               </div>
               <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1">Display Order</label>
+                <label className="mb-1 block text-xs font-medium text-gray-700">
+                  Display Order
+                </label>
                 <input
                   type="number"
                   value={newShift.display_order}
-                  onChange={(e) => setNewShift({ ...newShift, display_order: parseInt(e.target.value) || 0 })}
+                  onChange={(e) =>
+                    setNewShift({ ...newShift, display_order: parseInt(e.target.value) || 0 })
+                  }
                   className={`${INPUT_STYLES.default} text-sm`}
                   min="0"
                 />
               </div>
             </div>
             <div>
-              <label className="block text-xs font-medium text-gray-700 mb-1">Description</label>
+              <label className="mb-1 block text-xs font-medium text-gray-700">Description</label>
               <input
                 type="text"
                 value={newShift.description}
@@ -221,35 +228,39 @@ export default function ShiftConfigurations({
       {/* Shifts list */}
       <div className="space-y-3">
         {shifts.map((shift) => {
-          const isEditing = editingShift === shift.id
-          const displayShift = isEditing ? { ...shift, ...editedShift } : shift
+          const isEditing = editingShift === shift.id;
+          const displayShift = isEditing ? { ...shift, ...editedShift } : shift;
 
           return (
             <div
               key={shift.id}
-              className={`bg-white border rounded-lg p-4 ${
+              className={`rounded-lg border bg-white p-4 ${
                 shift.is_active ? 'border-green-300' : 'border-gray-200'
               }`}
             >
               <div className="flex items-start justify-between">
                 <div className="flex-1">
-                  <div className="flex items-center gap-3 mb-2">
-                    <span className="inline-flex items-center px-2.5 py-0.5 rounded text-xs font-bold bg-gray-100 text-gray-800">
+                  <div className="mb-2 flex items-center gap-3">
+                    <span className="inline-flex items-center rounded bg-gray-100 px-2.5 py-0.5 text-xs font-bold text-gray-800">
                       {shift.shift_code}
                     </span>
                     {isEditing ? (
                       <input
                         type="text"
                         value={displayShift.shift_label}
-                        onChange={(e) => setEditedShift({ ...editedShift, shift_label: e.target.value })}
-                        className={`${INPUT_STYLES.default} text-sm max-w-[200px]`}
+                        onChange={(e) =>
+                          setEditedShift({ ...editedShift, shift_label: e.target.value })
+                        }
+                        className={`${INPUT_STYLES.default} max-w-[200px] text-sm`}
                       />
                     ) : (
                       <h4 className="text-sm font-medium text-gray-900">{shift.shift_label}</h4>
                     )}
                     <span
-                      className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${
-                        shift.is_active ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
+                      className={`inline-flex items-center rounded px-2 py-0.5 text-xs font-medium ${
+                        shift.is_active
+                          ? 'bg-green-100 text-green-800'
+                          : 'bg-gray-100 text-gray-800'
                       }`}
                     >
                       {shift.is_active ? 'Active' : 'Inactive'}
@@ -265,8 +276,10 @@ export default function ShiftConfigurations({
                             type="time"
                             step="900"
                             value={displayShift.start_time?.substring(0, 5)}
-                            onChange={(e) => setEditedShift({ ...editedShift, start_time: e.target.value + ':00' })}
-                            className={`${INPUT_STYLES.default} text-xs max-w-[100px]`}
+                            onChange={(e) =>
+                              setEditedShift({ ...editedShift, start_time: e.target.value + ':00' })
+                            }
+                            className={`${INPUT_STYLES.default} max-w-[100px] text-xs`}
                           />
                         ) : (
                           <span className="font-medium text-gray-900">
@@ -281,8 +294,10 @@ export default function ShiftConfigurations({
                             type="time"
                             step="900"
                             value={displayShift.end_time?.substring(0, 5)}
-                            onChange={(e) => setEditedShift({ ...editedShift, end_time: e.target.value + ':00' })}
-                            className={`${INPUT_STYLES.default} text-xs max-w-[100px]`}
+                            onChange={(e) =>
+                              setEditedShift({ ...editedShift, end_time: e.target.value + ':00' })
+                            }
+                            className={`${INPUT_STYLES.default} max-w-[100px] text-xs`}
                           />
                         ) : (
                           <span className="font-medium text-gray-900">
@@ -296,8 +311,13 @@ export default function ShiftConfigurations({
                           <input
                             type="number"
                             value={displayShift.display_order}
-                            onChange={(e) => setEditedShift({ ...editedShift, display_order: parseInt(e.target.value) || 0 })}
-                            className={`${INPUT_STYLES.default} text-xs max-w-[60px]`}
+                            onChange={(e) =>
+                              setEditedShift({
+                                ...editedShift,
+                                display_order: parseInt(e.target.value) || 0,
+                              })
+                            }
+                            className={`${INPUT_STYLES.default} max-w-[60px] text-xs`}
                             min="0"
                           />
                         ) : (
@@ -311,20 +331,20 @@ export default function ShiftConfigurations({
                   </div>
                 </div>
 
-                <div className="flex gap-2 ml-4">
+                <div className="ml-4 flex gap-2">
                   {isEditing ? (
                     <>
                       <button
                         onClick={() => handleSave(shift.id)}
                         disabled={isSaving}
-                        className={`${BUTTON_STYLES.primary} text-xs px-3 py-1`}
+                        className={`${BUTTON_STYLES.primary} px-3 py-1 text-xs`}
                       >
                         Save
                       </button>
                       <button
                         onClick={handleCancel}
                         disabled={isSaving}
-                        className={`${BUTTON_STYLES.secondary} text-xs px-3 py-1`}
+                        className={`${BUTTON_STYLES.secondary} px-3 py-1 text-xs`}
                       >
                         Cancel
                       </button>
@@ -333,7 +353,7 @@ export default function ShiftConfigurations({
                     <>
                       <button
                         onClick={() => handleEdit(shift)}
-                        className={`${BUTTON_STYLES.secondary} text-xs px-3 py-1`}
+                        className={`${BUTTON_STYLES.secondary} px-3 py-1 text-xs`}
                       >
                         Edit
                       </button>
@@ -341,14 +361,14 @@ export default function ShiftConfigurations({
                         onClick={() => handleToggle(shift.id, shift.is_active)}
                         className={`${
                           shift.is_active ? BUTTON_STYLES.warning : BUTTON_STYLES.success
-                        } text-xs px-3 py-1`}
+                        } px-3 py-1 text-xs`}
                       >
                         {shift.is_active ? 'Deactivate' : 'Activate'}
                       </button>
                       {shift.shift_code !== 'OFF' && (
                         <button
                           onClick={() => handleDelete(shift.id, shift.shift_code)}
-                          className={`${BUTTON_STYLES.danger} text-xs px-3 py-1`}
+                          className={`${BUTTON_STYLES.danger} px-3 py-1 text-xs`}
                         >
                           Delete
                         </button>
@@ -358,9 +378,9 @@ export default function ShiftConfigurations({
                 </div>
               </div>
             </div>
-          )
+          );
         })}
       </div>
     </div>
-  )
+  );
 }

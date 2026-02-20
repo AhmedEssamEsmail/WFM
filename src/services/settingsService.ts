@@ -1,7 +1,7 @@
 // Settings service
 
-import { supabase } from '../lib/supabase'
-import { API_ENDPOINTS } from '../constants'
+import { supabase } from '../lib/supabase';
+import { API_ENDPOINTS } from '../constants';
 
 export const settingsService = {
   /**
@@ -12,30 +12,28 @@ export const settingsService = {
       .from(API_ENDPOINTS.SETTINGS)
       .select('value')
       .eq('key', key)
-      .single()
-    
+      .single();
+
     if (error) {
-      if (error.code === 'PGRST116') return null // Not found
-      throw error
+      if (error.code === 'PGRST116') return null; // Not found
+      throw error;
     }
-    return data.value
+    return data.value;
   },
 
   /**
    * Get all settings
    */
   async getAllSettings(): Promise<Record<string, string>> {
-    const { data, error } = await supabase
-      .from(API_ENDPOINTS.SETTINGS)
-      .select('key, value')
-    
-    if (error) throw error
-    
-    const settings: Record<string, string> = {}
-    data.forEach(setting => {
-      settings[setting.key] = setting.value
-    })
-    return settings
+    const { data, error } = await supabase.from(API_ENDPOINTS.SETTINGS).select('key, value');
+
+    if (error) throw error;
+
+    const settings: Record<string, string> = {};
+    data.forEach((setting) => {
+      settings[setting.key] = setting.value;
+    });
+    return settings;
   },
 
   /**
@@ -44,9 +42,9 @@ export const settingsService = {
   async updateSetting(key: string, value: string): Promise<void> {
     const { error } = await supabase
       .from(API_ENDPOINTS.SETTINGS)
-      .upsert({ key, value, updated_at: new Date().toISOString() }, { onConflict: 'key' })
-    
-    if (error) throw error
+      .upsert({ key, value, updated_at: new Date().toISOString() }, { onConflict: 'key' });
+
+    if (error) throw error;
   },
 
   /**
@@ -57,28 +55,28 @@ export const settingsService = {
       key,
       value,
       updated_at: new Date().toISOString(),
-    }))
-    
+    }));
+
     const { error } = await supabase
       .from(API_ENDPOINTS.SETTINGS)
-      .upsert(updates, { onConflict: 'key' })
-    
-    if (error) throw error
+      .upsert(updates, { onConflict: 'key' });
+
+    if (error) throw error;
   },
 
   /**
    * Get WFM auto-approve setting
    */
   async getAutoApproveSetting(): Promise<boolean> {
-    const value = await this.getSetting('wfm_auto_approve')
-    return value === 'true'
+    const value = await this.getSetting('wfm_auto_approve');
+    return value === 'true';
   },
 
   /**
    * Get allow leave exceptions setting
    */
   async getAllowLeaveExceptionsSetting(): Promise<boolean> {
-    const value = await this.getSetting('allow_leave_exceptions')
-    return value === 'true'
+    const value = await this.getSetting('allow_leave_exceptions');
+    return value === 'true';
   },
-}
+};

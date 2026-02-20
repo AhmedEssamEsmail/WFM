@@ -1,20 +1,20 @@
 // Break Schedule Rules Service
 
-import { supabase } from '../lib/supabase'
-import type { BreakScheduleRule, JsonObject } from '../types'
+import { supabase } from '../lib/supabase';
+import type { BreakScheduleRule, JsonObject } from '../types';
 
-const BREAK_RULES_TABLE = 'break_schedule_rules'
+const BREAK_RULES_TABLE = 'break_schedule_rules';
 
 /**
  * Convert Supabase error to proper Error instance
  */
 function toError(error: unknown): Error {
-  if (error instanceof Error) return error
+  if (error instanceof Error) return error;
   if (typeof error === 'object' && error !== null) {
-    const err = error as { message?: string; code?: string }
-    return new Error(err.message || 'Unknown error')
+    const err = error as { message?: string; code?: string };
+    return new Error(err.message || 'Unknown error');
   }
-  return new Error(String(error))
+  return new Error(String(error));
 }
 
 export const breakRulesService = {
@@ -25,10 +25,10 @@ export const breakRulesService = {
     const { data, error } = await supabase
       .from(BREAK_RULES_TABLE)
       .select('*')
-      .order('priority', { ascending: true })
+      .order('priority', { ascending: true });
 
-    if (error) throw toError(error)
-    return data as BreakScheduleRule[]
+    if (error) throw toError(error);
+    return data as BreakScheduleRule[];
   },
 
   /**
@@ -39,10 +39,10 @@ export const breakRulesService = {
       .from(BREAK_RULES_TABLE)
       .select('*')
       .eq('is_active', true)
-      .order('priority', { ascending: true })
+      .order('priority', { ascending: true });
 
-    if (error) throw toError(error)
-    return data as BreakScheduleRule[]
+    if (error) throw toError(error);
+    return data as BreakScheduleRule[];
   },
 
   /**
@@ -53,10 +53,10 @@ export const breakRulesService = {
       .from(BREAK_RULES_TABLE)
       .select('*')
       .eq('id', ruleId)
-      .single()
+      .single();
 
-    if (error) throw toError(error)
-    return data as BreakScheduleRule
+    if (error) throw toError(error);
+    return data as BreakScheduleRule;
   },
 
   /**
@@ -67,10 +67,10 @@ export const breakRulesService = {
       .from(BREAK_RULES_TABLE)
       .select('*')
       .eq('rule_name', ruleName)
-      .maybeSingle()
+      .maybeSingle();
 
-    if (error) throw toError(error)
-    return data as BreakScheduleRule | null
+    if (error) throw toError(error);
+    return data as BreakScheduleRule | null;
   },
 
   /**
@@ -82,9 +82,9 @@ export const breakRulesService = {
   ): Promise<BreakScheduleRule> {
     // Validate parameters if provided
     if (updates.parameters) {
-      const validationError = this.validateRuleParameters(updates.parameters, updates.rule_type)
+      const validationError = this.validateRuleParameters(updates.parameters, updates.rule_type);
       if (validationError) {
-        throw new Error(validationError)
+        throw new Error(validationError);
       }
     }
 
@@ -93,10 +93,10 @@ export const breakRulesService = {
       .update(updates)
       .eq('id', ruleId)
       .select()
-      .single()
+      .single();
 
-    if (error) throw toError(error)
-    return data as BreakScheduleRule
+    if (error) throw toError(error);
+    return data as BreakScheduleRule;
   },
 
   /**
@@ -108,33 +108,30 @@ export const breakRulesService = {
       .update({ is_active: isActive })
       .eq('id', ruleId)
       .select()
-      .single()
+      .single();
 
-    if (error) throw toError(error)
-    return data as BreakScheduleRule
+    if (error) throw toError(error);
+    return data as BreakScheduleRule;
   },
 
   /**
    * Validate rule parameters based on rule type
    */
-  validateRuleParameters(
-    parameters: JsonObject,
-    ruleType?: string
-  ): string | null {
-    if (!ruleType) return null
+  validateRuleParameters(parameters: JsonObject, ruleType?: string): string | null {
+    if (!ruleType) return null;
 
     switch (ruleType) {
       case 'timing': {
         // Validate timing rule parameters
         if (parameters.min_minutes !== undefined) {
           if (typeof parameters.min_minutes !== 'number' || parameters.min_minutes < 0) {
-            return 'min_minutes must be a positive number'
+            return 'min_minutes must be a positive number';
           }
         }
 
         if (parameters.max_minutes !== undefined) {
           if (typeof parameters.max_minutes !== 'number' || parameters.max_minutes < 0) {
-            return 'max_minutes must be a positive number'
+            return 'max_minutes must be a positive number';
           }
         }
 
@@ -143,10 +140,10 @@ export const breakRulesService = {
           parameters.max_minutes !== undefined &&
           parameters.min_minutes > parameters.max_minutes
         ) {
-          return 'min_minutes cannot be greater than max_minutes'
+          return 'min_minutes cannot be greater than max_minutes';
         }
 
-        break
+        break;
       }
 
       case 'coverage': {
@@ -157,7 +154,7 @@ export const breakRulesService = {
             parameters.min_agents < 0 ||
             !Number.isInteger(parameters.min_agents)
           ) {
-            return 'min_agents must be a positive integer'
+            return 'min_agents must be a positive integer';
           }
         }
 
@@ -167,29 +164,29 @@ export const breakRulesService = {
             parameters.alert_threshold < 0 ||
             !Number.isInteger(parameters.alert_threshold)
           ) {
-            return 'alert_threshold must be a positive integer'
+            return 'alert_threshold must be a positive integer';
           }
         }
 
-        break
+        break;
       }
 
       case 'ordering': {
         // Validate ordering rule parameters
         if (parameters.sequence !== undefined) {
           if (!Array.isArray(parameters.sequence)) {
-            return 'sequence must be an array'
+            return 'sequence must be an array';
           }
 
-          const validBreakTypes = ['HB1', 'B', 'HB2']
+          const validBreakTypes = ['HB1', 'B', 'HB2'];
           for (const breakType of parameters.sequence) {
             if (typeof breakType === 'string' && !validBreakTypes.includes(breakType)) {
-              return `Invalid break type in sequence: ${breakType}`
+              return `Invalid break type in sequence: ${breakType}`;
             }
           }
         }
 
-        break
+        break;
       }
 
       case 'distribution': {
@@ -200,15 +197,15 @@ export const breakRulesService = {
             parameters.tolerance_percentage < 0 ||
             parameters.tolerance_percentage > 100
           ) {
-            return 'tolerance_percentage must be between 0 and 100'
+            return 'tolerance_percentage must be between 0 and 100';
           }
         }
 
-        break
+        break;
       }
     }
 
-    return null
+    return null;
   },
 
   /**
@@ -218,28 +215,23 @@ export const breakRulesService = {
     rule: Omit<BreakScheduleRule, 'id' | 'created_at' | 'updated_at'>
   ): Promise<BreakScheduleRule> {
     // Validate parameters
-    const validationError = this.validateRuleParameters(rule.parameters, rule.rule_type)
+    const validationError = this.validateRuleParameters(rule.parameters, rule.rule_type);
     if (validationError) {
-      throw new Error(validationError)
+      throw new Error(validationError);
     }
 
-    const { data, error } = await supabase
-      .from(BREAK_RULES_TABLE)
-      .insert(rule)
-      .select()
-      .single()
+    const { data, error } = await supabase.from(BREAK_RULES_TABLE).insert(rule).select().single();
 
-    if (error) throw toError(error)
-    return data as BreakScheduleRule
+    if (error) throw toError(error);
+    return data as BreakScheduleRule;
   },
 
   /**
    * Delete a rule (WFM only)
    */
   async deleteRule(ruleId: string): Promise<void> {
-    const { error } = await supabase.from(BREAK_RULES_TABLE).delete().eq('id', ruleId)
+    const { error } = await supabase.from(BREAK_RULES_TABLE).delete().eq('id', ruleId);
 
-    if (error) throw toError(error)
+    if (error) throw toError(error);
   },
-}
-
+};

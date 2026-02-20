@@ -75,104 +75,104 @@ body {
   html {
     @apply bg-gray-50;
   }
-  
+
   /* Dark mode base styles for common elements */
   .dark {
     color-scheme: dark;
   }
-  
+
   .dark body {
     @apply bg-gray-900 text-gray-100;
   }
-  
+
   /* Cards and containers */
   .dark .bg-white {
     @apply bg-gray-800;
   }
-  
+
   /* Tables */
   .dark table {
     @apply bg-gray-800 text-gray-100;
   }
-  
+
   .dark thead {
     @apply bg-gray-700;
   }
-  
+
   .dark tbody tr {
     @apply border-gray-700;
   }
-  
+
   .dark tbody tr:hover {
     @apply bg-gray-700;
   }
-  
+
   /* Text colors */
   .dark .text-gray-900 {
     @apply text-gray-100;
   }
-  
+
   .dark .text-gray-800 {
     @apply text-gray-200;
   }
-  
+
   .dark .text-gray-700 {
     @apply text-gray-300;
   }
-  
+
   .dark .text-gray-600 {
     @apply text-gray-400;
   }
-  
+
   .dark .text-gray-500 {
     @apply text-gray-400;
   }
-  
+
   /* Borders */
   .dark .border-gray-200 {
     @apply border-gray-700;
   }
-  
+
   .dark .border-gray-300 {
     @apply border-gray-600;
   }
-  
+
   /* Backgrounds */
   .dark .bg-gray-50 {
     @apply bg-gray-900;
   }
-  
+
   .dark .bg-gray-100 {
     @apply bg-gray-800;
   }
-  
+
   .dark .bg-gray-200 {
     @apply bg-gray-700;
   }
-  
+
   /* Inputs */
   .dark input,
   .dark select,
   .dark textarea {
-    @apply bg-gray-700 border-gray-600 text-gray-100;
+    @apply border-gray-600 bg-gray-700 text-gray-100;
   }
-  
+
   .dark input:focus,
   .dark select:focus,
   .dark textarea:focus {
     @apply border-primary-500 ring-primary-500;
   }
-  
+
   /* Buttons */
   .dark button:not(.bg-primary-600):not(.bg-red-600):not(.bg-green-600):not(.bg-blue-600) {
     @apply text-gray-300;
   }
-  
+
   /* Hover states */
   .dark .hover\:bg-gray-50:hover {
     @apply bg-gray-800;
   }
-  
+
   .dark .hover\:bg-gray-100:hover {
     @apply bg-gray-700;
   }

@@ -1,6 +1,6 @@
 /**
  * Authentication Edge Case Tests
- * 
+ *
  * Tests authentication-related edge cases:
  * - Invalid domain rejection
  * - Missing authentication
@@ -74,9 +74,7 @@ describe.skip('Authentication Edge Case Tests', () => {
       expect(isValid).toBe(true);
 
       const invalidEmail = 'user@gmail.com';
-      const isInvalid = validDomains.some((domain) =>
-        invalidEmail.endsWith(domain)
-      );
+      const isInvalid = validDomains.some((domain) => invalidEmail.endsWith(domain));
       expect(isInvalid).toBe(false);
     });
   });
@@ -86,8 +84,7 @@ describe.skip('Authentication Edge Case Tests', () => {
       // Create client without authentication
       const unauthClient = createClient(
         process.env.VITE_SUPABASE_TEST_URL || 'http://127.0.0.1:54321',
-        process.env.VITE_SUPABASE_TEST_ANON_KEY ||
-          'sb_publishable_ACJWlzQHlZjBrEguHvfOxg_3BJgxAaH'
+        process.env.VITE_SUPABASE_TEST_ANON_KEY || 'sb_publishable_ACJWlzQHlZjBrEguHvfOxg_3BJgxAaH'
       );
 
       // Try to query users without auth
@@ -134,10 +131,7 @@ describe.skip('Authentication Edge Case Tests', () => {
 
       // With service role, we can query anything
       // In production with user auth, RLS would restrict this
-      const { data } = await testSupabase
-        .from('users')
-        .select('*')
-        .eq('id', otherAgent.id);
+      const { data } = await testSupabase.from('users').select('*').eq('id', otherAgent.id);
 
       expect(data).toBeDefined();
       console.warn('Service role bypasses RLS - production would restrict agent access');
@@ -153,10 +147,7 @@ describe.skip('Authentication Edge Case Tests', () => {
       testIds.userIds.push(tl.id);
 
       // TL can query users (with RLS, limited to their department)
-      const { data } = await testSupabase
-        .from('users')
-        .select('*')
-        .eq('role', 'agent');
+      const { data } = await testSupabase.from('users').select('*').eq('role', 'agent');
 
       expect(Array.isArray(data)).toBe(true);
     });
@@ -239,8 +230,7 @@ describe.skip('Authentication Edge Case Tests', () => {
       // Create client with no session
       const noSessionClient = createClient(
         process.env.VITE_SUPABASE_TEST_URL || 'http://127.0.0.1:54321',
-        process.env.VITE_SUPABASE_TEST_ANON_KEY ||
-          'sb_publishable_ACJWlzQHlZjBrEguHvfOxg_3BJgxAaH',
+        process.env.VITE_SUPABASE_TEST_ANON_KEY || 'sb_publishable_ACJWlzQHlZjBrEguHvfOxg_3BJgxAaH',
         {
           auth: {
             autoRefreshToken: false,
@@ -250,10 +240,7 @@ describe.skip('Authentication Edge Case Tests', () => {
       );
 
       // Try to query without session
-      const { data, error } = await noSessionClient
-        .from('users')
-        .select('*')
-        .limit(1);
+      const { data, error } = await noSessionClient.from('users').select('*').limit(1);
 
       // May succeed with anon key depending on RLS policies
       if (error) {
@@ -347,10 +334,7 @@ describe.skip('Authentication Edge Case Tests', () => {
       await testSupabase.from('users').delete().eq('id', userId);
 
       // Verify user is deleted
-      const { data } = await testSupabase
-        .from('users')
-        .select('*')
-        .eq('id', userId);
+      const { data } = await testSupabase.from('users').select('*').eq('id', userId);
 
       expect(data).toEqual([]);
 

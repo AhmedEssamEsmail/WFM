@@ -1,88 +1,91 @@
-import { useEffect, useState, useCallback } from 'react'
-import { useParams, Link } from 'react-router-dom'
-import { useHeadcount } from '../../hooks/useHeadcount'
-import { useAuth } from '../../hooks/useAuth'
-import ProtectedEdit from '../../components/Headcount/ProtectedEdit'
-import type { HeadcountUser, Department, UserRole } from '../../types'
-import { ROUTES } from '../../constants'
+import { useEffect, useState, useCallback } from 'react';
+import { useParams, Link } from 'react-router-dom';
+import { useHeadcount } from '../../hooks/useHeadcount';
+import { useAuth } from '../../hooks/useAuth';
+import ProtectedEdit from '../../components/Headcount/ProtectedEdit';
+import type { HeadcountUser, Department, UserRole } from '../../types';
+import { ROUTES } from '../../constants';
 
 export default function EmployeeDetail() {
-  const { id } = useParams<{ id: string }>()
-  const { canEditHeadcount } = useAuth()
-  const { getEmployee, updateEmployee, getDepartments, loading } = useHeadcount()
-  const [employee, setEmployee] = useState<HeadcountUser | null>(null)
-  const [departments, setDepartments] = useState<Department[]>([])
-  const [isEditing, setIsEditing] = useState(false)
-  const [formData, setFormData] = useState<Partial<HeadcountUser>>({})
-  const [saving, setSaving] = useState(false)
-  const [message, setMessage] = useState('')
+  const { id } = useParams<{ id: string }>();
+  const { canEditHeadcount } = useAuth();
+  const { getEmployee, updateEmployee, getDepartments, loading } = useHeadcount();
+  const [employee, setEmployee] = useState<HeadcountUser | null>(null);
+  const [departments, setDepartments] = useState<Department[]>([]);
+  const [isEditing, setIsEditing] = useState(false);
+  const [formData, setFormData] = useState<Partial<HeadcountUser>>({});
+  const [saving, setSaving] = useState(false);
+  const [message, setMessage] = useState('');
 
   const loadEmployee = useCallback(async () => {
-    if (!id) return
-    const data = await getEmployee(id)
-    setEmployee(data)
-    setFormData(data || {})
-  }, [id, getEmployee])
+    if (!id) return;
+    const data = await getEmployee(id);
+    setEmployee(data);
+    setFormData(data || {});
+  }, [id, getEmployee]);
 
   const loadDepartments = useCallback(async () => {
-    const depts = await getDepartments()
-    setDepartments(depts)
-  }, [getDepartments])
+    const depts = await getDepartments();
+    setDepartments(depts);
+  }, [getDepartments]);
 
   useEffect(() => {
     if (id) {
-      loadEmployee()
-      loadDepartments()
+      loadEmployee();
+      loadDepartments();
     }
-  }, [id, loadEmployee, loadDepartments])
+  }, [id, loadEmployee, loadDepartments]);
 
   async function handleSave() {
-    if (!id || !employee) return
-    
-    setSaving(true)
-    setMessage('')
-    
-    const success = await updateEmployee(id, formData)
-    
+    if (!id || !employee) return;
+
+    setSaving(true);
+    setMessage('');
+
+    const success = await updateEmployee(id, formData);
+
     if (success) {
-      setMessage('Employee updated successfully!')
-      setIsEditing(false)
-      loadEmployee()
-      setTimeout(() => setMessage(''), 3000)
+      setMessage('Employee updated successfully!');
+      setIsEditing(false);
+      loadEmployee();
+      setTimeout(() => setMessage(''), 3000);
     } else {
-      setMessage('Failed to update employee')
+      setMessage('Failed to update employee');
     }
-    
-    setSaving(false)
+
+    setSaving(false);
   }
 
   if (loading && !employee) {
-    return <div className="flex justify-center py-12">Loading...</div>
+    return <div className="flex justify-center py-12">Loading...</div>;
   }
 
   if (!employee) {
-    return <div className="text-center py-12 text-gray-500">Employee not found</div>
+    return <div className="py-12 text-center text-gray-500">Employee not found</div>;
   }
 
-  const isEditable = canEditHeadcount() && isEditing
+  const isEditable = canEditHeadcount() && isEditing;
 
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex justify-between items-start">
+      <div className="flex items-start justify-between">
         <div>
-          <Link to={ROUTES.HEADCOUNT_EMPLOYEES} className="text-primary-600 hover:text-primary-800 text-sm mb-2 inline-block">
+          <Link
+            to={ROUTES.HEADCOUNT_EMPLOYEES}
+            className="mb-2 inline-block text-sm text-primary-600 hover:text-primary-800"
+          >
             ← Back to Directory
           </Link>
           <h1 className="text-2xl font-bold text-gray-900">{employee.name}</h1>
           <p className="text-gray-600">{employee.email}</p>
         </div>
-        
+
         <ProtectedEdit>
           {!isEditing ? (
             <button
               onClick={() => setIsEditing(true)}
-              className="bg-primary-600 text-white px-4 py-2 rounded-lg hover:bg-primary-700"
+              className="rounded-lg bg-primary-600 px-4 py-2 text-white hover:bg-primary-700"
             >
               Edit Employee
             </button>
@@ -90,10 +93,10 @@ export default function EmployeeDetail() {
             <div className="space-x-2">
               <button
                 onClick={() => {
-                  setIsEditing(false)
-                  setFormData(employee)
+                  setIsEditing(false);
+                  setFormData(employee);
                 }}
-                className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
+                className="rounded-lg border border-gray-300 px-4 py-2 hover:bg-gray-50"
                 disabled={saving}
               >
                 Cancel
@@ -101,7 +104,7 @@ export default function EmployeeDetail() {
               <button
                 onClick={handleSave}
                 disabled={saving}
-                className="bg-primary-600 text-white px-4 py-2 rounded-lg hover:bg-primary-700 disabled:opacity-50"
+                className="rounded-lg bg-primary-600 px-4 py-2 text-white hover:bg-primary-700 disabled:opacity-50"
               >
                 {saving ? 'Saving...' : 'Save Changes'}
               </button>
@@ -111,16 +114,18 @@ export default function EmployeeDetail() {
       </div>
 
       {message && (
-        <div className={`p-4 rounded-lg ${message.includes('success') ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+        <div
+          className={`rounded-lg p-4 ${message.includes('success') ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}
+        >
           {message}
         </div>
       )}
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         {/* Basic Info */}
-        <div className="bg-white rounded-lg shadow p-6 space-y-4">
-          <h2 className="text-lg font-semibold text-gray-900 border-b pb-2">Basic Information</h2>
-          
+        <div className="space-y-4 rounded-lg bg-white p-6 shadow">
+          <h2 className="border-b pb-2 text-lg font-semibold text-gray-900">Basic Information</h2>
+
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700">Employee ID</label>
@@ -128,8 +133,8 @@ export default function EmployeeDetail() {
                 <input
                   type="text"
                   value={formData.employee_id || ''}
-                  onChange={(e) => setFormData(f => ({ ...f, employee_id: e.target.value }))}
-                  className="mt-1 w-full border rounded-lg px-3 py-2"
+                  onChange={(e) => setFormData((f) => ({ ...f, employee_id: e.target.value }))}
+                  className="mt-1 w-full rounded-lg border px-3 py-2"
                 />
               ) : (
                 <p className="mt-1 text-gray-900">{employee.employee_id || 'Not assigned'}</p>
@@ -140,15 +145,15 @@ export default function EmployeeDetail() {
               {isEditable ? (
                 <select
                   value={formData.role || 'agent'}
-                  onChange={(e) => setFormData(f => ({ ...f, role: e.target.value as UserRole }))}
-                  className="mt-1 w-full border rounded-lg px-3 py-2"
+                  onChange={(e) => setFormData((f) => ({ ...f, role: e.target.value as UserRole }))}
+                  className="mt-1 w-full rounded-lg border px-3 py-2"
                 >
                   <option value="agent">Agent</option>
                   <option value="tl">Team Lead</option>
                   <option value="wfm">WFM</option>
                 </select>
               ) : (
-                <p className="mt-1 text-gray-900 uppercase">{employee.role}</p>
+                <p className="mt-1 uppercase text-gray-900">{employee.role}</p>
               )}
             </div>
             <div>
@@ -156,12 +161,14 @@ export default function EmployeeDetail() {
               {isEditable ? (
                 <select
                   value={formData.department || ''}
-                  onChange={(e) => setFormData(f => ({ ...f, department: e.target.value }))}
-                  className="mt-1 w-full border rounded-lg px-3 py-2"
+                  onChange={(e) => setFormData((f) => ({ ...f, department: e.target.value }))}
+                  className="mt-1 w-full rounded-lg border px-3 py-2"
                 >
                   <option value="">Select Department</option>
-                  {departments.map(d => (
-                    <option key={d.id} value={d.name}>{d.name}</option>
+                  {departments.map((d) => (
+                    <option key={d.id} value={d.name}>
+                      {d.name}
+                    </option>
                   ))}
                 </select>
               ) : (
@@ -174,8 +181,8 @@ export default function EmployeeDetail() {
                 <input
                   type="date"
                   value={formData.hire_date || ''}
-                  onChange={(e) => setFormData(f => ({ ...f, hire_date: e.target.value }))}
-                  className="mt-1 w-full border rounded-lg px-3 py-2"
+                  onChange={(e) => setFormData((f) => ({ ...f, hire_date: e.target.value }))}
+                  className="mt-1 w-full rounded-lg border px-3 py-2"
                 />
               ) : (
                 <p className="mt-1 text-gray-900">{employee.hire_date || 'Not set'}</p>
@@ -185,9 +192,9 @@ export default function EmployeeDetail() {
         </div>
 
         {/* Job Details */}
-        <div className="bg-white rounded-lg shadow p-6 space-y-4">
-          <h2 className="text-lg font-semibold text-gray-900 border-b pb-2">Job Details</h2>
-          
+        <div className="space-y-4 rounded-lg bg-white p-6 shadow">
+          <h2 className="border-b pb-2 text-lg font-semibold text-gray-900">Job Details</h2>
+
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700">Job Title</label>
@@ -195,8 +202,8 @@ export default function EmployeeDetail() {
                 <input
                   type="text"
                   value={formData.job_title || ''}
-                  onChange={(e) => setFormData(f => ({ ...f, job_title: e.target.value }))}
-                  className="mt-1 w-full border rounded-lg px-3 py-2"
+                  onChange={(e) => setFormData((f) => ({ ...f, job_title: e.target.value }))}
+                  className="mt-1 w-full rounded-lg border px-3 py-2"
                 />
               ) : (
                 <p className="mt-1 text-gray-900">{employee.job_title || 'Not set'}</p>
@@ -208,8 +215,13 @@ export default function EmployeeDetail() {
               {isEditable ? (
                 <select
                   value={formData.job_level || ''}
-                  onChange={(e) => setFormData(f => ({ ...f, job_level: e.target.value as HeadcountUser['job_level'] }))}
-                  className="mt-1 w-full border rounded-lg px-3 py-2"
+                  onChange={(e) =>
+                    setFormData((f) => ({
+                      ...f,
+                      job_level: e.target.value as HeadcountUser['job_level'],
+                    }))
+                  }
+                  className="mt-1 w-full rounded-lg border px-3 py-2"
                 >
                   <option value="">Select Level</option>
                   <option value="intern">Intern</option>
@@ -221,7 +233,7 @@ export default function EmployeeDetail() {
                   <option value="director">Director</option>
                 </select>
               ) : (
-                <p className="mt-1 text-gray-900 capitalize">{employee.job_level || 'Not set'}</p>
+                <p className="mt-1 capitalize text-gray-900">{employee.job_level || 'Not set'}</p>
               )}
             </div>
 
@@ -230,8 +242,13 @@ export default function EmployeeDetail() {
               {isEditable ? (
                 <select
                   value={formData.employment_type || 'full_time'}
-                  onChange={(e) => setFormData(f => ({ ...f, employment_type: e.target.value as HeadcountUser['employment_type'] }))}
-                  className="mt-1 w-full border rounded-lg px-3 py-2"
+                  onChange={(e) =>
+                    setFormData((f) => ({
+                      ...f,
+                      employment_type: e.target.value as HeadcountUser['employment_type'],
+                    }))
+                  }
+                  className="mt-1 w-full rounded-lg border px-3 py-2"
                 >
                   <option value="full_time">Full Time</option>
                   <option value="part_time">Part Time</option>
@@ -239,7 +256,9 @@ export default function EmployeeDetail() {
                   <option value="intern">Intern</option>
                 </select>
               ) : (
-                <p className="mt-1 text-gray-900 capitalize">{employee.employment_type?.replace('_', ' ') || 'Full Time'}</p>
+                <p className="mt-1 capitalize text-gray-900">
+                  {employee.employment_type?.replace('_', ' ') || 'Full Time'}
+                </p>
               )}
             </div>
 
@@ -249,8 +268,8 @@ export default function EmployeeDetail() {
                 <input
                   type="text"
                   value={formData.location || ''}
-                  onChange={(e) => setFormData(f => ({ ...f, location: e.target.value }))}
-                  className="mt-1 w-full border rounded-lg px-3 py-2"
+                  onChange={(e) => setFormData((f) => ({ ...f, location: e.target.value }))}
+                  className="mt-1 w-full rounded-lg border px-3 py-2"
                   placeholder="e.g., Remote, Dubai Office"
                 />
               ) : (
@@ -261,14 +280,17 @@ export default function EmployeeDetail() {
         </div>
 
         {/* Manager Info */}
-        <div className="bg-white rounded-lg shadow p-6 space-y-4">
-          <h2 className="text-lg font-semibold text-gray-900 border-b pb-2">Management</h2>
-          
+        <div className="space-y-4 rounded-lg bg-white p-6 shadow">
+          <h2 className="border-b pb-2 text-lg font-semibold text-gray-900">Management</h2>
+
           <div>
             <label className="block text-sm font-medium text-gray-700">Manager</label>
             <p className="mt-1 text-gray-900">
               {employee.manager_name ? (
-                <Link to={`/headcount/employees/${employee.manager_id}`} className="text-primary-600 hover:underline">
+                <Link
+                  to={`/headcount/employees/${employee.manager_id}`}
+                  className="text-primary-600 hover:underline"
+                >
                   {employee.manager_name}
                 </Link>
               ) : (
@@ -280,15 +302,15 @@ export default function EmployeeDetail() {
 
         {/* View Only Notice */}
         {!canEditHeadcount() && (
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
-            <h3 className="text-blue-900 font-semibold mb-2">View Only Access</h3>
-            <p className="text-blue-700 text-sm">
-              As a Team Lead, you can view employee details but cannot make changes. 
-              Contact WFM team for any updates or corrections.
+          <div className="rounded-lg border border-blue-200 bg-blue-50 p-6">
+            <h3 className="mb-2 font-semibold text-blue-900">View Only Access</h3>
+            <p className="text-sm text-blue-700">
+              As a Team Lead, you can view employee details but cannot make changes. Contact WFM
+              team for any updates or corrections.
             </p>
           </div>
         )}
       </div>
     </div>
-  )
+  );
 }

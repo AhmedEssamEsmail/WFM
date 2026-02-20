@@ -8,5 +8,5 @@ export default function ChevronDoubleLeftIcon(props: React.SVGProps<SVGSVGElemen
         d="M11 19l-7-7 7-7m8 14l-7-7 7-7"
       />
     </svg>
-  )
+  );
 }

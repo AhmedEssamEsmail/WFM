@@ -1,21 +1,21 @@
-import { BreakScheduleWarning, ShiftType } from '../../types'
-import { BUTTON_STYLES, SHIFT_LABELS } from '../../lib/designSystem'
-import { format, parseISO } from 'date-fns'
+import { BreakScheduleWarning, ShiftType } from '../../types';
+import { BUTTON_STYLES, SHIFT_LABELS } from '../../lib/designSystem';
+import { format, parseISO } from 'date-fns';
 
 interface WarningPopupProps {
-  warning: BreakScheduleWarning
-  onDismiss: () => void
-  onClose: () => void
+  warning: BreakScheduleWarning;
+  onDismiss: () => void;
+  onClose: () => void;
 }
 
 export default function WarningPopup({ warning, onDismiss, onClose }: WarningPopupProps) {
   return (
-    <div className="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg shadow-xl max-w-md w-full mx-4 p-6">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-500 bg-opacity-75">
+      <div className="mx-4 w-full max-w-md rounded-lg bg-white p-6 shadow-xl">
         <div className="flex items-start gap-3">
           <div className="flex-shrink-0">
             <svg
-              className="w-6 h-6 text-yellow-600"
+              className="h-6 w-6 text-yellow-600"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -29,7 +29,7 @@ export default function WarningPopup({ warning, onDismiss, onClose }: WarningPop
             </svg>
           </div>
           <div className="flex-1">
-            <h3 className="text-lg font-medium text-gray-900 mb-2">Shift Change Detected</h3>
+            <h3 className="mb-2 text-lg font-medium text-gray-900">Shift Change Detected</h3>
             <div className="space-y-2 text-sm text-gray-600">
               <p>
                 <span className="font-medium">Date:</span>{' '}
@@ -61,5 +61,5 @@ export default function WarningPopup({ warning, onDismiss, onClose }: WarningPop
         </div>
       </div>
     </div>
-  )
+  );
 }

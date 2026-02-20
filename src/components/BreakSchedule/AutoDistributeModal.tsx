@@ -1,19 +1,24 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect } from 'react';
 import {
   DistributionStrategy,
   ApplyMode,
   AutoDistributePreview,
   AutoDistributeRequest,
-} from '../../types'
-import { BUTTON_STYLES, INPUT_STYLES, SEMANTIC_COLORS } from '../../lib/designSystem'
+} from '../../types';
+import { BUTTON_STYLES, INPUT_STYLES, SEMANTIC_COLORS } from '../../lib/designSystem';
 
 interface AutoDistributeModalProps {
-  onClose: () => void
-  onApply: (request: Omit<AutoDistributeRequest, 'schedule_date'>, failedAgents: Array<{ user_id: string; name: string; reason: string; blockedBy?: string[] }>) => Promise<void>
-  onPreview: (request: Omit<AutoDistributeRequest, 'schedule_date'>) => Promise<AutoDistributePreview>
-  departments: string[]
-  defaultStrategy?: DistributionStrategy
-  defaultApplyMode?: ApplyMode
+  onClose: () => void;
+  onApply: (
+    request: Omit<AutoDistributeRequest, 'schedule_date'>,
+    failedAgents: Array<{ user_id: string; name: string; reason: string; blockedBy?: string[] }>
+  ) => Promise<void>;
+  onPreview: (
+    request: Omit<AutoDistributeRequest, 'schedule_date'>
+  ) => Promise<AutoDistributePreview>;
+  departments: string[];
+  defaultStrategy?: DistributionStrategy;
+  defaultApplyMode?: ApplyMode;
 }
 
 export default function AutoDistributeModal({
@@ -24,70 +29,70 @@ export default function AutoDistributeModal({
   defaultStrategy = 'balanced_coverage',
   defaultApplyMode = 'only_unscheduled',
 }: AutoDistributeModalProps) {
-  const [strategy, setStrategy] = useState<DistributionStrategy>(defaultStrategy)
-  const [applyMode, setApplyMode] = useState<ApplyMode>(defaultApplyMode)
-  const [selectedDepartment, setSelectedDepartment] = useState<string>('')
-  const [preview, setPreview] = useState<AutoDistributePreview | null>(null)
-  const [isLoadingPreview, setIsLoadingPreview] = useState(false)
-  const [isApplying, setIsApplying] = useState(false)
+  const [strategy, setStrategy] = useState<DistributionStrategy>(defaultStrategy);
+  const [applyMode, setApplyMode] = useState<ApplyMode>(defaultApplyMode);
+  const [selectedDepartment, setSelectedDepartment] = useState<string>('');
+  const [preview, setPreview] = useState<AutoDistributePreview | null>(null);
+  const [isLoadingPreview, setIsLoadingPreview] = useState(false);
+  const [isApplying, setIsApplying] = useState(false);
 
   // Generate preview when settings change (with debounce)
   useEffect(() => {
     const timeoutId = setTimeout(() => {
       const generatePreview = async () => {
-        setIsLoadingPreview(true)
+        setIsLoadingPreview(true);
         try {
           const request = {
             strategy,
             apply_mode: applyMode,
             department: selectedDepartment || undefined,
-          }
-          const previewData = await onPreview(request)
-          setPreview(previewData)
+          };
+          const previewData = await onPreview(request);
+          setPreview(previewData);
         } catch (error) {
-          console.error('Failed to generate preview:', error)
+          console.error('Failed to generate preview:', error);
         } finally {
-          setIsLoadingPreview(false)
+          setIsLoadingPreview(false);
         }
-      }
+      };
 
-      generatePreview()
-    }, 500) // 500ms debounce
+      generatePreview();
+    }, 500); // 500ms debounce
 
-    return () => clearTimeout(timeoutId)
-  }, [strategy, applyMode, selectedDepartment, onPreview])
+    return () => clearTimeout(timeoutId);
+  }, [strategy, applyMode, selectedDepartment, onPreview]);
 
   const handleApply = async () => {
-    setIsApplying(true)
+    setIsApplying(true);
     try {
       const request = {
         strategy,
         apply_mode: applyMode,
         department: selectedDepartment || undefined,
-      }
+      };
       // Pass the failed agents information to the parent
-      await onApply(request, preview?.failed_agents || [])
-      onClose()
+      await onApply(request, preview?.failed_agents || []);
+      onClose();
     } catch (error) {
-      console.error('Failed to apply distribution:', error)
+      console.error('Failed to apply distribution:', error);
     } finally {
-      setIsApplying(false)
+      setIsApplying(false);
     }
-  }
+  };
 
   return (
-    <div className="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center z-[100]">
-      <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full mx-4 p-6 max-h-[90vh] overflow-y-auto relative z-[101]">
-        <h3 className="text-lg font-medium text-gray-900 mb-4">Auto-Distribute Breaks</h3>
+    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-gray-500 bg-opacity-75">
+      <div className="relative z-[101] mx-4 max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-lg bg-white p-6 shadow-xl">
+        <h3 className="mb-4 text-lg font-medium text-gray-900">Auto-Distribute Breaks</h3>
 
         <div className="space-y-4">
           {/* Strategy selection */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="mb-2 block text-sm font-medium text-gray-700">
               Distribution Strategy
             </label>
             <div className="space-y-2">
-              <label className="flex items-start gap-3 p-3 border rounded-lg cursor-pointer hover:bg-gray-50">
+              <label className="flex cursor-pointer items-start gap-3 rounded-lg border p-3 hover:bg-gray-50">
                 <input
                   type="radio"
                   name="strategy"
@@ -97,13 +102,13 @@ export default function AutoDistributeModal({
                   className="mt-1"
                 />
                 <div>
-                  <div className="font-medium text-sm">Balanced Coverage</div>
+                  <div className="text-sm font-medium">Balanced Coverage</div>
                   <div className="text-xs text-gray-600">
                     Minimizes variance in coverage across all intervals
                   </div>
                 </div>
               </label>
-              <label className="flex items-start gap-3 p-3 border rounded-lg cursor-pointer hover:bg-gray-50">
+              <label className="flex cursor-pointer items-start gap-3 rounded-lg border p-3 hover:bg-gray-50">
                 <input
                   type="radio"
                   name="strategy"
@@ -113,7 +118,7 @@ export default function AutoDistributeModal({
                   className="mt-1"
                 />
                 <div>
-                  <div className="font-medium text-sm">Staggered Timing</div>
+                  <div className="text-sm font-medium">Staggered Timing</div>
                   <div className="text-xs text-gray-600">
                     Spreads breaks evenly throughout shift thirds
                   </div>
@@ -124,9 +129,9 @@ export default function AutoDistributeModal({
 
           {/* Apply mode selection */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Apply Mode</label>
+            <label className="mb-2 block text-sm font-medium text-gray-700">Apply Mode</label>
             <div className="space-y-2">
-              <label className="flex items-start gap-3 p-3 border rounded-lg cursor-pointer hover:bg-gray-50">
+              <label className="flex cursor-pointer items-start gap-3 rounded-lg border p-3 hover:bg-gray-50">
                 <input
                   type="radio"
                   name="applyMode"
@@ -136,13 +141,13 @@ export default function AutoDistributeModal({
                   className="mt-1"
                 />
                 <div>
-                  <div className="font-medium text-sm">Only Unscheduled</div>
+                  <div className="text-sm font-medium">Only Unscheduled</div>
                   <div className="text-xs text-gray-600">
                     Only assign breaks to agents without existing schedules
                   </div>
                 </div>
               </label>
-              <label className="flex items-start gap-3 p-3 border rounded-lg cursor-pointer hover:bg-gray-50">
+              <label className="flex cursor-pointer items-start gap-3 rounded-lg border p-3 hover:bg-gray-50">
                 <input
                   type="radio"
                   name="applyMode"
@@ -152,7 +157,7 @@ export default function AutoDistributeModal({
                   className="mt-1"
                 />
                 <div>
-                  <div className="font-medium text-sm">All Agents</div>
+                  <div className="text-sm font-medium">All Agents</div>
                   <div className="text-xs text-gray-600">
                     Clear and reassign breaks for all agents
                   </div>
@@ -163,7 +168,10 @@ export default function AutoDistributeModal({
 
           {/* Department filter */}
           <div>
-            <label htmlFor="department-filter" className="block text-sm font-medium text-gray-700 mb-2">
+            <label
+              htmlFor="department-filter"
+              className="mb-2 block text-sm font-medium text-gray-700"
+            >
               Department Filter (Optional)
             </label>
             <select
@@ -184,29 +192,42 @@ export default function AutoDistributeModal({
           {/* Preview */}
           {isLoadingPreview ? (
             <div className="flex items-center justify-center py-8">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
+              <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-primary-600"></div>
             </div>
           ) : preview ? (
-            <div className="border rounded-lg p-4 bg-gray-50">
-              <h4 className="text-sm font-medium text-gray-900 mb-3">Preview</h4>
-              
+            <div className="rounded-lg border bg-gray-50 p-4">
+              <h4 className="mb-3 text-sm font-medium text-gray-900">Preview</h4>
+
               {/* Show error if no breaks assigned */}
               {preview.proposed_schedules.length === 0 && preview.failed_agents.length > 0 && (
-                <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded">
+                <div className="mb-4 rounded border border-red-200 bg-red-50 p-3">
                   <div className="flex items-start gap-2">
-                    <svg className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    <svg
+                      className="mt-0.5 h-5 w-5 flex-shrink-0 text-red-600"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M6 18L18 6M6 6l12 12"
+                      />
                     </svg>
                     <div>
-                      <div className="text-sm font-medium text-red-900">No breaks assigned during auto-distribution</div>
-                      <div className="text-xs text-red-700 mt-1">
-                        All agents failed validation. Check the rule violations below to see which rules are blocking assignments.
+                      <div className="text-sm font-medium text-red-900">
+                        No breaks assigned during auto-distribution
+                      </div>
+                      <div className="mt-1 text-xs text-red-700">
+                        All agents failed validation. Check the rule violations below to see which
+                        rules are blocking assignments.
                       </div>
                     </div>
                   </div>
                 </div>
               )}
-              
+
               <div className="grid grid-cols-2 gap-4 text-sm">
                 <div>
                   <span className="text-gray-600">Agents Affected:</span>
@@ -214,41 +235,55 @@ export default function AutoDistributeModal({
                 </div>
                 <div>
                   <span className="text-gray-600">Coverage Variance:</span>
-                  <span className="ml-2 font-medium">{preview.coverage_stats.variance.toFixed(2)}</span>
+                  <span className="ml-2 font-medium">
+                    {preview.coverage_stats.variance.toFixed(2)}
+                  </span>
                 </div>
                 <div>
                   <span className="text-gray-600">Total Violations:</span>
-                  <span className="ml-2 font-medium">{preview.rule_compliance.total_violations}</span>
+                  <span className="ml-2 font-medium">
+                    {preview.rule_compliance.total_violations}
+                  </span>
                 </div>
                 <div>
                   <span className="text-gray-600">Blocking Violations:</span>
-                  <span className="ml-2 font-medium">{preview.rule_compliance.blocking_violations}</span>
+                  <span className="ml-2 font-medium">
+                    {preview.rule_compliance.blocking_violations}
+                  </span>
                 </div>
               </div>
 
               {preview.failed_agents.length > 0 && (
-                <div className="mt-3 pt-3 border-t">
+                <div className="mt-3 border-t pt-3">
                   <div className={`text-xs font-medium ${SEMANTIC_COLORS.error.text} mb-2`}>
                     ✕ Failed Agents ({preview.failed_agents.length}):
                   </div>
-                  <div className="space-y-2 max-h-64 overflow-y-auto">
+                  <div className="max-h-64 space-y-2 overflow-y-auto">
                     {preview.failed_agents.map((agent, idx) => (
-                      <div key={idx} className="text-xs bg-red-50 border border-red-200 rounded p-3">
-                        <div className="font-medium text-gray-900 mb-1">{agent.name}</div>
+                      <div
+                        key={idx}
+                        className="rounded border border-red-200 bg-red-50 p-3 text-xs"
+                      >
+                        <div className="mb-1 font-medium text-gray-900">{agent.name}</div>
                         {agent.blockedBy && agent.blockedBy.length > 0 ? (
                           <div className="space-y-1">
-                            <div className="text-red-800 font-medium">Blocked by validation rules:</div>
-                            <div className="flex flex-wrap gap-1 mt-1">
+                            <div className="font-medium text-red-800">
+                              Blocked by validation rules:
+                            </div>
+                            <div className="mt-1 flex flex-wrap gap-1">
                               {agent.blockedBy.map((rule) => (
-                                <span key={rule} className="inline-block bg-red-100 text-red-800 px-2 py-1 rounded text-xs font-medium">
+                                <span
+                                  key={rule}
+                                  className="inline-block rounded bg-red-100 px-2 py-1 text-xs font-medium text-red-800"
+                                >
                                   {rule}
                                 </span>
                               ))}
                             </div>
-                            <div className="text-gray-700 mt-2 leading-relaxed">{agent.reason}</div>
+                            <div className="mt-2 leading-relaxed text-gray-700">{agent.reason}</div>
                           </div>
                         ) : (
-                          <div className="text-gray-700 leading-relaxed">{agent.reason}</div>
+                          <div className="leading-relaxed text-gray-700">{agent.reason}</div>
                         )}
                       </div>
                     ))}
@@ -273,5 +308,5 @@ export default function AutoDistributeModal({
         </div>
       </div>
     </div>
-  )
+  );
 }

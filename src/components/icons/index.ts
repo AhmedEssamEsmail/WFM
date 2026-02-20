@@ -1,18 +1,18 @@
-export { default as BalanceIcon } from './BalanceIcon'
-export { default as BreakScheduleIcon } from './BreakScheduleIcon'
-export { default as CalendarIcon } from './CalendarIcon'
-export { default as ChevronDoubleLeftIcon } from './ChevronDoubleLeftIcon'
-export { default as ClockIcon } from './ClockIcon'
-export { default as CloseIcon } from './CloseIcon'
-export { default as DashboardIcon } from './DashboardIcon'
-export { default as LeaveIcon } from './LeaveIcon'
-export { default as MenuIcon } from './MenuIcon'
-export { default as OvertimeIcon } from './OvertimeIcon'
-export { default as ReportsIcon } from './ReportsIcon'
-export { RequestsIcon } from './RequestsIcon'
-export { default as ScheduleIcon } from './ScheduleIcon'
-export { default as SettingsIcon } from './SettingsIcon'
-export { default as SignOutIcon } from './SignOutIcon'
-export { default as SwapIcon } from './SwapIcon'
-export { default as UploadIcon } from './UploadIcon'
-export { default as UsersIcon } from './UsersIcon'
+export { default as BalanceIcon } from './BalanceIcon';
+export { default as BreakScheduleIcon } from './BreakScheduleIcon';
+export { default as CalendarIcon } from './CalendarIcon';
+export { default as ChevronDoubleLeftIcon } from './ChevronDoubleLeftIcon';
+export { default as ClockIcon } from './ClockIcon';
+export { default as CloseIcon } from './CloseIcon';
+export { default as DashboardIcon } from './DashboardIcon';
+export { default as LeaveIcon } from './LeaveIcon';
+export { default as MenuIcon } from './MenuIcon';
+export { default as OvertimeIcon } from './OvertimeIcon';
+export { default as ReportsIcon } from './ReportsIcon';
+export { RequestsIcon } from './RequestsIcon';
+export { default as ScheduleIcon } from './ScheduleIcon';
+export { default as SettingsIcon } from './SettingsIcon';
+export { default as SignOutIcon } from './SignOutIcon';
+export { default as SwapIcon } from './SwapIcon';
+export { default as UploadIcon } from './UploadIcon';
+export { default as UsersIcon } from './UsersIcon';

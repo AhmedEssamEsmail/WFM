@@ -1,12 +1,12 @@
 /**
  * Validation module - consolidated validation logic
- * 
+ *
  * This module consolidates all validation logic from:
  * - src/utils/validation.ts
  * - src/utils/validators.ts
  * - src/lib/validations/
  * - src/services/validation/
- * 
+ *
  * Architecture:
  * - Zod schemas are the single source of truth (schemas/)
  * - Imperative validators are derived from schemas (validators.ts)
@@ -31,16 +31,9 @@ export {
   positiveIntegerSchema,
   nonNegativeIntegerSchema,
   nonEmptyStringSchema,
-} from './schemas/common'
+} from './schemas/common';
 
-export type {
-  UUID,
-  ISODate,
-  Time,
-  ShortTime,
-  DateRange,
-  Email,
-} from './schemas/common'
+export type { UUID, ISODate, Time, ShortTime, DateRange, Email } from './schemas/common';
 
 // ============================================
 // Leave Request Schemas
@@ -52,14 +45,14 @@ export {
   leaveRequestValidationSchema,
   leaveBalanceSchema,
   csvLeaveBalanceSchema,
-} from './schemas/leaveRequest'
+} from './schemas/leaveRequest';
 
 export type {
   LeaveRequestCreateInput,
   LeaveRequestValidationData,
   LeaveBalance,
   CSVLeaveBalanceInput,
-} from './schemas/leaveRequest'
+} from './schemas/leaveRequest';
 
 // ============================================
 // Swap Request Schemas
@@ -70,13 +63,13 @@ export {
   swapRequestCreateSchema,
   swapRequestValidationSchema,
   csvShiftSchema,
-} from './schemas/swapRequest'
+} from './schemas/swapRequest';
 
 export type {
   SwapRequestCreateInput,
   SwapRequestValidationData,
   CSVShiftInput,
-} from './schemas/swapRequest'
+} from './schemas/swapRequest';
 
 // ============================================
 // User Schemas
@@ -90,7 +83,7 @@ export {
   jobLevelSchema,
   employmentTypeSchema,
   employeeSchema,
-} from './schemas/user'
+} from './schemas/user';
 
 export type {
   LoginInput,
@@ -100,7 +93,7 @@ export type {
   JobLevel,
   EmploymentType,
   EmployeeInput,
-} from './schemas/user'
+} from './schemas/user';
 
 // ============================================
 // Break Schedule Schemas
@@ -128,7 +121,7 @@ export {
   autoDistributeRequestSchema,
   autoDistributePreviewSchema,
   ruleUpdateSchema,
-} from './schemas/breakSchedule'
+} from './schemas/breakSchedule';
 
 export type {
   BreakType,
@@ -152,35 +145,23 @@ export type {
   AutoDistributeRequest,
   AutoDistributePreview,
   RuleUpdate,
-} from './schemas/breakSchedule'
+} from './schemas/breakSchedule';
 
 // ============================================
 // Settings & Comment Schemas
 // ============================================
 
-export {
-  settingsSchema,
-  commentSchema,
-} from './schemas/settings'
+export { settingsSchema, commentSchema } from './schemas/settings';
 
-export type {
-  SettingsInput,
-  CommentInput,
-} from './schemas/settings'
+export type { SettingsInput, CommentInput } from './schemas/settings';
 
 // ============================================
 // Skills Schemas
 // ============================================
 
-export {
-  skillSchema,
-  assignSkillsSchema,
-} from './schemas/skillSchema'
+export { skillSchema, assignSkillsSchema } from './schemas/skillSchema';
 
-export type {
-  SkillInput,
-  AssignSkillsInput,
-} from './schemas/skillSchema'
+export type { SkillInput, AssignSkillsInput } from './schemas/skillSchema';
 
 // ============================================
 // Imperative Validators
@@ -211,12 +192,12 @@ export {
   generateIntervals,
   validateBreakOrdering,
   calculateBreakGap,
-} from './validators'
+} from './validators';
 
 export type {
   LeaveRequestValidationData as LeaveRequestValidationDataType,
   SwapRequestValidationData as SwapRequestValidationDataType,
-} from './validators'
+} from './validators';
 
 // ============================================
 // Leave Balance Validation
@@ -227,4 +208,4 @@ export {
   checkOverlappingLeave,
   validateNoOverlappingLeave,
   validateLeaveRequest,
-} from './leaveBalanceValidation'
+} from './leaveBalanceValidation';

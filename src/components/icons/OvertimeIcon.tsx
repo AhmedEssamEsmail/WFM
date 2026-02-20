@@ -7,12 +7,7 @@ export default function OvertimeIcon(props: React.SVGProps<SVGSVGElement>) {
         strokeWidth={2}
         d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
       />
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth={2}
-        d="M15 3h6m-3-3v6"
-      />
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 3h6m-3-3v6" />
     </svg>
-  )
+  );
 }

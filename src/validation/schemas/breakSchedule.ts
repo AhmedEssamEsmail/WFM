@@ -3,25 +3,25 @@
  * Zod schemas for break schedule data validation
  */
 
-import { z } from 'zod'
-import { uuidSchema, isoDateSchema, timeSchema } from './common'
-import { shiftTypeSchema } from './swapRequest'
+import { z } from 'zod';
+import { uuidSchema, isoDateSchema, timeSchema } from './common';
+import { shiftTypeSchema } from './swapRequest';
 
 // ============================================
 // Base Schemas
 // ============================================
 
-export const breakTypeSchema = z.enum(['IN', 'HB1', 'B', 'HB2'])
+export const breakTypeSchema = z.enum(['IN', 'HB1', 'B', 'HB2']);
 
-export const ruleTypeSchema = z.enum(['distribution', 'ordering', 'timing', 'coverage'])
+export const ruleTypeSchema = z.enum(['distribution', 'ordering', 'timing', 'coverage']);
 
-export const warningTypeSchema = z.enum(['shift_changed', 'breaks_cleared', 'swap_pending'])
+export const warningTypeSchema = z.enum(['shift_changed', 'breaks_cleared', 'swap_pending']);
 
-export const severitySchema = z.enum(['error', 'warning'])
+export const severitySchema = z.enum(['error', 'warning']);
 
-export const distributionStrategySchema = z.enum(['balanced_coverage', 'staggered_timing'])
+export const distributionStrategySchema = z.enum(['balanced_coverage', 'staggered_timing']);
 
-export const applyModeSchema = z.enum(['only_unscheduled', 'all_agents'])
+export const applyModeSchema = z.enum(['only_unscheduled', 'all_agents']);
 
 // ============================================
 // Entity Schemas
@@ -37,7 +37,7 @@ export const breakScheduleSchema = z.object({
   created_by: uuidSchema.nullable(),
   created_at: z.string(),
   updated_at: z.string(),
-})
+});
 
 export const breakScheduleRuleSchema = z.object({
   id: uuidSchema,
@@ -50,7 +50,7 @@ export const breakScheduleRuleSchema = z.object({
   priority: z.number().int().min(0),
   created_at: z.string(),
   updated_at: z.string(),
-})
+});
 
 export const breakScheduleWarningSchema = z.object({
   id: uuidSchema,
@@ -61,7 +61,7 @@ export const breakScheduleWarningSchema = z.object({
   new_shift_type: shiftTypeSchema.nullable(),
   is_resolved: z.boolean(),
   created_at: z.string(),
-})
+});
 
 // ============================================
 // Request/Response Schemas
@@ -70,25 +70,25 @@ export const breakScheduleWarningSchema = z.object({
 export const intervalUpdateSchema = z.object({
   interval_start: timeSchema,
   break_type: breakTypeSchema,
-})
+});
 
 export const breakScheduleUpdateRequestSchema = z.object({
   user_id: uuidSchema,
   schedule_date: isoDateSchema,
   intervals: z.array(intervalUpdateSchema).min(1),
-})
+});
 
 export const validationViolationSchema = z.object({
   rule_name: z.string(),
   message: z.string(),
   severity: severitySchema,
   affected_intervals: z.array(z.string()).optional(),
-})
+});
 
 export const breakScheduleUpdateResponseSchema = z.object({
   success: z.boolean(),
   violations: z.array(validationViolationSchema),
-})
+});
 
 export const agentBreakScheduleSchema = z.object({
   user_id: uuidSchema,
@@ -103,7 +103,7 @@ export const agentBreakScheduleSchema = z.object({
     HB2: z.string().nullable(),
   }),
   intervals: z.record(z.string(), breakTypeSchema),
-})
+});
 
 export const breakScheduleSummarySchema = z.record(
   z.string(),
@@ -113,12 +113,12 @@ export const breakScheduleSummarySchema = z.record(
     b: z.number().int().min(0),
     hb2: z.number().int().min(0),
   })
-)
+);
 
 export const breakScheduleResponseSchema = z.object({
   agents: z.array(agentBreakScheduleSchema),
   summary: breakScheduleSummarySchema,
-})
+});
 
 // ============================================
 // CSV Schemas
@@ -131,7 +131,7 @@ export const breakScheduleCSVRowSchema = z.object({
   hb1_start: z.string().nullable(),
   b_start: z.string().nullable(),
   hb2_start: z.string().nullable(),
-})
+});
 
 export const importResultSchema = z.object({
   success: z.boolean(),
@@ -143,7 +143,7 @@ export const importResultSchema = z.object({
       error: z.string(),
     })
   ),
-})
+});
 
 // ============================================
 // Auto-Distribution Schemas
@@ -154,7 +154,7 @@ export const autoDistributeRequestSchema = z.object({
   strategy: distributionStrategySchema,
   apply_mode: applyModeSchema,
   department: z.string().optional(),
-})
+});
 
 export const autoDistributePreviewSchema = z.object({
   proposed_schedules: z.array(agentBreakScheduleSchema),
@@ -177,7 +177,7 @@ export const autoDistributePreviewSchema = z.object({
       blockedBy: z.array(z.string()).optional(),
     })
   ),
-})
+});
 
 // ============================================
 // Rule Update Schemas
@@ -189,30 +189,30 @@ export const ruleUpdateSchema = z.object({
   is_blocking: z.boolean().optional(),
   priority: z.number().int().min(0).optional(),
   description: z.string().optional(),
-})
+});
 
 // ============================================
 // Type Exports
 // ============================================
 
-export type BreakType = z.infer<typeof breakTypeSchema>
-export type RuleType = z.infer<typeof ruleTypeSchema>
-export type WarningType = z.infer<typeof warningTypeSchema>
-export type Severity = z.infer<typeof severitySchema>
-export type DistributionStrategy = z.infer<typeof distributionStrategySchema>
-export type ApplyMode = z.infer<typeof applyModeSchema>
-export type BreakSchedule = z.infer<typeof breakScheduleSchema>
-export type BreakScheduleRule = z.infer<typeof breakScheduleRuleSchema>
-export type BreakScheduleWarning = z.infer<typeof breakScheduleWarningSchema>
-export type IntervalUpdate = z.infer<typeof intervalUpdateSchema>
-export type BreakScheduleUpdateRequest = z.infer<typeof breakScheduleUpdateRequestSchema>
-export type ValidationViolation = z.infer<typeof validationViolationSchema>
-export type BreakScheduleUpdateResponse = z.infer<typeof breakScheduleUpdateResponseSchema>
-export type AgentBreakSchedule = z.infer<typeof agentBreakScheduleSchema>
-export type BreakScheduleSummary = z.infer<typeof breakScheduleSummarySchema>
-export type BreakScheduleResponse = z.infer<typeof breakScheduleResponseSchema>
-export type BreakScheduleCSVRow = z.infer<typeof breakScheduleCSVRowSchema>
-export type ImportResult = z.infer<typeof importResultSchema>
-export type AutoDistributeRequest = z.infer<typeof autoDistributeRequestSchema>
-export type AutoDistributePreview = z.infer<typeof autoDistributePreviewSchema>
-export type RuleUpdate = z.infer<typeof ruleUpdateSchema>
+export type BreakType = z.infer<typeof breakTypeSchema>;
+export type RuleType = z.infer<typeof ruleTypeSchema>;
+export type WarningType = z.infer<typeof warningTypeSchema>;
+export type Severity = z.infer<typeof severitySchema>;
+export type DistributionStrategy = z.infer<typeof distributionStrategySchema>;
+export type ApplyMode = z.infer<typeof applyModeSchema>;
+export type BreakSchedule = z.infer<typeof breakScheduleSchema>;
+export type BreakScheduleRule = z.infer<typeof breakScheduleRuleSchema>;
+export type BreakScheduleWarning = z.infer<typeof breakScheduleWarningSchema>;
+export type IntervalUpdate = z.infer<typeof intervalUpdateSchema>;
+export type BreakScheduleUpdateRequest = z.infer<typeof breakScheduleUpdateRequestSchema>;
+export type ValidationViolation = z.infer<typeof validationViolationSchema>;
+export type BreakScheduleUpdateResponse = z.infer<typeof breakScheduleUpdateResponseSchema>;
+export type AgentBreakSchedule = z.infer<typeof agentBreakScheduleSchema>;
+export type BreakScheduleSummary = z.infer<typeof breakScheduleSummarySchema>;
+export type BreakScheduleResponse = z.infer<typeof breakScheduleResponseSchema>;
+export type BreakScheduleCSVRow = z.infer<typeof breakScheduleCSVRowSchema>;
+export type ImportResult = z.infer<typeof importResultSchema>;
+export type AutoDistributeRequest = z.infer<typeof autoDistributeRequestSchema>;
+export type AutoDistributePreview = z.infer<typeof autoDistributePreviewSchema>;
+export type RuleUpdate = z.infer<typeof ruleUpdateSchema>;

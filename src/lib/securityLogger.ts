@@ -3,16 +3,16 @@
  * and security-related events in the application.
  */
 
-import type { UserRole } from '../types'
-import { Sentry } from './sentry'
+import type { UserRole } from '../types';
+import { Sentry } from './sentry';
 
 interface SecurityLogEntry {
-  userId: string
-  userRole: UserRole
-  requestedRoute: string
-  timestamp: string
-  reason: string
-  action: 'unauthorized_access' | 'domain_violation' | 'role_violation'
+  userId: string;
+  userRole: UserRole;
+  requestedRoute: string;
+  timestamp: string;
+  reason: string;
+  action: 'unauthorized_access' | 'domain_violation' | 'role_violation';
 }
 
 /**
@@ -34,11 +34,11 @@ export function logUnauthorizedAccess(
     timestamp: new Date().toISOString(),
     reason,
     action,
-  }
+  };
 
   // In development, log to console
   if (import.meta.env.DEV) {
-    console.warn('🔒 Security Event:', logEntry)
+    console.warn('🔒 Security Event:', logEntry);
   }
 
   // In production, send to logging service
@@ -46,7 +46,7 @@ export function logUnauthorizedAccess(
     try {
       Sentry.captureMessage(`Security Event: ${action}`, {
         level: 'warning',
-        extra: logEntry as Record<string, any>,
+        extra: logEntry as unknown as Record<string, unknown>,
         tags: {
           securityEvent: action,
           userRole,
@@ -58,7 +58,7 @@ export function logUnauthorizedAccess(
   }
 
   // Store in local storage for debugging (limited to last 50 entries)
-  storeSecurityLog(logEntry)
+  storeSecurityLog(logEntry);
 }
 
 /**
@@ -67,41 +67,41 @@ export function logUnauthorizedAccess(
  */
 function storeSecurityLog(entry: SecurityLogEntry): void {
   try {
-    const key = 'wfm_security_logs'
-    const maxLogs = 50
-    const maxSize = 1024 * 50 // 50KB max
-    const ttl = 1000 * 60 * 60 * 24 // 24 hours
-    
-    const stored = localStorage.getItem(key)
-    const logs: SecurityLogEntry[] = stored ? JSON.parse(stored) : []
+    const key = 'wfm_security_logs';
+    const maxLogs = 50;
+    const maxSize = 1024 * 50; // 50KB max
+    const ttl = 1000 * 60 * 60 * 24; // 24 hours
+
+    const stored = localStorage.getItem(key);
+    const logs: SecurityLogEntry[] = stored ? JSON.parse(stored) : [];
 
     // Filter out expired logs
-    const now = Date.now()
-    const validLogs = logs.filter(log => {
-      const logTime = new Date(log.timestamp).getTime()
-      return now - logTime < ttl
-    })
+    const now = Date.now();
+    const validLogs = logs.filter((log) => {
+      const logTime = new Date(log.timestamp).getTime();
+      return now - logTime < ttl;
+    });
 
     // Add new entry
-    validLogs.push(entry)
+    validLogs.push(entry);
 
     // Keep only last maxLogs entries
-    const trimmedLogs = validLogs.slice(-maxLogs)
-    
+    const trimmedLogs = validLogs.slice(-maxLogs);
+
     // Check size and trim further if needed
-    let serialized = JSON.stringify(trimmedLogs)
-    let finalLogs = trimmedLogs
-    
+    let serialized = JSON.stringify(trimmedLogs);
+    let finalLogs = trimmedLogs;
+
     while (serialized.length > maxSize && finalLogs.length > 10) {
-      finalLogs = finalLogs.slice(-Math.floor(finalLogs.length * 0.8))
-      serialized = JSON.stringify(finalLogs)
+      finalLogs = finalLogs.slice(-Math.floor(finalLogs.length * 0.8));
+      serialized = JSON.stringify(finalLogs);
     }
 
-    localStorage.setItem(key, serialized)
+    localStorage.setItem(key, serialized);
   } catch (error) {
     // Silently fail if localStorage is not available or quota exceeded
     if (import.meta.env.DEV) {
-      console.error('Failed to store security log:', error)
+      console.error('Failed to store security log:', error);
     }
   }
 }
@@ -112,22 +112,22 @@ function storeSecurityLog(entry: SecurityLogEntry): void {
  */
 export function getSecurityLogs(limit: number = 50): SecurityLogEntry[] {
   try {
-    const key = 'wfm_security_logs'
-    const ttl = 1000 * 60 * 60 * 24 // 24 hours
-    const stored = localStorage.getItem(key)
-    const logs: SecurityLogEntry[] = stored ? JSON.parse(stored) : []
+    const key = 'wfm_security_logs';
+    const ttl = 1000 * 60 * 60 * 24; // 24 hours
+    const stored = localStorage.getItem(key);
+    const logs: SecurityLogEntry[] = stored ? JSON.parse(stored) : [];
 
     // Filter out expired logs
-    const now = Date.now()
-    const validLogs = logs.filter(log => {
-      const logTime = new Date(log.timestamp).getTime()
-      return now - logTime < ttl
-    })
+    const now = Date.now();
+    const validLogs = logs.filter((log) => {
+      const logTime = new Date(log.timestamp).getTime();
+      return now - logTime < ttl;
+    });
 
-    return validLogs.slice(-limit)
+    return validLogs.slice(-limit);
   } catch (error) {
-    console.error('Failed to retrieve security logs:', error)
-    return []
+    console.error('Failed to retrieve security logs:', error);
+    return [];
   }
 }
 
@@ -136,8 +136,8 @@ export function getSecurityLogs(limit: number = 50): SecurityLogEntry[] {
  */
 export function clearSecurityLogs(): void {
   try {
-    localStorage.removeItem('wfm_security_logs')
+    localStorage.removeItem('wfm_security_logs');
   } catch (error) {
-    console.error('Failed to clear security logs:', error)
+    console.error('Failed to clear security logs:', error);
   }
 }

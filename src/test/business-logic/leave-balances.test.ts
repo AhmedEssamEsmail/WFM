@@ -1,6 +1,6 @@
 /**
  * Leave Balance Tests
- * 
+ *
  * Tests leave balance management:
  * - Balance deduction on approval
  * - Insufficient balance denial
@@ -22,18 +22,23 @@ describe.skip('Leave Balance Tests', () => {
   let testLeaveIds: string[] = [];
 
   afterEach(async () => {
-    if (testLeaveIds.length) await testSupabase.from('leave_requests').delete().in('id', testLeaveIds);
+    if (testLeaveIds.length)
+      await testSupabase.from('leave_requests').delete().in('id', testLeaveIds);
     if (testUserIds.length) await testSupabase.from('users').delete().in('id', testUserIds);
     testUserIds = [];
     testLeaveIds = [];
   });
 
   it('should initialize leave balances for new users', async () => {
-    const { data: user } = await testSupabase.from('users').insert({
-      email: `balance-${Date.now()}@dabdoob.com`,
-      name: 'Balance Test User',
-      role: 'agent'
-    }).select().single();
+    const { data: user } = await testSupabase
+      .from('users')
+      .insert({
+        email: `balance-${Date.now()}@dabdoob.com`,
+        name: 'Balance Test User',
+        role: 'agent',
+      })
+      .select()
+      .single();
     testUserIds.push(user!.id);
 
     // Check balances were initialized
@@ -44,19 +49,23 @@ describe.skip('Leave Balance Tests', () => {
 
     expect(balances).toBeDefined();
     expect(balances!.length).toBe(5); // 5 leave types
-    
-    const leaveTypes = balances!.map(b => b.leave_type);
+
+    const leaveTypes = balances!.map((b) => b.leave_type);
     expect(leaveTypes).toContain('annual');
     expect(leaveTypes).toContain('casual');
     expect(leaveTypes).toContain('sick');
   });
 
   it('should track balance changes in history', async () => {
-    const { data: user } = await testSupabase.from('users').insert({
-      email: `history-${Date.now()}@dabdoob.com`,
-      name: 'History User',
-      role: 'agent'
-    }).select().single();
+    const { data: user } = await testSupabase
+      .from('users')
+      .insert({
+        email: `history-${Date.now()}@dabdoob.com`,
+        name: 'History User',
+        role: 'agent',
+      })
+      .select()
+      .single();
     testUserIds.push(user!.id);
 
     // Update balance
@@ -79,7 +88,7 @@ describe.skip('Leave Balance Tests', () => {
       leave_type: 'annual',
       previous_balance: oldBalance!.balance,
       new_balance: 15,
-      change_reason: 'Test adjustment'
+      change_reason: 'Test adjustment',
     });
 
     // Verify history
@@ -93,11 +102,15 @@ describe.skip('Leave Balance Tests', () => {
   });
 
   it('should validate sufficient balance for leave request', async () => {
-    const { data: user } = await testSupabase.from('users').insert({
-      email: `sufficient-${Date.now()}@dabdoob.com`,
-      name: 'Sufficient User',
-      role: 'agent'
-    }).select().single();
+    const { data: user } = await testSupabase
+      .from('users')
+      .insert({
+        email: `sufficient-${Date.now()}@dabdoob.com`,
+        name: 'Sufficient User',
+        role: 'agent',
+      })
+      .select()
+      .single();
     testUserIds.push(user!.id);
 
     // Set balance
@@ -123,11 +136,15 @@ describe.skip('Leave Balance Tests', () => {
   });
 
   it('should detect insufficient balance', async () => {
-    const { data: user } = await testSupabase.from('users').insert({
-      email: `insufficient-${Date.now()}@dabdoob.com`,
-      name: 'Insufficient User',
-      role: 'agent'
-    }).select().single();
+    const { data: user } = await testSupabase
+      .from('users')
+      .insert({
+        email: `insufficient-${Date.now()}@dabdoob.com`,
+        name: 'Insufficient User',
+        role: 'agent',
+      })
+      .select()
+      .single();
     testUserIds.push(user!.id);
 
     // Set low balance
@@ -150,11 +167,15 @@ describe.skip('Leave Balance Tests', () => {
   });
 
   it('should support decimal balances', async () => {
-    const { data: user } = await testSupabase.from('users').insert({
-      email: `decimal-${Date.now()}@dabdoob.com`,
-      name: 'Decimal User',
-      role: 'agent'
-    }).select().single();
+    const { data: user } = await testSupabase
+      .from('users')
+      .insert({
+        email: `decimal-${Date.now()}@dabdoob.com`,
+        name: 'Decimal User',
+        role: 'agent',
+      })
+      .select()
+      .single();
     testUserIds.push(user!.id);
 
     // Set decimal balance

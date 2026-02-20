@@ -1,56 +1,56 @@
-import { useState } from 'react'
-import { useToast } from '../../contexts/ToastContext'
-import { settingsService } from '../../services'
-import { SUCCESS_MESSAGES, ERROR_MESSAGES } from '../../constants'
+import { useState } from 'react';
+import { useToast } from '../../contexts/ToastContext';
+import { settingsService } from '../../services';
+import { SUCCESS_MESSAGES, ERROR_MESSAGES } from '../../constants';
 
 interface GeneralSettingsProps {
-  autoApprove: boolean
-  allowLeaveExceptions: boolean
-  onAutoApproveChange: (value: boolean) => void
-  onAllowLeaveExceptionsChange: (value: boolean) => void
+  autoApprove: boolean;
+  allowLeaveExceptions: boolean;
+  onAutoApproveChange: (value: boolean) => void;
+  onAllowLeaveExceptionsChange: (value: boolean) => void;
 }
 
 export default function GeneralSettings({
   autoApprove,
   allowLeaveExceptions,
   onAutoApproveChange,
-  onAllowLeaveExceptionsChange
+  onAllowLeaveExceptionsChange,
 }: GeneralSettingsProps) {
-  const { success, error: showError } = useToast()
-  const [saving, setSaving] = useState(false)
+  const { success, error: showError } = useToast();
+  const [saving, setSaving] = useState(false);
 
   async function handleAutoApproveToggle() {
-    setSaving(true)
+    setSaving(true);
     try {
-      const newValue = !autoApprove
-      await settingsService.updateSetting('wfm_auto_approve', newValue.toString())
-      onAutoApproveChange(newValue)
-      success(SUCCESS_MESSAGES.SAVE)
+      const newValue = !autoApprove;
+      await settingsService.updateSetting('wfm_auto_approve', newValue.toString());
+      onAutoApproveChange(newValue);
+      success(SUCCESS_MESSAGES.SAVE);
     } catch (err) {
-      console.error('Error saving settings:', err)
-      showError(ERROR_MESSAGES.SERVER)
+      console.error('Error saving settings:', err);
+      showError(ERROR_MESSAGES.SERVER);
     } finally {
-      setSaving(false)
+      setSaving(false);
     }
   }
 
   async function handleExceptionsToggle() {
-    setSaving(true)
+    setSaving(true);
     try {
-      const newValue = !allowLeaveExceptions
-      await settingsService.updateSetting('allow_leave_exceptions', newValue.toString())
-      onAllowLeaveExceptionsChange(newValue)
-      success(SUCCESS_MESSAGES.SAVE)
+      const newValue = !allowLeaveExceptions;
+      await settingsService.updateSetting('allow_leave_exceptions', newValue.toString());
+      onAllowLeaveExceptionsChange(newValue);
+      success(SUCCESS_MESSAGES.SAVE);
     } catch (err) {
-      console.error('Error saving settings:', err)
-      showError(ERROR_MESSAGES.SERVER)
+      console.error('Error saving settings:', err);
+      showError(ERROR_MESSAGES.SERVER);
     } finally {
-      setSaving(false)
+      setSaving(false);
     }
   }
 
   return (
-    <div className="bg-white rounded-lg shadow p-6 space-y-6">
+    <div className="space-y-6 rounded-lg bg-white p-6 shadow">
       {/* Auto-Approve Toggle */}
       <div className="flex items-center justify-between">
         <div>
@@ -64,7 +64,7 @@ export default function GeneralSettings({
           disabled={saving}
           className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 ${
             autoApprove ? 'bg-indigo-600' : 'bg-gray-200'
-          } ${saving ? 'opacity-50 cursor-not-allowed' : ''}`}
+          } ${saving ? 'cursor-not-allowed opacity-50' : ''}`}
         >
           <span
             className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
@@ -87,7 +87,7 @@ export default function GeneralSettings({
           disabled={saving}
           className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 ${
             allowLeaveExceptions ? 'bg-indigo-600' : 'bg-gray-200'
-          } ${saving ? 'opacity-50 cursor-not-allowed' : ''}`}
+          } ${saving ? 'cursor-not-allowed opacity-50' : ''}`}
         >
           <span
             className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
@@ -97,9 +97,9 @@ export default function GeneralSettings({
         </button>
       </div>
 
-      <div className="text-xs text-gray-400 mt-4 border-t pt-4">
+      <div className="mt-4 border-t pt-4 text-xs text-gray-400">
         <p>Note: Changes take effect immediately for all new requests.</p>
       </div>
     </div>
-  )
+  );
 }

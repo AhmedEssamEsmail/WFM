@@ -1,14 +1,14 @@
-import { Navigate, useLocation } from 'react-router-dom'
-import { useAuth } from '../../hooks/useAuth'
-import Layout from './Layout'
-import { UnauthorizedAccessError } from '../../types/errors'
-import { logUnauthorizedAccess } from '../../lib/securityLogger'
-import type { UserRole } from '../../types'
-import { getAllowedEmailDomain, isEmailInAllowedDomain } from '../../constants'
+import { Navigate, useLocation } from 'react-router-dom';
+import { useAuth } from '../../hooks/useAuth';
+import Layout from './Layout';
+import { UnauthorizedAccessError } from '../../types/errors';
+import { logUnauthorizedAccess } from '../../lib/securityLogger';
+import type { UserRole } from '../../types';
+import { getAllowedEmailDomain, isEmailInAllowedDomain } from '../../constants';
 
 interface ProtectedRouteProps {
-  children: React.ReactNode
-  requiredRoles?: UserRole[]
+  children: React.ReactNode;
+  requiredRoles?: UserRole[];
 }
 
 /**
@@ -19,25 +19,25 @@ interface ProtectedRouteProps {
  * 4. Post-login redirect - preserves requested URL for redirect after login
  */
 export default function ProtectedRoute({ children, requiredRoles }: ProtectedRouteProps) {
-  const { user, loading, signOut } = useAuth()
-  const location = useLocation()
-  
+  const { user, loading, signOut } = useAuth();
+  const location = useLocation();
+
   // Show loading spinner while checking authentication
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
+      <div className="flex min-h-screen items-center justify-center">
+        <div className="h-12 w-12 animate-spin rounded-full border-b-2 border-primary-600"></div>
       </div>
-    )
+    );
   }
-  
+
   // Redirect to login if not authenticated, preserving requested URL
   if (!user) {
-    return <Navigate to="/login" state={{ from: location }} replace />
+    return <Navigate to="/login" state={{ from: location }} replace />;
   }
-  
+
   // Domain-based access control: only configured company domain emails allowed
-  const allowedEmailDomain = getAllowedEmailDomain()
+  const allowedEmailDomain = getAllowedEmailDomain();
   if (user.email && !isEmailInAllowedDomain(user.email, allowedEmailDomain)) {
     // Log the domain violation
     logUnauthorizedAccess(
@@ -46,13 +46,13 @@ export default function ProtectedRoute({ children, requiredRoles }: ProtectedRou
       location.pathname,
       `Invalid email domain: ${user.email}`,
       'domain_violation'
-    )
-    
+    );
+
     // Sign out the user before redirecting
-    signOut()
-    return <Navigate to="/unauthorized" replace />
+    signOut();
+    return <Navigate to="/unauthorized" replace />;
   }
-  
+
   // Role-based authorization: check if user has required role
   if (requiredRoles && requiredRoles.length > 0) {
     if (!requiredRoles.includes(user.role)) {
@@ -63,8 +63,8 @@ export default function ProtectedRoute({ children, requiredRoles }: ProtectedRou
         location.pathname,
         `Insufficient role permissions. Required: ${requiredRoles.join(', ')}, Has: ${user.role}`,
         'role_violation'
-      )
-      
+      );
+
       // Also log to console for immediate visibility
       console.warn('Unauthorized access attempt:', {
         userId: user.id,
@@ -72,25 +72,25 @@ export default function ProtectedRoute({ children, requiredRoles }: ProtectedRou
         requestedRoute: location.pathname,
         requiredRoles,
         timestamp: new Date().toISOString(),
-        reason: 'Insufficient role permissions'
-      })
-      
+        reason: 'Insufficient role permissions',
+      });
+
       // Create error for potential logging/monitoring
       const error = new UnauthorizedAccessError(
         user.id,
         location.pathname,
         user.role,
         requiredRoles
-      )
-      
+      );
+
       // Log the error (could be sent to monitoring service)
-      console.error(error.message)
-      
+      console.error(error.message);
+
       // Redirect to dashboard instead of showing error page
-      return <Navigate to="/dashboard" replace />
+      return <Navigate to="/dashboard" replace />;
     }
   }
-  
+
   // User is authenticated, has valid domain, and has required role
-  return <Layout>{children}</Layout>
+  return <Layout>{children}</Layout>;
 }

@@ -1,16 +1,16 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest'
-import { leaveTypesService } from '../../services/leaveTypesService'
-import { supabase } from '../../lib/supabase'
-import type { LeaveTypeConfig, LeaveType } from '../../types'
+import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { leaveTypesService } from '../../services/leaveTypesService';
+import { supabase } from '../../lib/supabase';
+import type { LeaveTypeConfig, LeaveType } from '../../types';
 
 // Mock Supabase
 vi.mock('../../lib/supabase', () => ({
   supabase: {
     from: vi.fn(),
   },
-}))
+}));
 
-const TEST_UUID = '123e4567-e89b-12d3-a456-426614174000'
+const TEST_UUID = '123e4567-e89b-12d3-a456-426614174000';
 
 const mockLeaveType: LeaveTypeConfig = {
   id: TEST_UUID,
@@ -20,16 +20,16 @@ const mockLeaveType: LeaveTypeConfig = {
   is_active: true,
   display_order: 1,
   created_at: '2024-01-01T00:00:00Z',
-}
+};
 
 describe('leaveTypesService', () => {
   beforeEach(() => {
-    vi.clearAllMocks()
-  })
+    vi.clearAllMocks();
+  });
 
   describe('getActiveLeaveTypes', () => {
     it('should fetch all active leave types', async () => {
-      const mockData = [mockLeaveType]
+      const mockData = [mockLeaveType];
 
       vi.mocked(supabase.from).mockReturnValue({
         select: vi.fn().mockReturnValue({
@@ -40,16 +40,16 @@ describe('leaveTypesService', () => {
             }),
           }),
         }),
-      } as any)
+      } as any);
 
-      const result = await leaveTypesService.getActiveLeaveTypes()
+      const result = await leaveTypesService.getActiveLeaveTypes();
 
-      expect(result).toEqual(mockData)
-      expect(supabase.from).toHaveBeenCalledWith('leave_types')
-    })
+      expect(result).toEqual(mockData);
+      expect(supabase.from).toHaveBeenCalledWith('leave_types');
+    });
 
     it('should throw error when fetch fails', async () => {
-      const mockError = new Error('Database error')
+      const mockError = new Error('Database error');
 
       vi.mocked(supabase.from).mockReturnValue({
         select: vi.fn().mockReturnValue({
@@ -60,15 +60,15 @@ describe('leaveTypesService', () => {
             }),
           }),
         }),
-      } as any)
+      } as any);
 
-      await expect(leaveTypesService.getActiveLeaveTypes()).rejects.toThrow('Database error')
-    })
-  })
+      await expect(leaveTypesService.getActiveLeaveTypes()).rejects.toThrow('Database error');
+    });
+  });
 
   describe('getAllLeaveTypes', () => {
     it('should fetch all leave types including inactive', async () => {
-      const mockData = [mockLeaveType, { ...mockLeaveType, is_active: false }]
+      const mockData = [mockLeaveType, { ...mockLeaveType, is_active: false }];
 
       vi.mocked(supabase.from).mockReturnValue({
         select: vi.fn().mockReturnValue({
@@ -77,15 +77,15 @@ describe('leaveTypesService', () => {
             error: null,
           }),
         }),
-      } as any)
+      } as any);
 
-      const result = await leaveTypesService.getAllLeaveTypes()
+      const result = await leaveTypesService.getAllLeaveTypes();
 
-      expect(result).toHaveLength(2)
-    })
+      expect(result).toHaveLength(2);
+    });
 
     it('should throw error when fetch fails', async () => {
-      const mockError = new Error('Database error')
+      const mockError = new Error('Database error');
 
       vi.mocked(supabase.from).mockReturnValue({
         select: vi.fn().mockReturnValue({
@@ -94,11 +94,11 @@ describe('leaveTypesService', () => {
             error: mockError,
           }),
         }),
-      } as any)
+      } as any);
 
-      await expect(leaveTypesService.getAllLeaveTypes()).rejects.toThrow('Database error')
-    })
-  })
+      await expect(leaveTypesService.getAllLeaveTypes()).rejects.toThrow('Database error');
+    });
+  });
 
   describe('getLeaveTypeByCode', () => {
     it('should fetch leave type by code', async () => {
@@ -111,15 +111,15 @@ describe('leaveTypesService', () => {
             }),
           }),
         }),
-      } as any)
+      } as any);
 
-      const result = await leaveTypesService.getLeaveTypeByCode('annual')
+      const result = await leaveTypesService.getLeaveTypeByCode('annual');
 
-      expect(result).toEqual(mockLeaveType)
-    })
+      expect(result).toEqual(mockLeaveType);
+    });
 
     it('should return null when leave type not found', async () => {
-      const mockError = { code: 'PGRST116', message: 'Not found' }
+      const mockError = { code: 'PGRST116', message: 'Not found' };
 
       vi.mocked(supabase.from).mockReturnValue({
         select: vi.fn().mockReturnValue({
@@ -130,15 +130,15 @@ describe('leaveTypesService', () => {
             }),
           }),
         }),
-      } as any)
+      } as any);
 
-      const result = await leaveTypesService.getLeaveTypeByCode('annual')
+      const result = await leaveTypesService.getLeaveTypeByCode('annual');
 
-      expect(result).toBeNull()
-    })
+      expect(result).toBeNull();
+    });
 
     it('should throw error for other errors', async () => {
-      const mockError = new Error('Database error')
+      const mockError = new Error('Database error');
 
       vi.mocked(supabase.from).mockReturnValue({
         select: vi.fn().mockReturnValue({
@@ -149,13 +149,13 @@ describe('leaveTypesService', () => {
             }),
           }),
         }),
-      } as any)
+      } as any);
 
       await expect(leaveTypesService.getLeaveTypeByCode('annual')).rejects.toThrow(
         'Database error'
-      )
-    })
-  })
+      );
+    });
+  });
 
   describe('createLeaveType', () => {
     it('should create a new leave type', async () => {
@@ -165,7 +165,7 @@ describe('leaveTypesService', () => {
         description: 'Medical leave',
         is_active: true,
         display_order: 2,
-      }
+      };
 
       vi.mocked(supabase.from).mockReturnValue({
         insert: vi.fn().mockReturnValue({
@@ -176,15 +176,15 @@ describe('leaveTypesService', () => {
             }),
           }),
         }),
-      } as any)
+      } as any);
 
-      const result = await leaveTypesService.createLeaveType(newLeaveType)
+      const result = await leaveTypesService.createLeaveType(newLeaveType);
 
-      expect(result.code).toBe('sick')
-    })
+      expect(result.code).toBe('sick');
+    });
 
     it('should throw error when creation fails', async () => {
-      const mockError = new Error('Creation failed')
+      const mockError = new Error('Creation failed');
 
       vi.mocked(supabase.from).mockReturnValue({
         insert: vi.fn().mockReturnValue({
@@ -195,7 +195,7 @@ describe('leaveTypesService', () => {
             }),
           }),
         }),
-      } as any)
+      } as any);
 
       await expect(
         leaveTypesService.createLeaveType({
@@ -205,13 +205,13 @@ describe('leaveTypesService', () => {
           is_active: true,
           display_order: 2,
         })
-      ).rejects.toThrow('Creation failed')
-    })
-  })
+      ).rejects.toThrow('Creation failed');
+    });
+  });
 
   describe('updateLeaveType', () => {
     it('should update leave type successfully', async () => {
-      const updates = { name: 'Updated Name' }
+      const updates = { name: 'Updated Name' };
 
       vi.mocked(supabase.from).mockReturnValue({
         update: vi.fn().mockReturnValue({
@@ -224,15 +224,15 @@ describe('leaveTypesService', () => {
             }),
           }),
         }),
-      } as any)
+      } as any);
 
-      const result = await leaveTypesService.updateLeaveType(TEST_UUID, updates)
+      const result = await leaveTypesService.updateLeaveType(TEST_UUID, updates);
 
-      expect(result.name).toBe('Updated Name')
-    })
+      expect(result.name).toBe('Updated Name');
+    });
 
     it('should throw error when update fails', async () => {
-      const mockError = new Error('Update failed')
+      const mockError = new Error('Update failed');
 
       vi.mocked(supabase.from).mockReturnValue({
         update: vi.fn().mockReturnValue({
@@ -245,13 +245,13 @@ describe('leaveTypesService', () => {
             }),
           }),
         }),
-      } as any)
+      } as any);
 
       await expect(leaveTypesService.updateLeaveType(TEST_UUID, { name: 'New' })).rejects.toThrow(
         'Update failed'
-      )
-    })
-  })
+      );
+    });
+  });
 
   describe('deactivateLeaveType', () => {
     it('should deactivate leave type successfully', async () => {
@@ -262,13 +262,13 @@ describe('leaveTypesService', () => {
             error: null,
           }),
         }),
-      } as any)
+      } as any);
 
-      await expect(leaveTypesService.deactivateLeaveType(TEST_UUID)).resolves.toBeUndefined()
-    })
+      await expect(leaveTypesService.deactivateLeaveType(TEST_UUID)).resolves.toBeUndefined();
+    });
 
     it('should throw error when deactivation fails', async () => {
-      const mockError = new Error('Deactivation failed')
+      const mockError = new Error('Deactivation failed');
 
       vi.mocked(supabase.from).mockReturnValue({
         update: vi.fn().mockReturnValue({
@@ -277,21 +277,25 @@ describe('leaveTypesService', () => {
             error: mockError,
           }),
         }),
-      } as any)
+      } as any);
 
       await expect(leaveTypesService.deactivateLeaveType(TEST_UUID)).rejects.toThrow(
         'Deactivation failed'
-      )
-    })
-  })
+      );
+    });
+  });
 
   describe('getDefaultLeaveBalances', () => {
     it('should return default balances for all active leave types', async () => {
       const mockLeaveTypes = [
         { ...mockLeaveType, code: 'annual' as LeaveType },
         { ...mockLeaveType, code: 'sick' as LeaveType, id: '223e4567-e89b-12d3-a456-426614174000' },
-        { ...mockLeaveType, code: 'emergency' as LeaveType, id: '323e4567-e89b-12d3-a456-426614174000' },
-      ]
+        {
+          ...mockLeaveType,
+          code: 'emergency' as LeaveType,
+          id: '323e4567-e89b-12d3-a456-426614174000',
+        },
+      ];
 
       vi.mocked(supabase.from).mockReturnValue({
         select: vi.fn().mockReturnValue({
@@ -302,16 +306,16 @@ describe('leaveTypesService', () => {
             }),
           }),
         }),
-      } as any)
+      } as any);
 
-      const result = await leaveTypesService.getDefaultLeaveBalances()
+      const result = await leaveTypesService.getDefaultLeaveBalances();
 
       expect(result).toEqual({
         annual: 0,
         sick: 0,
         emergency: 0,
-      })
-    })
+      });
+    });
 
     it('should return empty object when no active leave types exist', async () => {
       vi.mocked(supabase.from).mockReturnValue({
@@ -323,15 +327,15 @@ describe('leaveTypesService', () => {
             }),
           }),
         }),
-      } as any)
+      } as any);
 
-      const result = await leaveTypesService.getDefaultLeaveBalances()
+      const result = await leaveTypesService.getDefaultLeaveBalances();
 
-      expect(result).toEqual({})
-    })
+      expect(result).toEqual({});
+    });
 
     it('should throw error when fetch fails', async () => {
-      const mockError = new Error('Database error')
+      const mockError = new Error('Database error');
 
       vi.mocked(supabase.from).mockReturnValue({
         select: vi.fn().mockReturnValue({
@@ -342,9 +346,9 @@ describe('leaveTypesService', () => {
             }),
           }),
         }),
-      } as any)
+      } as any);
 
-      await expect(leaveTypesService.getDefaultLeaveBalances()).rejects.toThrow('Database error')
-    })
-  })
-})
+      await expect(leaveTypesService.getDefaultLeaveBalances()).rejects.toThrow('Database error');
+    });
+  });
+});

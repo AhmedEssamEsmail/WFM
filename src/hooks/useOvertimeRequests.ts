@@ -1,10 +1,14 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { supabase } from '../lib/supabase'
-import type { OvertimeRequest, CreateOvertimeRequestInput } from '../types/overtime'
-import { useToast } from '../contexts/ToastContext'
-import { STALE_TIMES, QUERY_KEYS } from '../constants/cache'
-import type { PaginationParams, PaginatedResult } from '../types/pagination'
-import { DEFAULT_PAGINATION_PARAMS, calculateOffset, calculatePagination } from '../types/pagination'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { supabase } from '../lib/supabase';
+import type { OvertimeRequest, CreateOvertimeRequestInput } from '../types/overtime';
+import { useToast } from '../contexts/ToastContext';
+import { STALE_TIMES, QUERY_KEYS } from '../constants/cache';
+import type { PaginationParams, PaginatedResult } from '../types/pagination';
+import {
+  DEFAULT_PAGINATION_PARAMS,
+  calculateOffset,
+  calculatePagination,
+} from '../types/pagination';
 
 type OvertimeReviewUpdate = Pick<
   OvertimeRequest,
@@ -18,7 +22,7 @@ type OvertimeReviewUpdate = Pick<
   | 'wfm_decision'
   | 'wfm_notes'
   | 'updated_at'
->
+>;
 
 /**
  * React Query hooks for overtime request management
@@ -27,87 +31,107 @@ type OvertimeReviewUpdate = Pick<
  */
 
 export function useOvertimeRequests(params: PaginationParams = {}) {
-  const queryClient = useQueryClient()
-  const mergedParams = { ...DEFAULT_PAGINATION_PARAMS, ...params }
+  const queryClient = useQueryClient();
+  const mergedParams = { ...DEFAULT_PAGINATION_PARAMS, ...params };
 
   // Fetch paginated overtime requests
-  const { data: paginatedData, isLoading, error } = useQuery({
+  const {
+    data: paginatedData,
+    isLoading,
+    error,
+  } = useQuery({
     queryKey: [QUERY_KEYS.OVERTIME_REQUESTS, mergedParams],
-    queryFn: async (): Promise<PaginatedResult<OvertimeRequest & {
-      requester: { id: string; name: string; department: string; employee_id: string }
-    }>> => {
-      const offset = calculateOffset(mergedParams)
+    queryFn: async (): Promise<
+      PaginatedResult<
+        OvertimeRequest & {
+          requester: { id: string; name: string; department: string; employee_id: string };
+        }
+      >
+    > => {
+      const offset = calculateOffset(mergedParams);
       const { data, error, count } = await supabase
         .from('overtime_requests')
-        .select(`
+        .select(
+          `
           *,
           requester:users!overtime_requests_requester_id_fkey(id, name, department, employee_id)
-        `, { count: 'exact' })
+        `,
+          { count: 'exact' }
+        )
         .order('created_at', { ascending: mergedParams.sortOrder === 'asc' })
-        .range(offset, offset + (mergedParams.pageSize ?? 10) - 1)
+        .range(offset, offset + (mergedParams.pageSize ?? 10) - 1);
 
-      if (error) throw error
+      if (error) throw error;
 
-      const pagination = calculatePagination(mergedParams, count || 0)
+      const pagination = calculatePagination(mergedParams, count || 0);
 
       return {
         data: data || [],
         ...pagination,
-      }
+      };
     },
     staleTime: STALE_TIMES.OVERTIME_REQUESTS,
-  })
+  });
 
   // Computed values for convenience
-  const overtimeRequests = paginatedData?.data ?? []
-  const totalItems = paginatedData?.total ?? 0
-  const totalPages = paginatedData?.totalPages ?? 0
-  const currentPage = paginatedData?.page ?? 1
-  const hasNextPage = paginatedData?.hasNextPage ?? false
-  const hasPreviousPage = paginatedData?.hasPreviousPage ?? false
+  const overtimeRequests = paginatedData?.data ?? [];
+  const totalItems = paginatedData?.total ?? 0;
+  const totalPages = paginatedData?.totalPages ?? 0;
+  const currentPage = paginatedData?.page ?? 1;
+  const hasNextPage = paginatedData?.hasNextPage ?? false;
+  const hasPreviousPage = paginatedData?.hasPreviousPage ?? false;
 
   // Pagination actions
   const nextPage = () => {
     if (hasNextPage) {
-      queryClient.setQueryData([QUERY_KEYS.OVERTIME_REQUESTS, mergedParams], (old: PaginatedResult<OvertimeRequest> | undefined) => {
-        if (!old) return old
-        return {
-          ...old,
-          page: old.page + 1,
-          hasPreviousPage: true,
-          hasNextPage: old.page + 1 < old.totalPages,
+      queryClient.setQueryData(
+        [QUERY_KEYS.OVERTIME_REQUESTS, mergedParams],
+        (old: PaginatedResult<OvertimeRequest> | undefined) => {
+          if (!old) return old;
+          return {
+            ...old,
+            page: old.page + 1,
+            hasPreviousPage: true,
+            hasNextPage: old.page + 1 < old.totalPages,
+          };
         }
-      })
+      );
     }
-  }
+  };
 
   const prevPage = () => {
     if (hasPreviousPage) {
-      queryClient.setQueryData([QUERY_KEYS.OVERTIME_REQUESTS, mergedParams], (old: PaginatedResult<OvertimeRequest> | undefined) => {
-        if (!old) return old
-        return {
-          ...old,
-          page: old.page - 1,
-          hasPreviousPage: old.page - 1 > 1,
-          hasNextPage: true,
+      queryClient.setQueryData(
+        [QUERY_KEYS.OVERTIME_REQUESTS, mergedParams],
+        (old: PaginatedResult<OvertimeRequest> | undefined) => {
+          if (!old) return old;
+          return {
+            ...old,
+            page: old.page - 1,
+            hasPreviousPage: old.page - 1 > 1,
+            hasNextPage: true,
+          };
         }
-      })
+      );
     }
-  }
+  };
 
   const goToPage = (page: number) => {
     if (page >= 1 && page <= totalPages) {
-      queryClient.setQueryData([QUERY_KEYS.OVERTIME_REQUESTS, mergedParams], (old: PaginatedResult<OvertimeRequest> | undefined) => {
-        if (!old) return old
-        return {
-          ...old,
-          page,
-          hasPreviousPage: page > 1,
-          hasNextPage: page < old.totalPages,
+      queryClient.setQueryData(
+        [QUERY_KEYS.OVERTIME_REQUESTS, mergedParams],
+        (old: PaginatedResult<OvertimeRequest> | undefined) => {
+          if (!old) return old;
+          return {
+            ...old,
+            page,
+            hasPreviousPage: page > 1,
+            hasNextPage: page < old.totalPages,
+          };
         }
-      })
+      );
     }
-  }
+  };
 
   return {
     overtimeRequests,
@@ -121,7 +145,7 @@ export function useOvertimeRequests(params: PaginationParams = {}) {
     nextPage,
     prevPage,
     goToPage,
-  }
+  };
 }
 
 /**
@@ -135,19 +159,21 @@ export function useOvertimeRequest(id: string) {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('overtime_requests')
-        .select(`
+        .select(
+          `
           *,
           requester:users!overtime_requests_requester_id_fkey(id, name, department, employee_id)
-        `)
+        `
+        )
         .eq('id', id)
-        .single()
+        .single();
 
-      if (error) throw error
-      return data
+      if (error) throw error;
+      return data;
     },
     enabled: !!id,
     staleTime: STALE_TIMES.OVERTIME_REQUESTS,
-  })
+  });
 }
 
 /**
@@ -156,8 +182,8 @@ export function useOvertimeRequest(id: string) {
  * @returns Mutation object with mutate function
  */
 export function useCreateOvertimeRequest() {
-  const queryClient = useQueryClient()
-  const { success, error: showError } = useToast()
+  const queryClient = useQueryClient();
+  const { success, error: showError } = useToast();
 
   return useMutation({
     mutationFn: async (newRequest: CreateOvertimeRequestInput) => {
@@ -168,19 +194,19 @@ export function useCreateOvertimeRequest() {
           requester_id: (await supabase.auth.getUser()).data.user?.id,
         })
         .select()
-        .single()
+        .single();
 
-      if (error) throw error
-      return data
+      if (error) throw error;
+      return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.OVERTIME_REQUESTS] })
-      success('Overtime request created successfully!')
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.OVERTIME_REQUESTS] });
+      success('Overtime request created successfully!');
     },
     onError: (error: Error) => {
-      showError(error.message || 'Failed to create overtime request')
+      showError(error.message || 'Failed to create overtime request');
     },
-  })
+  });
 }
 
 /**
@@ -190,35 +216,37 @@ export function useCreateOvertimeRequest() {
  * @returns Mutation object with mutate function
  */
 export function useApproveOvertimeRequest() {
-  const queryClient = useQueryClient()
-  const { success, error: showError } = useToast()
+  const queryClient = useQueryClient();
+  const { success, error: showError } = useToast();
 
   return useMutation({
     mutationFn: async ({ id, notes }: { id: string; notes: string }) => {
       // Get current user to determine role
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) throw new Error('User not authenticated')
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user) throw new Error('User not authenticated');
 
       // Get user role
       const { data: userData, error: userError } = await supabase
         .from('users')
         .select('role')
         .eq('id', user.id)
-        .single()
+        .single();
 
-      if (userError) throw userError
+      if (userError) throw userError;
 
       // Get current request to determine status
       const { data: request, error: requestError } = await supabase
         .from('overtime_requests')
         .select('status')
         .eq('id', id)
-        .single()
+        .single();
 
-      if (requestError) throw requestError
+      if (requestError) throw requestError;
 
       // Determine update based on role and current status
-      let updates: Partial<OvertimeReviewUpdate> = {}
+      let updates: Partial<OvertimeReviewUpdate> = {};
 
       if (userData.role === 'tl' && request.status === 'pending_tl') {
         // Team Lead approval
@@ -229,7 +257,7 @@ export function useApproveOvertimeRequest() {
           tl_notes: notes,
           // Status will be updated by database trigger based on auto_approve setting
           status: 'pending_wfm',
-        }
+        };
       } else if (userData.role === 'wfm' && request.status === 'pending_wfm') {
         // WFM Administrator approval
         updates = {
@@ -238,7 +266,7 @@ export function useApproveOvertimeRequest() {
           wfm_decision: 'approved',
           wfm_notes: notes,
           status: 'approved',
-        }
+        };
       } else if (userData.role === 'wfm' && request.status === 'pending_tl') {
         // WFM can approve at any stage
         updates = {
@@ -251,9 +279,9 @@ export function useApproveOvertimeRequest() {
           wfm_decision: 'approved',
           wfm_notes: notes,
           status: 'approved',
-        }
+        };
       } else {
-        throw new Error('Unauthorized to approve this request')
+        throw new Error('Unauthorized to approve this request');
       }
 
       const { data, error } = await supabase
@@ -261,20 +289,20 @@ export function useApproveOvertimeRequest() {
         .update(updates)
         .eq('id', id)
         .select()
-        .single()
+        .single();
 
-      if (error) throw error
-      return data
+      if (error) throw error;
+      return data;
     },
     onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.OVERTIME_REQUESTS] })
-      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.OVERTIME_REQUESTS, data.id] })
-      success('Overtime request approved successfully!')
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.OVERTIME_REQUESTS] });
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.OVERTIME_REQUESTS, data.id] });
+      success('Overtime request approved successfully!');
     },
     onError: (error: Error) => {
-      showError(error.message || 'Failed to approve overtime request')
+      showError(error.message || 'Failed to approve overtime request');
     },
-  })
+  });
 }
 
 /**
@@ -284,35 +312,37 @@ export function useApproveOvertimeRequest() {
  * @returns Mutation object with mutate function
  */
 export function useRejectOvertimeRequest() {
-  const queryClient = useQueryClient()
-  const { success, error: showError } = useToast()
+  const queryClient = useQueryClient();
+  const { success, error: showError } = useToast();
 
   return useMutation({
     mutationFn: async ({ id, notes }: { id: string; notes: string }) => {
       // Get current user to determine role
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) throw new Error('User not authenticated')
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user) throw new Error('User not authenticated');
 
       // Get user role
       const { data: userData, error: userError } = await supabase
         .from('users')
         .select('role')
         .eq('id', user.id)
-        .single()
+        .single();
 
-      if (userError) throw userError
+      if (userError) throw userError;
 
       // Get current request to determine status
       const { data: request, error: requestError } = await supabase
         .from('overtime_requests')
         .select('status')
         .eq('id', id)
-        .single()
+        .single();
 
-      if (requestError) throw requestError
+      if (requestError) throw requestError;
 
       // Determine update based on role and current status
-      let updates: Partial<OvertimeReviewUpdate> = {}
+      let updates: Partial<OvertimeReviewUpdate> = {};
 
       if (userData.role === 'tl' && request.status === 'pending_tl') {
         // Team Lead rejection
@@ -322,8 +352,11 @@ export function useRejectOvertimeRequest() {
           tl_decision: 'rejected',
           tl_notes: notes,
           status: 'rejected',
-        }
-      } else if (userData.role === 'wfm' && (request.status === 'pending_tl' || request.status === 'pending_wfm')) {
+        };
+      } else if (
+        userData.role === 'wfm' &&
+        (request.status === 'pending_tl' || request.status === 'pending_wfm')
+      ) {
         // WFM Administrator rejection
         updates = {
           wfm_reviewed_by: user.id,
@@ -331,9 +364,9 @@ export function useRejectOvertimeRequest() {
           wfm_decision: 'rejected',
           wfm_notes: notes,
           status: 'rejected',
-        }
+        };
       } else {
-        throw new Error('Unauthorized to reject this request')
+        throw new Error('Unauthorized to reject this request');
       }
 
       const { data, error } = await supabase
@@ -341,20 +374,20 @@ export function useRejectOvertimeRequest() {
         .update(updates)
         .eq('id', id)
         .select()
-        .single()
+        .single();
 
-      if (error) throw error
-      return data
+      if (error) throw error;
+      return data;
     },
     onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.OVERTIME_REQUESTS] })
-      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.OVERTIME_REQUESTS, data.id] })
-      success('Overtime request rejected')
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.OVERTIME_REQUESTS] });
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.OVERTIME_REQUESTS, data.id] });
+      success('Overtime request rejected');
     },
     onError: (error: Error) => {
-      showError(error.message || 'Failed to reject overtime request')
+      showError(error.message || 'Failed to reject overtime request');
     },
-  })
+  });
 }
 
 /**
@@ -364,8 +397,8 @@ export function useRejectOvertimeRequest() {
  * @returns Mutation object with mutate function
  */
 export function useCancelOvertimeRequest() {
-  const queryClient = useQueryClient()
-  const { success, error: showError } = useToast()
+  const queryClient = useQueryClient();
+  const { success, error: showError } = useToast();
 
   return useMutation({
     mutationFn: async (id: string) => {
@@ -377,18 +410,18 @@ export function useCancelOvertimeRequest() {
         })
         .eq('id', id)
         .select()
-        .single()
+        .single();
 
-      if (error) throw error
-      return data
+      if (error) throw error;
+      return data;
     },
     onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.OVERTIME_REQUESTS] })
-      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.OVERTIME_REQUESTS, data.id] })
-      success('Overtime request cancelled')
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.OVERTIME_REQUESTS] });
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.OVERTIME_REQUESTS, data.id] });
+      success('Overtime request cancelled');
     },
     onError: (error: Error) => {
-      showError(error.message || 'Failed to cancel overtime request')
+      showError(error.message || 'Failed to cancel overtime request');
     },
-  })
+  });
 }

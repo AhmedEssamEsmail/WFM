@@ -3,8 +3,8 @@
  * Zod schemas for application settings and comments
  */
 
-import { z } from 'zod'
-import { VALIDATION } from '../../constants'
+import { z } from 'zod';
+import { VALIDATION } from '../../constants';
 
 // ============================================
 // Settings Schema
@@ -13,7 +13,7 @@ import { VALIDATION } from '../../constants'
 export const settingsSchema = z.object({
   wfm_auto_approve: z.boolean(),
   allow_leave_exceptions: z.boolean(),
-})
+});
 
 // ============================================
 // Comment Schema
@@ -27,11 +27,11 @@ export const commentSchema = z.object({
       VALIDATION.COMMENT_MAX_LENGTH,
       `Comment must be less than ${VALIDATION.COMMENT_MAX_LENGTH} characters`
     ),
-})
+});
 
 // ============================================
 // Type Exports
 // ============================================
 
-export type SettingsInput = z.infer<typeof settingsSchema>
-export type CommentInput = z.infer<typeof commentSchema>
+export type SettingsInput = z.infer<typeof settingsSchema>;
+export type CommentInput = z.infer<typeof commentSchema>;

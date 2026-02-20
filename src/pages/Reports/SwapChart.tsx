@@ -1,15 +1,15 @@
-import type { ReportMetrics } from '../../services/reportsService'
+import type { ReportMetrics } from '../../services/reportsService';
 
 interface SwapChartProps {
-  metrics: ReportMetrics
+  metrics: ReportMetrics;
 }
 
 export default function SwapChart({ metrics }: SwapChartProps) {
-  const maxValue = Math.max(...Object.values(metrics.swapsByUser))
+  const maxValue = Math.max(...Object.values(metrics.swapsByUser));
 
   return (
-    <div className="bg-white rounded-lg shadow p-6">
-      <h3 className="text-lg font-medium text-gray-900 mb-4">Swaps by User</h3>
+    <div className="rounded-lg bg-white p-6 shadow">
+      <h3 className="mb-4 text-lg font-medium text-gray-900">Swaps by User</h3>
       <div className="space-y-3">
         {Object.entries(metrics.swapsByUser)
           .sort(([, a], [, b]) => b - a)
@@ -17,13 +17,13 @@ export default function SwapChart({ metrics }: SwapChartProps) {
           .map(([userName, count]) => (
             <div key={userName} className="flex items-center">
               <div className="flex-1">
-                <div className="flex justify-between mb-1">
+                <div className="mb-1 flex justify-between">
                   <span className="text-sm font-medium text-gray-700">{userName}</span>
                   <span className="text-sm text-gray-500">{count}</span>
                 </div>
-                <div className="w-full bg-gray-200 rounded-full h-2">
+                <div className="h-2 w-full rounded-full bg-gray-200">
                   <div
-                    className="bg-primary-600 h-2 rounded-full"
+                    className="h-2 rounded-full bg-primary-600"
                     style={{ width: `${(count / maxValue) * 100}%` }}
                   />
                 </div>
@@ -31,9 +31,9 @@ export default function SwapChart({ metrics }: SwapChartProps) {
             </div>
           ))}
         {Object.keys(metrics.swapsByUser).length === 0 && (
-          <p className="text-sm text-gray-500 text-center py-4">No swap requests in this period</p>
+          <p className="py-4 text-center text-sm text-gray-500">No swap requests in this period</p>
         )}
       </div>
     </div>
-  )
+  );
 }

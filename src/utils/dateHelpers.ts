@@ -1,9 +1,9 @@
 // Date utility functions using date-fns
 
-import { 
-  format, 
-  parseISO, 
-  isValid, 
+import {
+  format,
+  parseISO,
+  isValid,
   differenceInDays,
   differenceInCalendarDays,
   addDays,
@@ -18,21 +18,24 @@ import {
   isFuture,
   isPast,
   isToday,
-} from 'date-fns'
-import { DATE_FORMATS } from '../constants'
+} from 'date-fns';
+import { DATE_FORMATS } from '../constants';
 
 /**
  * Format a date string or Date object to display format
  */
-export function formatDate(date: string | Date | null | undefined, formatStr: string = DATE_FORMATS.DISPLAY): string {
-  if (!date) return ''
-  
+export function formatDate(
+  date: string | Date | null | undefined,
+  formatStr: string = DATE_FORMATS.DISPLAY
+): string {
+  if (!date) return '';
+
   try {
-    const dateObj = typeof date === 'string' ? parseISO(date) : date
-    if (!isValid(dateObj)) return ''
-    return format(dateObj, formatStr)
+    const dateObj = typeof date === 'string' ? parseISO(date) : date;
+    if (!isValid(dateObj)) return '';
+    return format(dateObj, formatStr);
   } catch {
-    return ''
+    return '';
   }
 }
 
@@ -40,41 +43,41 @@ export function formatDate(date: string | Date | null | undefined, formatStr: st
  * Format date to ISO string (YYYY-MM-DD)
  */
 export function formatDateISO(date: string | Date | null | undefined): string {
-  return formatDate(date, DATE_FORMATS.ISO)
+  return formatDate(date, DATE_FORMATS.ISO);
 }
 
 /**
  * Format date to short display (MM/DD/YYYY)
  */
 export function formatDateShort(date: string | Date | null | undefined): string {
-  return formatDate(date, DATE_FORMATS.DISPLAY_SHORT)
+  return formatDate(date, DATE_FORMATS.DISPLAY_SHORT);
 }
 
 /**
  * Format date to long display (January 01, 2024)
  */
 export function formatDateLong(date: string | Date | null | undefined): string {
-  return formatDate(date, DATE_FORMATS.DISPLAY_LONG)
+  return formatDate(date, DATE_FORMATS.DISPLAY_LONG);
 }
 
 /**
  * Format datetime with time
  */
 export function formatDateTime(date: string | Date | null | undefined): string {
-  return formatDate(date, DATE_FORMATS.DATETIME)
+  return formatDate(date, DATE_FORMATS.DATETIME);
 }
 
 /**
  * Parse ISO date string to Date object
  */
 export function parseDate(dateString: string | null | undefined): Date | null {
-  if (!dateString) return null
-  
+  if (!dateString) return null;
+
   try {
-    const date = parseISO(dateString)
-    return isValid(date) ? date : null
+    const date = parseISO(dateString);
+    return isValid(date) ? date : null;
   } catch {
-    return null
+    return null;
   }
 }
 
@@ -83,14 +86,14 @@ export function parseDate(dateString: string | null | undefined): Date | null {
  */
 export function getDaysBetween(startDate: string | Date, endDate: string | Date): number {
   try {
-    const start = typeof startDate === 'string' ? parseISO(startDate) : startDate
-    const end = typeof endDate === 'string' ? parseISO(endDate) : endDate
-    
-    if (!isValid(start) || !isValid(end)) return 0
-    
-    return differenceInCalendarDays(end, start) + 1 // +1 to include both start and end dates
+    const start = typeof startDate === 'string' ? parseISO(startDate) : startDate;
+    const end = typeof endDate === 'string' ? parseISO(endDate) : endDate;
+
+    if (!isValid(start) || !isValid(end)) return 0;
+
+    return differenceInCalendarDays(end, start) + 1; // +1 to include both start and end dates
   } catch {
-    return 0
+    return 0;
   }
 }
 
@@ -99,24 +102,24 @@ export function getDaysBetween(startDate: string | Date, endDate: string | Date)
  */
 export function getBusinessDaysBetween(startDate: string | Date, endDate: string | Date): number {
   try {
-    const start = typeof startDate === 'string' ? parseISO(startDate) : startDate
-    const end = typeof endDate === 'string' ? parseISO(endDate) : endDate
-    
-    if (!isValid(start) || !isValid(end)) return 0
-    
-    let count = 0
-    let currentDate = start
-    
+    const start = typeof startDate === 'string' ? parseISO(startDate) : startDate;
+    const end = typeof endDate === 'string' ? parseISO(endDate) : endDate;
+
+    if (!isValid(start) || !isValid(end)) return 0;
+
+    let count = 0;
+    let currentDate = start;
+
     while (isBefore(currentDate, end) || isSameDay(currentDate, end)) {
       if (!isWeekend(currentDate)) {
-        count++
+        count++;
       }
-      currentDate = addDays(currentDate, 1)
+      currentDate = addDays(currentDate, 1);
     }
-    
-    return count
+
+    return count;
   } catch {
-    return 0
+    return 0;
   }
 }
 
@@ -125,10 +128,10 @@ export function getBusinessDaysBetween(startDate: string | Date, endDate: string
  */
 export function isDatePast(date: string | Date): boolean {
   try {
-    const dateObj = typeof date === 'string' ? parseISO(date) : date
-    return isValid(dateObj) && isPast(dateObj) && !isToday(dateObj)
+    const dateObj = typeof date === 'string' ? parseISO(date) : date;
+    return isValid(dateObj) && isPast(dateObj) && !isToday(dateObj);
   } catch {
-    return false
+    return false;
   }
 }
 
@@ -137,10 +140,10 @@ export function isDatePast(date: string | Date): boolean {
  */
 export function isDateFuture(date: string | Date): boolean {
   try {
-    const dateObj = typeof date === 'string' ? parseISO(date) : date
-    return isValid(dateObj) && isFuture(dateObj)
+    const dateObj = typeof date === 'string' ? parseISO(date) : date;
+    return isValid(dateObj) && isFuture(dateObj);
   } catch {
-    return false
+    return false;
   }
 }
 
@@ -149,10 +152,10 @@ export function isDateFuture(date: string | Date): boolean {
  */
 export function isDateToday(date: string | Date): boolean {
   try {
-    const dateObj = typeof date === 'string' ? parseISO(date) : date
-    return isValid(dateObj) && isToday(dateObj)
+    const dateObj = typeof date === 'string' ? parseISO(date) : date;
+    return isValid(dateObj) && isToday(dateObj);
   } catch {
-    return false
+    return false;
   }
 }
 
@@ -160,40 +163,40 @@ export function isDateToday(date: string | Date): boolean {
  * Get start of current week
  */
 export function getStartOfWeek(date: Date = new Date()): Date {
-  return startOfWeek(date, { weekStartsOn: 1 }) // Monday
+  return startOfWeek(date, { weekStartsOn: 1 }); // Monday
 }
 
 /**
  * Get end of current week
  */
 export function getEndOfWeek(date: Date = new Date()): Date {
-  return endOfWeek(date, { weekStartsOn: 1 }) // Monday
+  return endOfWeek(date, { weekStartsOn: 1 }); // Monday
 }
 
 /**
  * Get start of current month
  */
 export function getStartOfMonth(date: Date = new Date()): Date {
-  return startOfMonth(date)
+  return startOfMonth(date);
 }
 
 /**
  * Get end of current month
  */
 export function getEndOfMonth(date: Date = new Date()): Date {
-  return endOfMonth(date)
+  return endOfMonth(date);
 }
 
 /**
  * Get date range for "last month"
  */
 export function getLastMonthRange(): { start: Date; end: Date } {
-  const now = new Date()
-  const lastMonth = subDays(startOfMonth(now), 1)
+  const now = new Date();
+  const lastMonth = subDays(startOfMonth(now), 1);
   return {
     start: startOfMonth(lastMonth),
     end: endOfMonth(lastMonth),
-  }
+  };
 }
 
 /**
@@ -203,7 +206,7 @@ export function getCurrentMonthRange(): { start: Date; end: Date } {
   return {
     start: getStartOfMonth(),
     end: getEndOfMonth(),
-  }
+  };
 }
 
 /**
@@ -211,14 +214,14 @@ export function getCurrentMonthRange(): { start: Date; end: Date } {
  */
 export function isValidDateRange(startDate: string | Date, endDate: string | Date): boolean {
   try {
-    const start = typeof startDate === 'string' ? parseISO(startDate) : startDate
-    const end = typeof endDate === 'string' ? parseISO(endDate) : endDate
-    
-    if (!isValid(start) || !isValid(end)) return false
-    
-    return isBefore(start, end) || isSameDay(start, end)
+    const start = typeof startDate === 'string' ? parseISO(startDate) : startDate;
+    const end = typeof endDate === 'string' ? parseISO(endDate) : endDate;
+
+    if (!isValid(start) || !isValid(end)) return false;
+
+    return isBefore(start, end) || isSameDay(start, end);
   } catch (_error) {
-    return false
+    return false;
   }
 }
 
@@ -227,19 +230,19 @@ export function isValidDateRange(startDate: string | Date, endDate: string | Dat
  */
 export function getRelativeTimeString(date: string | Date): string {
   try {
-    const dateObj = typeof date === 'string' ? parseISO(date) : date
-    if (!isValid(dateObj)) return ''
-    
-    const now = new Date()
-    const days = differenceInDays(now, dateObj)
-    
-    if (days === 0) return 'Today'
-    if (days === 1) return 'Yesterday'
-    if (days === -1) return 'Tomorrow'
-    if (days > 0) return `${days} days ago`
-    return `in ${Math.abs(days)} days`
+    const dateObj = typeof date === 'string' ? parseISO(date) : date;
+    if (!isValid(dateObj)) return '';
+
+    const now = new Date();
+    const days = differenceInDays(now, dateObj);
+
+    if (days === 0) return 'Today';
+    if (days === 1) return 'Yesterday';
+    if (days === -1) return 'Tomorrow';
+    if (days > 0) return `${days} days ago`;
+    return `in ${Math.abs(days)} days`;
   } catch (_error) {
-    return ''
+    return '';
   }
 }
 
@@ -248,22 +251,22 @@ export function getRelativeTimeString(date: string | Date): string {
  */
 export function getDateRange(startDate: string | Date, endDate: string | Date): Date[] {
   try {
-    const start = typeof startDate === 'string' ? parseISO(startDate) : startDate
-    const end = typeof endDate === 'string' ? parseISO(endDate) : endDate
-    
-    if (!isValid(start) || !isValid(end)) return []
-    
-    const dates: Date[] = []
-    let currentDate = start
-    
+    const start = typeof startDate === 'string' ? parseISO(startDate) : startDate;
+    const end = typeof endDate === 'string' ? parseISO(endDate) : endDate;
+
+    if (!isValid(start) || !isValid(end)) return [];
+
+    const dates: Date[] = [];
+    let currentDate = start;
+
     while (isBefore(currentDate, end) || isSameDay(currentDate, end)) {
-      dates.push(currentDate)
-      currentDate = addDays(currentDate, 1)
+      dates.push(currentDate);
+      currentDate = addDays(currentDate, 1);
     }
-    
-    return dates
+
+    return dates;
   } catch (_error) {
-    return []
+    return [];
   }
 }
 
@@ -271,21 +274,21 @@ export function getDateRange(startDate: string | Date, endDate: string | Date): 
  * Get today's date in ISO format
  */
 export function getTodayISO(): string {
-  return formatDateISO(new Date())
+  return formatDateISO(new Date());
 }
 
 /**
  * Add days to a date
  */
 export function addDaysToDate(date: string | Date, days: number): Date {
-  const dateObj = typeof date === 'string' ? parseISO(date) : date
-  return addDays(dateObj, days)
+  const dateObj = typeof date === 'string' ? parseISO(date) : date;
+  return addDays(dateObj, days);
 }
 
 /**
  * Subtract days from a date
  */
 export function subtractDaysFromDate(date: string | Date, days: number): Date {
-  const dateObj = typeof date === 'string' ? parseISO(date) : date
-  return subDays(dateObj, days)
+  const dateObj = typeof date === 'string' ? parseISO(date) : date;
+  return subDays(dateObj, days);
 }

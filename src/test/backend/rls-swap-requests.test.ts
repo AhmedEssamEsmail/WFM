@@ -1,6 +1,6 @@
 /**
  * RLS Policy Tests - Swap Requests Table
- * 
+ *
  * Tests Row Level Security policies for swap_requests:
  * - Requester/target can view request
  * - TL/WFM can view all requests
@@ -30,46 +30,57 @@ describe.skip('RLS Policy Tests - Swap Requests', () => {
 
   beforeAll(async () => {
     // Create test users
-    const { data: users, error: userError } = await serviceSupabase.from('users').insert([
-      { email: `swap-req-${Date.now()}@dabdoob.com`, name: 'Requester', role: 'agent' },
-      { email: `swap-tgt-${Date.now()}@dabdoob.com`, name: 'Target', role: 'agent' },
-      { email: `swap-tl-${Date.now()}@dabdoob.com`, name: 'Team Lead', role: 'tl' },
-      { email: `swap-wfm-${Date.now()}@dabdoob.com`, name: 'WFM', role: 'wfm' }
-    ]).select();
-    
+    const { data: users, error: userError } = await serviceSupabase
+      .from('users')
+      .insert([
+        { email: `swap-req-${Date.now()}@dabdoob.com`, name: 'Requester', role: 'agent' },
+        { email: `swap-tgt-${Date.now()}@dabdoob.com`, name: 'Target', role: 'agent' },
+        { email: `swap-tl-${Date.now()}@dabdoob.com`, name: 'Team Lead', role: 'tl' },
+        { email: `swap-wfm-${Date.now()}@dabdoob.com`, name: 'WFM', role: 'wfm' },
+      ])
+      .select();
+
     if (userError || !users) {
       throw new Error(`Failed to create users: ${userError?.message}`);
     }
-    
-    testUserIds.push(...users.map(u => u.id));
+
+    testUserIds.push(...users.map((u) => u.id));
     requesterId = users![0].id;
     targetId = users![1].id;
     tlId = users![2].id;
     wfmId = users![3].id;
 
     // Create test shifts
-    const { data: shifts } = await serviceSupabase.from('shifts').insert([
-      { user_id: requesterId, date: '2027-04-01', shift_type: 'AM' },
-      { user_id: targetId, date: '2027-04-01', shift_type: 'PM' }
-    ]).select();
-    
-    testShiftIds.push(...shifts!.map(s => s.id));
+    const { data: shifts } = await serviceSupabase
+      .from('shifts')
+      .insert([
+        { user_id: requesterId, date: '2027-04-01', shift_type: 'AM' },
+        { user_id: targetId, date: '2027-04-01', shift_type: 'PM' },
+      ])
+      .select();
+
+    testShiftIds.push(...shifts!.map((s) => s.id));
 
     // Create swap request
-    const { data: swap } = await serviceSupabase.from('swap_requests').insert({
-      requester_id: requesterId,
-      target_user_id: targetId,
-      requester_shift_id: shifts![0].id,
-      target_shift_id: shifts![1].id,
-      status: 'pending_acceptance'
-    }).select().single();
-    
+    const { data: swap } = await serviceSupabase
+      .from('swap_requests')
+      .insert({
+        requester_id: requesterId,
+        target_user_id: targetId,
+        requester_shift_id: shifts![0].id,
+        target_shift_id: shifts![1].id,
+        status: 'pending_acceptance',
+      })
+      .select()
+      .single();
+
     testSwapIds.push(swap!.id);
     swapRequestId = swap!.id;
   });
 
   afterAll(async () => {
-    if (testSwapIds.length) await serviceSupabase.from('swap_requests').delete().in('id', testSwapIds);
+    if (testSwapIds.length)
+      await serviceSupabase.from('swap_requests').delete().in('id', testSwapIds);
     if (testShiftIds.length) await serviceSupabase.from('shifts').delete().in('id', testShiftIds);
     if (testUserIds.length) await serviceSupabase.from('users').delete().in('id', testUserIds);
   });
@@ -142,9 +153,9 @@ describe.skip('RLS Policy Tests - Swap Requests', () => {
   it('should allow TL to approve request', async () => {
     const { error } = await serviceSupabase
       .from('swap_requests')
-      .update({ 
+      .update({
         status: 'pending_wfm',
-        tl_approved_at: new Date().toISOString()
+        tl_approved_at: new Date().toISOString(),
       })
       .eq('id', swapRequestId);
 
@@ -163,9 +174,9 @@ describe.skip('RLS Policy Tests - Swap Requests', () => {
   it('should allow WFM to approve request', async () => {
     const { error } = await serviceSupabase
       .from('swap_requests')
-      .update({ 
+      .update({
         status: 'approved',
-        wfm_approved_at: new Date().toISOString()
+        wfm_approved_at: new Date().toISOString(),
       })
       .eq('id', swapRequestId);
 

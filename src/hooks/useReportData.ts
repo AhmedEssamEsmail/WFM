@@ -1,5 +1,5 @@
-import { useQuery } from '@tanstack/react-query'
-import { getMetrics } from '../services/reportsService'
+import { useQuery } from '@tanstack/react-query';
+import { getMetrics } from '../services/reportsService';
 
 /**
  * React Query hook for fetching report data
@@ -12,12 +12,12 @@ export function useReportData(startDate: string, endDate: string) {
     queryKey: ['reports', startDate, endDate],
     queryFn: () => getMetrics({ startDate, endDate }),
     staleTime: 5 * 60 * 1000, // Consider data fresh for 5 minutes
-  })
+  });
 
   return {
     loading: isLoading,
     metrics: data?.metrics ?? null,
     users: data?.users ?? [],
     error,
-  }
+  };
 }

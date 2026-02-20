@@ -1,34 +1,34 @@
-import { format, addDays, subDays } from 'date-fns'
-import { BUTTON_STYLES } from '../../lib/designSystem'
+import { format, addDays, subDays } from 'date-fns';
+import { BUTTON_STYLES } from '../../lib/designSystem';
 
 interface DateNavigationProps {
-  currentDate: Date
-  onDateChange: (date: Date) => void
+  currentDate: Date;
+  onDateChange: (date: Date) => void;
 }
 
 export default function DateNavigation({ currentDate, onDateChange }: DateNavigationProps) {
   const handlePrevious = () => {
-    onDateChange(subDays(currentDate, 1))
-  }
+    onDateChange(subDays(currentDate, 1));
+  };
 
   const handleNext = () => {
-    onDateChange(addDays(currentDate, 1))
-  }
+    onDateChange(addDays(currentDate, 1));
+  };
 
   const handleToday = () => {
-    onDateChange(new Date())
-  }
+    onDateChange(new Date());
+  };
 
-  const isToday = format(currentDate, 'yyyy-MM-dd') === format(new Date(), 'yyyy-MM-dd')
+  const isToday = format(currentDate, 'yyyy-MM-dd') === format(new Date(), 'yyyy-MM-dd');
 
   return (
-    <div className="flex items-center justify-between bg-white rounded-lg shadow px-4 py-3">
+    <div className="flex items-center justify-between rounded-lg bg-white px-4 py-3 shadow">
       <button
         onClick={handlePrevious}
-        className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+        className="rounded-lg p-2 transition-colors hover:bg-gray-100"
         aria-label="Previous day"
       >
-        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
         </svg>
       </button>
@@ -38,10 +38,7 @@ export default function DateNavigation({ currentDate, onDateChange }: DateNaviga
           {format(currentDate, 'EEEE, MMMM d, yyyy')}
         </h2>
         {!isToday && (
-          <button
-            onClick={handleToday}
-            className={`${BUTTON_STYLES.secondary} text-xs px-3 py-1`}
-          >
+          <button onClick={handleToday} className={`${BUTTON_STYLES.secondary} px-3 py-1 text-xs`}>
             Today
           </button>
         )}
@@ -49,13 +46,13 @@ export default function DateNavigation({ currentDate, onDateChange }: DateNaviga
 
       <button
         onClick={handleNext}
-        className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+        className="rounded-lg p-2 transition-colors hover:bg-gray-100"
         aria-label="Next day"
       >
-        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
         </svg>
       </button>
     </div>
-  )
+  );
 }

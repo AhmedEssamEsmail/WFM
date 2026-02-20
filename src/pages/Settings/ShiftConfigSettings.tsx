@@ -1,81 +1,83 @@
-import { useState, useEffect } from 'react'
-import { useToast } from '../../contexts/ToastContext'
-import { shiftConfigurationsService } from '../../services'
-import type { ShiftConfiguration } from '../../types'
-import { handleDatabaseError } from '../../lib/errorHandler'
-import ShiftConfigurations from '../../components/ShiftConfigurations'
+import { useState, useEffect } from 'react';
+import { useToast } from '../../contexts/ToastContext';
+import { shiftConfigurationsService } from '../../services';
+import type { ShiftConfiguration } from '../../types';
+import { handleDatabaseError } from '../../lib/errorHandler';
+import ShiftConfigurations from '../../components/ShiftConfigurations';
 
 export default function ShiftConfigSettings() {
-  const { success, error: showError } = useToast()
-  const [shiftConfigurations, setShiftConfigurations] = useState<ShiftConfiguration[]>([])
-  const [loadingShiftConfigurations, setLoadingShiftConfigurations] = useState(false)
+  const { success, error: showError } = useToast();
+  const [shiftConfigurations, setShiftConfigurations] = useState<ShiftConfiguration[]>([]);
+  const [loadingShiftConfigurations, setLoadingShiftConfigurations] = useState(false);
 
   useEffect(() => {
-    fetchShiftConfigurations()
-  }, [])
+    fetchShiftConfigurations();
+  }, []);
 
   async function fetchShiftConfigurations() {
-    setLoadingShiftConfigurations(true)
+    setLoadingShiftConfigurations(true);
     try {
-      const data = await shiftConfigurationsService.getAllShiftConfigurations()
-      setShiftConfigurations(data)
+      const data = await shiftConfigurationsService.getAllShiftConfigurations();
+      setShiftConfigurations(data);
     } catch (error) {
-      handleDatabaseError(error, 'fetch shift configurations')
-      showError('Failed to load shift configurations')
+      handleDatabaseError(error, 'fetch shift configurations');
+      showError('Failed to load shift configurations');
     } finally {
-      setLoadingShiftConfigurations(false)
+      setLoadingShiftConfigurations(false);
     }
   }
 
   async function handleUpdateShift(shiftId: string, updates: Partial<ShiftConfiguration>) {
     try {
-      await shiftConfigurationsService.updateShiftConfiguration(shiftId, updates)
-      await fetchShiftConfigurations()
-      success('Shift updated successfully')
+      await shiftConfigurationsService.updateShiftConfiguration(shiftId, updates);
+      await fetchShiftConfigurations();
+      success('Shift updated successfully');
     } catch (error) {
-      handleDatabaseError(error, 'update shift configuration')
-      showError('Failed to update shift')
+      handleDatabaseError(error, 'update shift configuration');
+      showError('Failed to update shift');
     }
   }
 
   async function handleToggleShift(shiftId: string, isActive: boolean) {
     try {
-      await shiftConfigurationsService.toggleShiftActive(shiftId, isActive)
-      await fetchShiftConfigurations()
-      success(`Shift ${isActive ? 'activated' : 'deactivated'} successfully`)
+      await shiftConfigurationsService.toggleShiftActive(shiftId, isActive);
+      await fetchShiftConfigurations();
+      success(`Shift ${isActive ? 'activated' : 'deactivated'} successfully`);
     } catch (error) {
-      handleDatabaseError(error, 'toggle shift')
-      showError('Failed to toggle shift')
+      handleDatabaseError(error, 'toggle shift');
+      showError('Failed to toggle shift');
     }
   }
 
-  async function handleCreateShift(shift: Omit<ShiftConfiguration, 'id' | 'created_at' | 'updated_at'>) {
+  async function handleCreateShift(
+    shift: Omit<ShiftConfiguration, 'id' | 'created_at' | 'updated_at'>
+  ) {
     try {
-      await shiftConfigurationsService.createShiftConfiguration(shift)
-      await fetchShiftConfigurations()
-      success('Shift created successfully')
+      await shiftConfigurationsService.createShiftConfiguration(shift);
+      await fetchShiftConfigurations();
+      success('Shift created successfully');
     } catch (error) {
-      handleDatabaseError(error, 'create shift')
-      showError('Failed to create shift')
+      handleDatabaseError(error, 'create shift');
+      showError('Failed to create shift');
     }
   }
 
   async function handleDeleteShift(shiftId: string) {
     try {
-      await shiftConfigurationsService.deleteShiftConfiguration(shiftId)
-      await fetchShiftConfigurations()
-      success('Shift deleted successfully')
+      await shiftConfigurationsService.deleteShiftConfiguration(shiftId);
+      await fetchShiftConfigurations();
+      success('Shift deleted successfully');
     } catch (error) {
-      handleDatabaseError(error, 'delete shift')
-      showError('Failed to delete shift')
+      handleDatabaseError(error, 'delete shift');
+      showError('Failed to delete shift');
     }
   }
 
   return (
-    <div className="bg-white rounded-lg shadow p-6">
+    <div className="rounded-lg bg-white p-6 shadow">
       {loadingShiftConfigurations ? (
-        <div className="flex items-center justify-center h-32">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
+        <div className="flex h-32 items-center justify-center">
+          <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-primary-600"></div>
         </div>
       ) : (
         <ShiftConfigurations
@@ -87,5 +89,5 @@ export default function ShiftConfigSettings() {
         />
       )}
     </div>
-  )
+  );
 }

@@ -3,33 +3,30 @@
 // ============================================
 // REQUIRED ENVIRONMENT VARIABLES
 // ============================================
-export const REQUIRED_ENV_VARS = [
-  'VITE_SUPABASE_URL',
-  'VITE_SUPABASE_ANON_KEY',
-] as const
+export const REQUIRED_ENV_VARS = ['VITE_SUPABASE_URL', 'VITE_SUPABASE_ANON_KEY'] as const;
 
-export type RequiredEnvVar = typeof REQUIRED_ENV_VARS[number]
+export type RequiredEnvVar = (typeof REQUIRED_ENV_VARS)[number];
 
 /**
  * Validates that all required environment variables are set
  * Throws an error if any required env var is missing
- * 
+ *
  * Note: This is called lazily to avoid issues in test environments
  */
 export function validateEnvironment(): void {
-  const missing: string[] = []
-  
+  const missing: string[] = [];
+
   for (const envVar of REQUIRED_ENV_VARS) {
     if (!import.meta.env[envVar]) {
-      missing.push(envVar)
+      missing.push(envVar);
     }
   }
-  
+
   if (missing.length > 0) {
     throw new Error(
       `Missing required environment variables: ${missing.join(', ')}. ` +
-      `Please set these in your .env file.`
-    )
+        `Please set these in your .env file.`
+    );
   }
 }
 
@@ -38,48 +35,48 @@ export function validateEnvironment(): void {
 // ============================================
 
 // Lazy getters for environment variables to avoid module-load-time validation
-let _allowedEmailDomain: string | undefined
+let _allowedEmailDomain: string | undefined;
 
 export function normalizeEmailDomain(domain: string): string {
-  const normalized = domain.trim().toLowerCase()
-  if (!normalized) return ''
-  return normalized.startsWith('@') ? normalized : `@${normalized}`
+  const normalized = domain.trim().toLowerCase();
+  if (!normalized) return '';
+  return normalized.startsWith('@') ? normalized : `@${normalized}`;
 }
 
 export function isEmailInAllowedDomain(email: string, domain: string): boolean {
-  const normalizedDomain = normalizeEmailDomain(domain)
-  if (!normalizedDomain) return false
-  return email.trim().toLowerCase().endsWith(normalizedDomain)
+  const normalizedDomain = normalizeEmailDomain(domain);
+  if (!normalizedDomain) return false;
+  return email.trim().toLowerCase().endsWith(normalizedDomain);
 }
 
 export function getAllowedEmailDomain(): string {
   if (!_allowedEmailDomain) {
-    const envDomain = import.meta.env.VITE_ALLOWED_EMAIL_DOMAIN as string
+    const envDomain = import.meta.env.VITE_ALLOWED_EMAIL_DOMAIN as string;
     // Default to @dabdoob.com if not set
-    _allowedEmailDomain = normalizeEmailDomain(envDomain || '@dabdoob.com')
+    _allowedEmailDomain = normalizeEmailDomain(envDomain || '@dabdoob.com');
   }
-  return _allowedEmailDomain!
+  return _allowedEmailDomain!;
 }
 
 // For backward compatibility, export as constant
 // Defaults to @dabdoob.com if not set in environment
 export const ALLOWED_EMAIL_DOMAIN: string = normalizeEmailDomain(
   (import.meta.env.VITE_ALLOWED_EMAIL_DOMAIN as string) || '@dabdoob.com'
-)
-export const SESSION_STORAGE_KEY = 'wfm_session'
+);
+export const SESSION_STORAGE_KEY = 'wfm_session';
 
 // ============================================
 // DATE FORMATS
 // ============================================
 export const DATE_FORMATS = {
-  DISPLAY: 'MMM dd, yyyy',           // Jan 01, 2024
-  DISPLAY_LONG: 'MMMM dd, yyyy',     // January 01, 2024
-  DISPLAY_SHORT: 'MM/dd/yyyy',       // 01/01/2024
-  ISO: 'yyyy-MM-dd',                 // 2024-01-01
-  TIME: 'HH:mm',                     // 14:30
-  DATETIME: 'MMM dd, yyyy HH:mm',    // Jan 01, 2024 14:30
+  DISPLAY: 'MMM dd, yyyy', // Jan 01, 2024
+  DISPLAY_LONG: 'MMMM dd, yyyy', // January 01, 2024
+  DISPLAY_SHORT: 'MM/dd/yyyy', // 01/01/2024
+  ISO: 'yyyy-MM-dd', // 2024-01-01
+  TIME: 'HH:mm', // 14:30
+  DATETIME: 'MMM dd, yyyy HH:mm', // Jan 01, 2024 14:30
   DATETIME_LONG: 'MMMM dd, yyyy HH:mm:ss', // January 01, 2024 14:30:00
-} as const
+} as const;
 
 // ============================================
 // PAGINATION
@@ -88,7 +85,7 @@ export const PAGINATION = {
   DEFAULT_PAGE_SIZE: 20,
   PAGE_SIZE_OPTIONS: [10, 20, 50, 100],
   MAX_PAGE_SIZE: 100,
-} as const
+} as const;
 
 // ============================================
 // FILE UPLOAD
@@ -98,7 +95,7 @@ export const FILE_UPLOAD = {
   MAX_SIZE_BYTES: 5 * 1024 * 1024, // 5MB
   ALLOWED_CSV_TYPES: ['text/csv', 'application/vnd.ms-excel'],
   ALLOWED_IMAGE_TYPES: ['image/jpeg', 'image/png', 'image/gif', 'image/webp'],
-} as const
+} as const;
 
 // ============================================
 // LEAVE BALANCES (Default annual allocations)
@@ -110,17 +107,17 @@ export const FILE_UPLOAD = {
 //
 // This constant is kept for backward compatibility but should not be used
 // for new code. Use leaveTypesService.getActiveLeaveTypes() instead.
-export const DEFAULT_LEAVE_BALANCE = 0 as const
+export const DEFAULT_LEAVE_BALANCE = 0 as const;
 
 // ============================================
 // QUERY CACHE TIMES (in milliseconds)
 // ============================================
 export const CACHE_TIME = {
-  SHORT: 1000 * 60,           // 1 minute
-  MEDIUM: 1000 * 60 * 5,      // 5 minutes
-  LONG: 1000 * 60 * 30,       // 30 minutes
-  VERY_LONG: 1000 * 60 * 60,  // 1 hour
-} as const
+  SHORT: 1000 * 60, // 1 minute
+  MEDIUM: 1000 * 60 * 5, // 5 minutes
+  LONG: 1000 * 60 * 30, // 30 minutes
+  VERY_LONG: 1000 * 60 * 60, // 1 hour
+} as const;
 
 // ============================================
 // DEBOUNCE/THROTTLE DELAYS (in milliseconds)
@@ -130,7 +127,7 @@ export const DELAYS = {
   INPUT_DEBOUNCE: 500,
   SCROLL_THROTTLE: 100,
   RESIZE_THROTTLE: 200,
-} as const
+} as const;
 
 // ============================================
 // TOAST DURATIONS (in milliseconds)
@@ -139,7 +136,7 @@ export const TOAST_DURATION = {
   SHORT: 3000,
   MEDIUM: 5000,
   LONG: 7000,
-} as const
+} as const;
 
 // ============================================
 // API ENDPOINTS (relative to Supabase base URL)
@@ -160,15 +157,15 @@ export const API_ENDPOINTS = {
   BREAK_SCHEDULES: 'break_schedules',
   BREAK_SCHEDULE_WARNINGS: 'break_schedule_warnings',
   BREAK_SCHEDULE_RULES: 'break_schedule_rules',
-} as const
+} as const;
 
 // ============================================
 // BREAK SCHEDULE TIME RANGES
 // ============================================
 export const BREAK_SCHEDULE = {
   HOURS: {
-    START: 9,  // 9 AM
-    END: 21,   // 9 PM
+    START: 9, // 9 AM
+    END: 21, // 9 PM
   },
   INTERVAL_MINUTES: 15,
   TABLE_NAMES: {
@@ -176,7 +173,7 @@ export const BREAK_SCHEDULE = {
     WARNINGS: 'break_schedule_warnings',
     RULES: 'break_schedule_rules',
   },
-} as const
+} as const;
 
 // ============================================
 // VALIDATION RULES
@@ -191,7 +188,7 @@ export const VALIDATION = {
   NOTES_MAX_LENGTH: 500,
   EMPLOYEE_ID_PATTERN: /^[A-Z0-9]{4,10}$/,
   PHONE_PATTERN: /^\+?[1-9]\d{1,14}$/,
-} as const
+} as const;
 
 // ============================================
 // WORKING HOURS
@@ -201,7 +198,7 @@ export const WORKING_HOURS = {
   MIN_WEEKLY: 1,
   MAX_WEEKLY: 60,
   DEFAULT_DAILY: 8,
-} as const
+} as const;
 
 // ============================================
 // ERROR MESSAGES
@@ -216,7 +213,7 @@ export const ERROR_MESSAGES = {
   UNKNOWN: 'An unexpected error occurred. Please try again.',
   DOMAIN_INVALID: `Email must be from ${ALLOWED_EMAIL_DOMAIN} domain.`,
   SESSION_EXPIRED: 'Your session has expired. Please log in again.',
-} as const
+} as const;
 
 // ============================================
 // SUCCESS MESSAGES
@@ -231,7 +228,7 @@ export const SUCCESS_MESSAGES = {
   APPROVE: 'Approved successfully!',
   REJECT: 'Rejected successfully!',
   UPLOAD: 'Upload completed successfully!',
-} as const
+} as const;
 
 // ============================================
 // ROUTES
@@ -242,35 +239,35 @@ export const ROUTES = {
   SIGNUP: '/signup',
   DASHBOARD: '/dashboard',
   UNAUTHORIZED: '/unauthorized',
-  
+
   // Shifts
   SCHEDULE: '/schedule',
   SCHEDULE_UPLOAD: '/schedule/upload',
-  
+
   // Swap Requests
   SWAP_REQUESTS: '/swap-requests',
   SWAP_REQUESTS_CREATE: '/swap-requests/create',
   SWAP_REQUESTS_DETAIL: (id: string) => `/swap-requests/${id}`,
-  
+
   // Leave Requests
   LEAVE_REQUESTS: '/leave-requests',
   LEAVE_REQUESTS_CREATE: '/leave-requests/create',
   LEAVE_REQUESTS_DETAIL: (id: string) => `/leave-requests/${id}`,
   LEAVE_BALANCES: '/leave-balances',
-  
+
   // Overtime Requests
   OVERTIME_REQUESTS: '/overtime-requests',
   OVERTIME_REQUESTS_CREATE: '/overtime-requests/create',
   OVERTIME_REQUESTS_DETAIL: (id: string) => `/overtime-requests/${id}`,
-  
+
   // Headcount
   HEADCOUNT_EMPLOYEES: '/headcount/employees',
   HEADCOUNT_EMPLOYEE_DETAIL: (id: string) => `/headcount/employees/${id}`,
-  
+
   // Reports & Settings
   REPORTS: '/reports',
   SETTINGS: '/settings',
-} as const
+} as const;
 
 // ============================================
 // LOCAL STORAGE KEYS
@@ -280,7 +277,7 @@ export const STORAGE_KEYS = {
   SIDEBAR_COLLAPSED: 'wfm_sidebar_collapsed',
   TABLE_PAGE_SIZE: 'wfm_table_page_size',
   LAST_VIEWED_DATE: 'wfm_last_viewed_date',
-} as const
+} as const;
 
 // ============================================
 // CHART COLORS
@@ -292,7 +289,7 @@ export const CHART_COLORS = {
   DANGER: ['#ef4444', '#dc2626', '#b91c1c', '#991b1b', '#7f1d1d'],
   NEUTRAL: ['#6b7280', '#4b5563', '#374151', '#1f2937', '#111827'],
   MIXED: ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899'],
-} as const
+} as const;
 
 // ============================================
 // REGEX PATTERNS
@@ -305,4 +302,4 @@ export const REGEX = {
   ALPHA_SPACES: /^[a-zA-Z\s]+$/,
   NUMERIC: /^\d+$/,
   DECIMAL: /^\d+(\.\d{1,2})?$/,
-} as const
+} as const;

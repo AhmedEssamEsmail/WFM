@@ -2,21 +2,21 @@
  * Custom error types for the WFM application
  * These errors provide structured error handling with specific error codes
  */
-import type { JsonObject } from './json'
+import type { JsonObject } from './json';
 
 /**
  * Base class for all WFM application errors
  */
 export class WFMError extends Error {
-  public readonly code: string
-  public readonly statusCode: number
+  public readonly code: string;
+  public readonly statusCode: number;
 
   constructor(message: string, code: string, statusCode: number = 500) {
-    super(message)
-    this.name = this.constructor.name
-    this.code = code
-    this.statusCode = statusCode
-    Error.captureStackTrace(this, this.constructor)
+    super(message);
+    this.name = this.constructor.name;
+    this.code = code;
+    this.statusCode = statusCode;
+    Error.captureStackTrace(this, this.constructor);
   }
 }
 
@@ -34,7 +34,7 @@ export class InsufficientLeaveBalanceError extends WFMError {
       `Insufficient ${leaveType} leave balance. Requested: ${requested} days, Available: ${available} days`,
       'INSUFFICIENT_LEAVE_BALANCE',
       400
-    )
+    );
   }
 }
 
@@ -46,13 +46,9 @@ export class InvalidSwapShiftsError extends WFMError {
     public readonly reason: string,
     public readonly details?: JsonObject
   ) {
-    super(
-      `Invalid swap request: ${reason}`,
-      'INVALID_SWAP_SHIFTS',
-      400
-    )
+    super(`Invalid swap request: ${reason}`, 'INVALID_SWAP_SHIFTS', 400);
     if (details) {
-      Object.assign(this, { details })
+      Object.assign(this, { details });
     }
   }
 }
@@ -69,9 +65,9 @@ export class TransactionError extends WFMError {
       `Transaction failed during ${operation}: ${originalError?.message || 'Unknown error'}`,
       'TRANSACTION_FAILED',
       500
-    )
+    );
     if (originalError) {
-      this.stack = originalError.stack
+      this.stack = originalError.stack;
     }
   }
 }
@@ -90,7 +86,7 @@ export class ConcurrencyError extends WFMError {
       `Concurrency conflict for ${resourceType} ${resourceId}: expected state '${expectedState}' but found '${actualState}'`,
       'CONCURRENCY_ERROR',
       409
-    )
+    );
   }
 }
 
@@ -103,11 +99,7 @@ export class ValidationError extends WFMError {
     public readonly value: unknown,
     public readonly constraint: string
   ) {
-    super(
-      `Validation failed for field '${field}': ${constraint}`,
-      'VALIDATION_ERROR',
-      400
-    )
+    super(`Validation failed for field '${field}': ${constraint}`, 'VALIDATION_ERROR', 400);
   }
 }
 
@@ -119,11 +111,7 @@ export class ResourceNotFoundError extends WFMError {
     public readonly resourceType: string,
     public readonly resourceId: string
   ) {
-    super(
-      `${resourceType} with ID '${resourceId}' not found`,
-      'RESOURCE_NOT_FOUND',
-      404
-    )
+    super(`${resourceType} with ID '${resourceId}' not found`, 'RESOURCE_NOT_FOUND', 404);
   }
 }
 
@@ -131,14 +119,12 @@ export class ResourceNotFoundError extends WFMError {
  * Error thrown when attempting to modify a system-generated comment
  */
 export class SystemCommentProtectedError extends WFMError {
-  constructor(
-    public readonly operation: 'update' | 'delete'
-  ) {
+  constructor(public readonly operation: 'update' | 'delete') {
     super(
       `Cannot ${operation} system-generated comments. System comments are protected to maintain audit trail integrity.`,
       'SYSTEM_COMMENT_PROTECTED',
       403
-    )
+    );
   }
 }
 
@@ -156,7 +142,7 @@ export class UnauthorizedAccessError extends WFMError {
       `User ${userId} with role '${userRole}' attempted to access route '${requestedRoute}' which requires roles: ${requiredRoles.join(', ')}`,
       'UNAUTHORIZED_ACCESS',
       403
-    )
+    );
   }
 }
 
@@ -173,9 +159,9 @@ export class SwapExecutionError extends WFMError {
       `Swap execution failed for request ${swapRequestId}: ${reason}`,
       'SWAP_EXECUTION_FAILED',
       500
-    )
+    );
     if (details) {
-      Object.assign(this, { details })
+      Object.assign(this, { details });
     }
   }
 }
@@ -184,7 +170,7 @@ export class SwapExecutionError extends WFMError {
  * Type guard to check if an error is a WFMError
  */
 export function isWFMError(error: unknown): error is WFMError {
-  return error instanceof WFMError
+  return error instanceof WFMError;
 }
 
 /**
@@ -192,12 +178,12 @@ export function isWFMError(error: unknown): error is WFMError {
  */
 export function getErrorMessage(error: unknown): string {
   if (error instanceof Error) {
-    return error.message
+    return error.message;
   }
   if (typeof error === 'string') {
-    return error
+    return error;
   }
-  return 'An unknown error occurred'
+  return 'An unknown error occurred';
 }
 
 /**
@@ -205,10 +191,10 @@ export function getErrorMessage(error: unknown): string {
  */
 export function getErrorCode(error: unknown): string {
   if (isWFMError(error)) {
-    return error.code
+    return error.code;
   }
   if (error instanceof Error) {
-    return 'UNKNOWN_ERROR'
+    return 'UNKNOWN_ERROR';
   }
-  return 'UNKNOWN_ERROR'
+  return 'UNKNOWN_ERROR';
 }

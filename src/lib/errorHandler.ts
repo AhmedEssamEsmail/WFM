@@ -3,15 +3,15 @@
  * Integrates with ToastContext for user notifications and provides structured error logging
  */
 
-import { SystemCommentProtectedError } from '../types/errors'
-import { Sentry } from './sentry'
+import { SystemCommentProtectedError } from '../types/errors';
+import { Sentry } from './sentry';
 
 // PII patterns for filtering sensitive data from error logs
 const PII_PATTERNS = [
   { pattern: /\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b/g, type: 'email' },
   { pattern: /\b\d{3}[-.]?\d{3}[-.]?\d{4}\b/g, type: 'phone' },
   { pattern: /\b\d{3}-\d{2}-\d{4}\b/g, type: 'ssn' },
-]
+];
 
 // Fields that may contain PII and should be redacted
 const PII_FIELDS = [
@@ -28,7 +28,7 @@ const PII_FIELDS = [
   'accessToken',
   'refreshToken',
   'apiKey',
-]
+];
 
 type ErrorContextValue =
   | string
@@ -37,49 +37,51 @@ type ErrorContextValue =
   | null
   | undefined
   | { [key: string]: ErrorContextValue }
-  | ErrorContextValue[]
+  | ErrorContextValue[];
 
-type ErrorContext = { [key: string]: ErrorContextValue }
+type ErrorContext = { [key: string]: ErrorContextValue };
 
 interface ErrorOptions {
-  userMessage?: string
-  logToConsole?: boolean
-  showToast?: boolean
-  context?: ErrorContext
+  userMessage?: string;
+  logToConsole?: boolean;
+  showToast?: boolean;
+  context?: ErrorContext;
 }
 
 interface ErrorLog {
-  timestamp: string
-  error: unknown
-  userMessage: string
-  context: ErrorContext
-  stack?: string
+  timestamp: string;
+  error: unknown;
+  userMessage: string;
+  context: ErrorContext;
+  stack?: string;
 }
 
 class ErrorHandler {
-  private static instance: ErrorHandler
-  private toastFunction: ((message: string, type: 'error' | 'success' | 'warning' | 'info') => void) | null = null
-  private errorLogs: ErrorLog[] = []
-  private maxLogs = 50
-  private logTTL = 1000 * 60 * 30 // 30 minutes TTL
-  private readonly STORAGE_KEY = 'wfm_error_logs'
-  private readonly MAX_STORAGE_SIZE = 1024 * 100 // 100KB max for error logs
+  private static instance: ErrorHandler;
+  private toastFunction:
+    | ((message: string, type: 'error' | 'success' | 'warning' | 'info') => void)
+    | null = null;
+  private errorLogs: ErrorLog[] = [];
+  private maxLogs = 50;
+  private logTTL = 1000 * 60 * 30; // 30 minutes TTL
+  private readonly STORAGE_KEY = 'wfm_error_logs';
+  private readonly MAX_STORAGE_SIZE = 1024 * 100; // 100KB max for error logs
 
   private constructor() {
     // Load existing logs from localStorage on initialization
-    this.loadLogsFromStorage()
-    
+    this.loadLogsFromStorage();
+
     // Clean up old logs every 5 minutes
     if (typeof window !== 'undefined') {
-      setInterval(() => this.cleanupOldLogs(), 1000 * 60 * 5)
+      setInterval(() => this.cleanupOldLogs(), 1000 * 60 * 5);
     }
   }
 
   static getInstance(): ErrorHandler {
     if (!ErrorHandler.instance) {
-      ErrorHandler.instance = new ErrorHandler()
+      ErrorHandler.instance = new ErrorHandler();
     }
-    return ErrorHandler.instance
+    return ErrorHandler.instance;
   }
 
   /**
@@ -87,19 +89,19 @@ class ErrorHandler {
    */
   private loadLogsFromStorage(): void {
     try {
-      const stored = localStorage.getItem(this.STORAGE_KEY)
+      const stored = localStorage.getItem(this.STORAGE_KEY);
       if (stored) {
-        const logs = JSON.parse(stored) as ErrorLog[]
+        const logs = JSON.parse(stored) as ErrorLog[];
         // Filter out expired logs
-        const now = Date.now()
-        this.errorLogs = logs.filter(log => {
-          const logTime = new Date(log.timestamp).getTime()
-          return now - logTime < this.logTTL
-        })
+        const now = Date.now();
+        this.errorLogs = logs.filter((log) => {
+          const logTime = new Date(log.timestamp).getTime();
+          return now - logTime < this.logTTL;
+        });
       }
     } catch (error) {
       // Silent fail - localStorage might be unavailable
-      console.warn('Failed to load error logs from storage:', error)
+      console.warn('Failed to load error logs from storage:', error);
     }
   }
 
@@ -108,24 +110,27 @@ class ErrorHandler {
    */
   private saveLogsToStorage(): void {
     try {
-      const serialized = JSON.stringify(this.errorLogs)
-      
+      const serialized = JSON.stringify(this.errorLogs);
+
       // Check size limit
       if (serialized.length > this.MAX_STORAGE_SIZE) {
         // Remove oldest logs until under size limit
-        while (this.errorLogs.length > 0 && JSON.stringify(this.errorLogs).length > this.MAX_STORAGE_SIZE) {
-          this.errorLogs.shift()
+        while (
+          this.errorLogs.length > 0 &&
+          JSON.stringify(this.errorLogs).length > this.MAX_STORAGE_SIZE
+        ) {
+          this.errorLogs.shift();
         }
       }
-      
-      localStorage.setItem(this.STORAGE_KEY, JSON.stringify(this.errorLogs))
+
+      localStorage.setItem(this.STORAGE_KEY, JSON.stringify(this.errorLogs));
     } catch (error) {
       // Handle QuotaExceededError or other storage errors
-      console.warn('Failed to save error logs to storage:', error)
+      console.warn('Failed to save error logs to storage:', error);
       // Clear old logs and retry
-      this.errorLogs = this.errorLogs.slice(-10) // Keep only last 10
+      this.errorLogs = this.errorLogs.slice(-10); // Keep only last 10
       try {
-        localStorage.setItem(this.STORAGE_KEY, JSON.stringify(this.errorLogs))
+        localStorage.setItem(this.STORAGE_KEY, JSON.stringify(this.errorLogs));
       } catch {
         // Give up silently
       }
@@ -137,41 +142,41 @@ class ErrorHandler {
    */
   private sanitizeValue(value: ErrorContextValue): ErrorContextValue {
     if (typeof value === 'string') {
-      let sanitized = value
+      let sanitized = value;
       for (const { pattern } of PII_PATTERNS) {
-        sanitized = sanitized.replace(pattern, '[REDACTED]')
+        sanitized = sanitized.replace(pattern, '[REDACTED]');
       }
-      return sanitized
+      return sanitized;
     }
     if (Array.isArray(value)) {
-      return value.map((item) => this.sanitizeValue(item))
+      return value.map((item) => this.sanitizeValue(item));
     }
     if (this.isContextObject(value)) {
-      return this.sanitizeObject(value)
+      return this.sanitizeObject(value);
     }
-    return value
+    return value;
   }
 
   private isContextObject(value: ErrorContextValue): value is ErrorContext {
-    return typeof value === 'object' && value !== null && !Array.isArray(value)
+    return typeof value === 'object' && value !== null && !Array.isArray(value);
   }
 
   /**
    * Sanitize an object to remove PII from values
    */
   private sanitizeObject(obj: ErrorContext): ErrorContext {
-    const sanitized: ErrorContext = {}
-    
+    const sanitized: ErrorContext = {};
+
     for (const [key, value] of Object.entries(obj)) {
       // Redact entire value if field name suggests PII
-      if (PII_FIELDS.some(field => key.toLowerCase().includes(field.toLowerCase()))) {
-        sanitized[key] = '[REDACTED]'
+      if (PII_FIELDS.some((field) => key.toLowerCase().includes(field.toLowerCase()))) {
+        sanitized[key] = '[REDACTED]';
       } else {
-        sanitized[key] = this.sanitizeValue(value)
+        sanitized[key] = this.sanitizeValue(value);
       }
     }
-    
-    return sanitized
+
+    return sanitized;
   }
 
   /**
@@ -181,14 +186,16 @@ class ErrorHandler {
     return {
       ...log,
       context: this.sanitizeObject(log.context),
-    }
+    };
   }
 
   /**
    * Set the toast notification function from ToastContext
    */
-  setToastFunction(fn: ((message: string, type: 'error' | 'success' | 'warning' | 'info') => void) | null): void {
-    this.toastFunction = fn
+  setToastFunction(
+    fn: ((message: string, type: 'error' | 'success' | 'warning' | 'info') => void) | null
+  ): void {
+    this.toastFunction = fn;
   }
 
   /**
@@ -202,22 +209,22 @@ class ErrorHandler {
       userMessage = 'An unexpected error occurred',
       logToConsole = true,
       showToast = true,
-      context = {}
-    } = options
+      context = {},
+    } = options;
 
     // Extract error message and stack
-    let errorMessage = userMessage
-    let stack: string | undefined
+    let errorMessage = userMessage;
+    let stack: string | undefined;
 
     // Handle SystemCommentProtectedError specifically
     if (error instanceof SystemCommentProtectedError) {
-      errorMessage = userMessage || error.message
-      stack = error.stack
+      errorMessage = userMessage || error.message;
+      stack = error.stack;
     } else if (error instanceof Error) {
-      errorMessage = userMessage || error.message
-      stack = error.stack
+      errorMessage = userMessage || error.message;
+      stack = error.stack;
     } else if (typeof error === 'string') {
-      errorMessage = userMessage || error
+      errorMessage = userMessage || error;
     }
 
     // Create error log entry and sanitize PII
@@ -226,42 +233,42 @@ class ErrorHandler {
       error,
       userMessage,
       context,
-      stack
-    })
+      stack,
+    });
 
     // Store error log (keep last maxLogs errors)
-    this.errorLogs.push(errorLog)
+    this.errorLogs.push(errorLog);
     if (this.errorLogs.length > this.maxLogs) {
-      this.errorLogs.shift()
+      this.errorLogs.shift();
     }
-    
+
     // Persist to localStorage with size limits
-    this.saveLogsToStorage()
+    this.saveLogsToStorage();
 
     // Log to console in development
     if (logToConsole && import.meta.env.DEV) {
-      console.group('🔴 Error Handler')
-      console.error('Error:', error)
+      console.group('🔴 Error Handler');
+      console.error('Error:', error);
       if (Object.keys(context).length > 0) {
-        console.error('Context:', context)
+        console.error('Context:', context);
       }
       if (stack) {
-        console.error('Stack:', stack)
+        console.error('Stack:', stack);
       }
-      console.groupEnd()
+      console.groupEnd();
     }
 
     // Show toast notification
     if (showToast && this.toastFunction) {
-      this.toastFunction(errorMessage, 'error')
+      this.toastFunction(errorMessage, 'error');
     }
 
     // In production, send to error tracking service (e.g., Sentry)
     if (import.meta.env.PROD) {
-      this.sendToErrorTracking(errorLog)
+      this.sendToErrorTracking(errorLog);
     }
 
-    return errorMessage
+    return errorMessage;
   }
 
   /**
@@ -271,7 +278,8 @@ class ErrorHandler {
   private sendToErrorTracking(errorLog: ErrorLog): void {
     if (import.meta.env.PROD) {
       try {
-        const errorType = typeof errorLog.context.type === 'string' ? errorLog.context.type : 'unknown'
+        const errorType =
+          typeof errorLog.context.type === 'string' ? errorLog.context.type : 'unknown';
         Sentry.captureException(errorLog.error, {
           extra: errorLog.context,
           tags: {
@@ -290,18 +298,18 @@ class ErrorHandler {
    * @returns Array of recent error logs
    */
   getRecentErrors(count = 10): ErrorLog[] {
-    return this.errorLogs.slice(-count)
+    return this.errorLogs.slice(-count);
   }
 
   /**
    * Clear all stored error logs
    */
   clearLogs(): void {
-    this.errorLogs = []
+    this.errorLogs = [];
     try {
-      localStorage.removeItem(this.STORAGE_KEY)
+      localStorage.removeItem(this.STORAGE_KEY);
     } catch (error) {
-      console.warn('Failed to clear error logs from storage:', error)
+      console.warn('Failed to clear error logs from storage:', error);
     }
   }
 
@@ -309,11 +317,11 @@ class ErrorHandler {
    * Clean up error logs older than TTL
    */
   private cleanupOldLogs(): void {
-    const now = Date.now()
-    this.errorLogs = this.errorLogs.filter(log => {
-      const logTime = new Date(log.timestamp).getTime()
-      return now - logTime < this.logTTL
-    })
+    const now = Date.now();
+    this.errorLogs = this.errorLogs.filter((log) => {
+      const logTime = new Date(log.timestamp).getTime();
+      return now - logTime < this.logTTL;
+    });
   }
 
   // Specific error handlers with predefined messages
@@ -324,8 +332,8 @@ class ErrorHandler {
   handleNetworkError(error: unknown): string {
     return this.handle(error, {
       userMessage: 'Network error. Please check your connection and try again.',
-      context: { type: 'network' }
-    })
+      context: { type: 'network' },
+    });
   }
 
   /**
@@ -334,8 +342,8 @@ class ErrorHandler {
   handleAuthError(error: unknown): string {
     return this.handle(error, {
       userMessage: 'Authentication error. Please log in again.',
-      context: { type: 'auth' }
-    })
+      context: { type: 'auth' },
+    });
   }
 
   /**
@@ -346,8 +354,8 @@ class ErrorHandler {
       userMessage: field
         ? `Validation error in ${field}. Please check your input.`
         : 'Please check your input and try again.',
-      context: { type: 'validation', field }
-    })
+      context: { type: 'validation', field },
+    });
   }
 
   /**
@@ -358,8 +366,8 @@ class ErrorHandler {
       userMessage: operation
         ? `Failed to ${operation}. Please try again.`
         : 'Database error. Please try again.',
-      context: { type: 'database', operation }
-    })
+      context: { type: 'database', operation },
+    });
   }
 
   /**
@@ -368,8 +376,8 @@ class ErrorHandler {
   handlePermissionError(error: unknown): string {
     return this.handle(error, {
       userMessage: 'You do not have permission to perform this action.',
-      context: { type: 'permission' }
-    })
+      context: { type: 'permission' },
+    });
   }
 
   /**
@@ -379,17 +387,17 @@ class ErrorHandler {
     if (error instanceof SystemCommentProtectedError) {
       return this.handle(error, {
         userMessage: error.message,
-        context: { type: 'system_comment_protected', operation: error.operation }
-      })
+        context: { type: 'system_comment_protected', operation: error.operation },
+      });
     }
     return this.handle(error, {
       userMessage: 'System-generated comments cannot be modified.',
-      context: { type: 'system_comment_protected' }
-    })
+      context: { type: 'system_comment_protected' },
+    });
   }
 }
 
-export const errorHandler = ErrorHandler.getInstance()
+export const errorHandler = ErrorHandler.getInstance();
 
 // Convenience functions for easy import and use
 
@@ -397,70 +405,71 @@ export const errorHandler = ErrorHandler.getInstance()
  * Handle a generic error
  */
 export function handleError(error: unknown, options?: ErrorOptions): string {
-  return errorHandler.handle(error, options)
+  return errorHandler.handle(error, options);
 }
 
 /**
  * Handle network errors
  */
 export function handleNetworkError(error: unknown): string {
-  return errorHandler.handleNetworkError(error)
+  return errorHandler.handleNetworkError(error);
 }
 
 /**
  * Handle authentication errors
  */
 export function handleAuthError(error: unknown): string {
-  return errorHandler.handleAuthError(error)
+  return errorHandler.handleAuthError(error);
 }
 
 /**
  * Handle validation errors
  */
 export function handleValidationError(error: unknown, field?: string): string {
-  return errorHandler.handleValidationError(error, field)
+  return errorHandler.handleValidationError(error, field);
 }
 
 /**
  * Handle database errors
  */
 export function handleDatabaseError(error: unknown, operation?: string): string {
-  return errorHandler.handleDatabaseError(error, operation)
+  return errorHandler.handleDatabaseError(error, operation);
 }
 
 /**
  * Handle permission errors
  */
 export function handlePermissionError(error: unknown): string {
-  return errorHandler.handlePermissionError(error)
+  return errorHandler.handlePermissionError(error);
 }
 
 /**
  * Handle system comment protection errors
  */
 export function handleSystemCommentProtectedError(error: unknown): string {
-  return errorHandler.handleSystemCommentProtectedError(error)
+  return errorHandler.handleSystemCommentProtectedError(error);
 }
 
 /**
  * Initialize error handler with toast function
  * Call this from your app's root component after ToastProvider is mounted
  */
-export function initializeErrorHandler(toastFn: (message: string, type: 'error' | 'success' | 'warning' | 'info') => void): void {
-  errorHandler.setToastFunction(toastFn)
+export function initializeErrorHandler(
+  toastFn: (message: string, type: 'error' | 'success' | 'warning' | 'info') => void
+): void {
+  errorHandler.setToastFunction(toastFn);
 }
 
 /**
  * Get recent error logs for debugging
  */
 export function getRecentErrors(count?: number): ErrorLog[] {
-  return errorHandler.getRecentErrors(count)
+  return errorHandler.getRecentErrors(count);
 }
 
 /**
  * Clear error logs
  */
 export function clearErrorLogs(): void {
-  errorHandler.clearLogs()
+  errorHandler.clearLogs();
 }
-

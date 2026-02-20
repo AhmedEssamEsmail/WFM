@@ -1,0 +1,11 @@
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+# Run validation and auto-fix issues
+echo "🔍 Running pre-commit validation..."
+npm run validate:fix
+
+# Stage any auto-fixed files
+git add -u
+
+echo "✅ Pre-commit validation passed!"

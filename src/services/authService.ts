@@ -1,7 +1,7 @@
 // Authentication service
 
-import { supabase } from '../lib/supabase'
-import type { User } from '../types'
+import { supabase } from '../lib/supabase';
+import type { User } from '../types';
 
 export const authService = {
   /**
@@ -14,10 +14,10 @@ export const authService = {
       options: {
         data: { name },
       },
-    })
-    
-    if (error) throw error
-    return data
+    });
+
+    if (error) throw error;
+    return data;
   },
 
   /**
@@ -27,41 +27,37 @@ export const authService = {
     const { data, error } = await supabase.auth.signInWithPassword({
       email,
       password,
-    })
-    
-    if (error) throw error
-    return data
+    });
+
+    if (error) throw error;
+    return data;
   },
 
   /**
    * Sign out current user
    */
   async signOut() {
-    const { error } = await supabase.auth.signOut()
-    if (error) throw error
+    const { error } = await supabase.auth.signOut();
+    if (error) throw error;
   },
 
   /**
    * Get current session
    */
   async getSession() {
-    const { data, error } = await supabase.auth.getSession()
-    if (error) throw error
-    return data.session
+    const { data, error } = await supabase.auth.getSession();
+    if (error) throw error;
+    return data.session;
   },
 
   /**
    * Get user profile
    */
   async getUserProfile(userId: string): Promise<User> {
-    const { data, error } = await supabase
-      .from('users')
-      .select('*')
-      .eq('id', userId)
-      .single()
-    
-    if (error) throw error
-    return data as User
+    const { data, error } = await supabase.from('users').select('*').eq('id', userId).single();
+
+    if (error) throw error;
+    return data as User;
   },
 
   /**
@@ -73,18 +69,18 @@ export const authService = {
       .update(updates)
       .eq('id', userId)
       .select()
-      .single()
-    
-    if (error) throw error
-    return data as User
+      .single();
+
+    if (error) throw error;
+    return data as User;
   },
 
   /**
    * Reset password
    */
   async resetPassword(email: string) {
-    const { error} = await supabase.auth.resetPasswordForEmail(email)
-    if (error) throw error
+    const { error } = await supabase.auth.resetPasswordForEmail(email);
+    if (error) throw error;
   },
 
   /**
@@ -93,7 +89,7 @@ export const authService = {
   async updatePassword(newPassword: string) {
     const { error } = await supabase.auth.updateUser({
       password: newPassword,
-    })
-    if (error) throw error
+    });
+    if (error) throw error;
   },
-}
+};

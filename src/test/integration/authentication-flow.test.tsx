@@ -1,6 +1,6 @@
 /**
  * Authentication Flow Integration Test
- * 
+ *
  * Tests authentication workflows:
  * - Login with valid credentials
  * - Login with invalid credentials
@@ -13,7 +13,8 @@ import { createClient } from '@supabase/supabase-js';
 
 const testSupabase = createClient(
   process.env.VITE_SUPABASE_TEST_URL || 'http://127.0.0.1:54321',
-  process.env.VITE_SUPABASE_TEST_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0',
+  process.env.VITE_SUPABASE_TEST_ANON_KEY ||
+    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0',
   { auth: { autoRefreshToken: false, persistSession: false } }
 );
 
@@ -29,7 +30,7 @@ describe('Authentication Flow Integration', () => {
   it('should handle missing credentials', async () => {
     const { data, error } = await testSupabase.auth.signInWithPassword({
       email: '',
-      password: ''
+      password: '',
     });
 
     expect(error).toBeTruthy();
@@ -39,7 +40,7 @@ describe('Authentication Flow Integration', () => {
   it('should handle invalid email format', async () => {
     const { data, error } = await testSupabase.auth.signInWithPassword({
       email: 'not-an-email',
-      password: 'password123'
+      password: 'password123',
     });
 
     expect(error).toBeTruthy();
@@ -56,7 +57,7 @@ describe('Authentication Flow Integration', () => {
 
   it('should handle session state', async () => {
     const { data: session } = await testSupabase.auth.getSession();
-    
+
     // In test environment, no active session
     expect(session.session).toBeNull();
   });
@@ -73,7 +74,7 @@ describe('Authentication Flow Integration', () => {
 
   it('should handle logout', async () => {
     const { error } = await testSupabase.auth.signOut();
-    
+
     // Should not error even if no session
     expect(error).toBeNull();
   });

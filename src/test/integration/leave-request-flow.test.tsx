@@ -1,6 +1,6 @@
 /**
  * Leave Request Flow Integration Test
- * 
+ *
  * Tests the complete leave request workflow:
  * - Create leave request
  * - TL approves request
@@ -24,12 +24,16 @@ describe.skip('Leave Request Flow Integration', () => {
 
   beforeAll(async () => {
     // Create test user
-    const { data: user } = await serviceSupabase.from('users').insert({
-      email: `leave-flow-${Date.now()}@dabdoob.com`,
-      name: 'Leave Flow User',
-      role: 'agent'
-    }).select().single();
-    
+    const { data: user } = await serviceSupabase
+      .from('users')
+      .insert({
+        email: `leave-flow-${Date.now()}@dabdoob.com`,
+        name: 'Leave Flow User',
+        role: 'agent',
+      })
+      .select()
+      .single();
+
     testUserIds.push(user!.id);
     userId = user!.id;
 
@@ -42,7 +46,8 @@ describe.skip('Leave Request Flow Integration', () => {
   });
 
   afterAll(async () => {
-    if (testLeaveIds.length) await serviceSupabase.from('leave_requests').delete().in('id', testLeaveIds);
+    if (testLeaveIds.length)
+      await serviceSupabase.from('leave_requests').delete().in('id', testLeaveIds);
     if (testUserIds.length) await serviceSupabase.from('users').delete().in('id', testUserIds);
   });
 
@@ -65,7 +70,7 @@ describe.skip('Leave Request Flow Integration', () => {
         leave_type: 'annual',
         start_date: '2027-09-01',
         end_date: '2027-09-03',
-        status: 'pending_tl'
+        status: 'pending_tl',
       })
       .select()
       .single();
@@ -78,9 +83,9 @@ describe.skip('Leave Request Flow Integration', () => {
     // Step 2: TL approves
     const { error: tlError } = await serviceSupabase
       .from('leave_requests')
-      .update({ 
+      .update({
         status: 'pending_wfm',
-        tl_approved_at: new Date().toISOString()
+        tl_approved_at: new Date().toISOString(),
       })
       .eq('id', leave!.id);
 
@@ -98,9 +103,9 @@ describe.skip('Leave Request Flow Integration', () => {
     // Step 3: WFM approves
     const { error: wfmError } = await serviceSupabase
       .from('leave_requests')
-      .update({ 
+      .update({
         status: 'approved',
-        wfm_approved_at: new Date().toISOString()
+        wfm_approved_at: new Date().toISOString(),
       })
       .eq('id', leave!.id);
 
@@ -138,7 +143,7 @@ describe.skip('Leave Request Flow Integration', () => {
         leave_type: 'sick',
         start_date: '2027-09-10',
         end_date: '2027-09-11',
-        status: 'pending_tl'
+        status: 'pending_tl',
       })
       .select()
       .single();
@@ -171,7 +176,7 @@ describe.skip('Leave Request Flow Integration', () => {
         start_date: '2027-09-15',
         end_date: '2027-09-16',
         status: 'pending_wfm',
-        tl_approved_at: new Date().toISOString()
+        tl_approved_at: new Date().toISOString(),
       })
       .select()
       .single();
@@ -211,7 +216,7 @@ describe.skip('Leave Request Flow Integration', () => {
         leave_type: 'casual',
         start_date: '2027-09-20',
         end_date: '2027-09-25', // 5 days
-        status: 'denied' // Auto-denied by application logic
+        status: 'denied', // Auto-denied by application logic
       })
       .select()
       .single();

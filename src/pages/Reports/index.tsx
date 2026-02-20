@@ -1,37 +1,37 @@
-import { useState, useEffect } from 'react'
-import { useAuth } from '../../hooks/useAuth'
-import { format, startOfMonth, endOfMonth, subMonths } from 'date-fns'
-import { downloadCSV } from '../../utils'
-import { useReportData } from '../../hooks/useReportData'
-import ReportFilters from './ReportFilters'
-import MetricCards from './MetricCards'
-import SwapChart from './SwapChart'
-import LeaveChart from './LeaveChart'
-import { OvertimeStatistics } from '../../components/OvertimeRequests'
+import { useState, useEffect } from 'react';
+import { useAuth } from '../../hooks/useAuth';
+import { format, startOfMonth, endOfMonth, subMonths } from 'date-fns';
+import { downloadCSV } from '../../utils';
+import { useReportData } from '../../hooks/useReportData';
+import ReportFilters from './ReportFilters';
+import MetricCards from './MetricCards';
+import SwapChart from './SwapChart';
+import LeaveChart from './LeaveChart';
+import { OvertimeStatistics } from '../../components/OvertimeRequests';
 
 export default function Reports() {
-  const { user } = useAuth()
-  const [activeTab, setActiveTab] = useState<'overview' | 'overtime'>('overview')
-  const [dateRange, setDateRange] = useState<'current' | 'last' | 'custom'>('current')
-  const [startDate, setStartDate] = useState(format(startOfMonth(new Date()), 'yyyy-MM-dd'))
-  const [endDate, setEndDate] = useState(format(endOfMonth(new Date()), 'yyyy-MM-dd'))
+  const { user } = useAuth();
+  const [activeTab, setActiveTab] = useState<'overview' | 'overtime'>('overview');
+  const [dateRange, setDateRange] = useState<'current' | 'last' | 'custom'>('current');
+  const [startDate, setStartDate] = useState(format(startOfMonth(new Date()), 'yyyy-MM-dd'));
+  const [endDate, setEndDate] = useState(format(endOfMonth(new Date()), 'yyyy-MM-dd'));
 
-  const isManager = user?.role === 'tl' || user?.role === 'wfm'
-  const { loading, metrics, users } = useReportData(startDate, endDate)
+  const isManager = user?.role === 'tl' || user?.role === 'wfm';
+  const { loading, metrics, users } = useReportData(startDate, endDate);
 
   useEffect(() => {
     if (dateRange === 'current') {
-      setStartDate(format(startOfMonth(new Date()), 'yyyy-MM-dd'))
-      setEndDate(format(endOfMonth(new Date()), 'yyyy-MM-dd'))
+      setStartDate(format(startOfMonth(new Date()), 'yyyy-MM-dd'));
+      setEndDate(format(endOfMonth(new Date()), 'yyyy-MM-dd'));
     } else if (dateRange === 'last') {
-      const lastMonth = subMonths(new Date(), 1)
-      setStartDate(format(startOfMonth(lastMonth), 'yyyy-MM-dd'))
-      setEndDate(format(endOfMonth(lastMonth), 'yyyy-MM-dd'))
+      const lastMonth = subMonths(new Date(), 1);
+      setStartDate(format(startOfMonth(lastMonth), 'yyyy-MM-dd'));
+      setEndDate(format(endOfMonth(lastMonth), 'yyyy-MM-dd'));
     }
-  }, [dateRange])
+  }, [dateRange]);
 
   async function exportToCSV() {
-    if (!metrics) return
+    if (!metrics) return;
 
     try {
       const csvData = [
@@ -56,30 +56,30 @@ export default function Reports() {
         [''],
         ['Leaves by Type'],
         ...Object.entries(metrics.leavesByType).map(([type, count]) => [type, count.toString()]),
-      ]
+      ];
 
-      const csvContent = csvData.map(row => row.join(',')).join('\n')
-      const filename = `wfm-report-${startDate}-to-${endDate}.csv`
-      downloadCSV(filename, csvContent)
+      const csvContent = csvData.map((row) => row.join(',')).join('\n');
+      const filename = `wfm-report-${startDate}-to-${endDate}.csv`;
+      downloadCSV(filename, csvContent);
     } catch (err) {
-      console.error('Export error:', err)
+      console.error('Export error:', err);
     }
   }
 
   if (!isManager) {
     return (
-      <div className="text-center py-12">
+      <div className="py-12 text-center">
         <p className="text-gray-500">You don't have permission to view reports.</p>
       </div>
-    )
+    );
   }
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
+      <div className="flex h-64 items-center justify-center">
+        <div className="h-12 w-12 animate-spin rounded-full border-b-2 border-primary-600"></div>
       </div>
-    )
+    );
   }
 
   return (
@@ -88,17 +88,20 @@ export default function Reports() {
       <div className="sm:flex sm:items-center sm:justify-between">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Reports & Analytics</h1>
-          <p className="mt-1 text-sm text-gray-500">
-            View team performance and request statistics
-          </p>
+          <p className="mt-1 text-sm text-gray-500">View team performance and request statistics</p>
         </div>
         {activeTab === 'overview' && (
           <button
             onClick={exportToCSV}
-            className="mt-4 sm:mt-0 inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
+            className="mt-4 inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 sm:mt-0"
           >
-            <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            <svg className="mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+              />
             </svg>
             Export CSV
           </button>
@@ -113,8 +116,8 @@ export default function Reports() {
             className={`${
               activeTab === 'overview'
                 ? 'border-primary-500 text-primary-600'
-                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-            } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm`}
+                : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'
+            } whitespace-nowrap border-b-2 px-1 py-4 text-sm font-medium`}
           >
             Overview
           </button>
@@ -123,8 +126,8 @@ export default function Reports() {
             className={`${
               activeTab === 'overtime'
                 ? 'border-primary-500 text-primary-600'
-                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-            } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm`}
+                : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'
+            } whitespace-nowrap border-b-2 px-1 py-4 text-sm font-medium`}
           >
             Overtime
           </button>
@@ -148,7 +151,7 @@ export default function Reports() {
           <MetricCards metrics={metrics} usersCount={users.length} />
 
           {/* Charts Section */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
             <SwapChart metrics={metrics} />
             <LeaveChart metrics={metrics} />
           </div>
@@ -164,5 +167,5 @@ export default function Reports() {
         />
       )}
     </div>
-  )
+  );
 }

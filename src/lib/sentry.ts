@@ -33,4 +33,4 @@ export function initSentry() {
 }
 
 // Re-export Sentry for use across the app — avoids (window as any).Sentry
-export { Sentry }
+export { Sentry };

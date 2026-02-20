@@ -1,6 +1,6 @@
 /**
  * RBAC (Role-Based Access Control) Flow Integration Test
- * 
+ *
  * Tests role-based access control:
  * - Agent access restrictions
  * - TL access permissions
@@ -25,13 +25,16 @@ describe.skip('RBAC Flow Integration', () => {
 
   beforeAll(async () => {
     // Create users with different roles
-    const { data: users } = await serviceSupabase.from('users').insert([
-      { email: `rbac-agent-${Date.now()}@dabdoob.com`, name: 'RBAC Agent', role: 'agent' },
-      { email: `rbac-tl-${Date.now()}@dabdoob.com`, name: 'RBAC TL', role: 'tl' },
-      { email: `rbac-wfm-${Date.now()}@dabdoob.com`, name: 'RBAC WFM', role: 'wfm' }
-    ]).select();
-    
-    testUserIds.push(...users!.map(u => u.id));
+    const { data: users } = await serviceSupabase
+      .from('users')
+      .insert([
+        { email: `rbac-agent-${Date.now()}@dabdoob.com`, name: 'RBAC Agent', role: 'agent' },
+        { email: `rbac-tl-${Date.now()}@dabdoob.com`, name: 'RBAC TL', role: 'tl' },
+        { email: `rbac-wfm-${Date.now()}@dabdoob.com`, name: 'RBAC WFM', role: 'wfm' },
+      ])
+      .select();
+
+    testUserIds.push(...users!.map((u) => u.id));
     agentId = users![0].id;
     tlId = users![1].id;
     wfmId = users![2].id;
@@ -67,10 +70,13 @@ describe.skip('RBAC Flow Integration', () => {
 
     it('should allow agent to create swap requests', async () => {
       // Create shifts first
-      const { data: shifts } = await serviceSupabase.from('shifts').insert([
-        { user_id: agentId, date: '2027-10-01', shift_type: 'AM' },
-        { user_id: tlId, date: '2027-10-01', shift_type: 'PM' }
-      ]).select();
+      const { data: shifts } = await serviceSupabase
+        .from('shifts')
+        .insert([
+          { user_id: agentId, date: '2027-10-01', shift_type: 'AM' },
+          { user_id: tlId, date: '2027-10-01', shift_type: 'PM' },
+        ])
+        .select();
 
       const { data, error } = await serviceSupabase
         .from('swap_requests')
@@ -79,7 +85,7 @@ describe.skip('RBAC Flow Integration', () => {
           target_user_id: tlId,
           requester_shift_id: shifts![0].id,
           target_shift_id: shifts![1].id,
-          status: 'pending_acceptance'
+          status: 'pending_acceptance',
         })
         .select()
         .single();
@@ -89,7 +95,13 @@ describe.skip('RBAC Flow Integration', () => {
 
       // Cleanup
       await serviceSupabase.from('swap_requests').delete().eq('id', data!.id);
-      await serviceSupabase.from('shifts').delete().in('id', shifts!.map(s => s.id));
+      await serviceSupabase
+        .from('shifts')
+        .delete()
+        .in(
+          'id',
+          shifts!.map((s) => s.id)
+        );
     });
 
     it('should allow agent to create leave requests', async () => {
@@ -100,7 +112,7 @@ describe.skip('RBAC Flow Integration', () => {
           leave_type: 'annual',
           start_date: '2027-10-05',
           end_date: '2027-10-06',
-          status: 'pending_tl'
+          status: 'pending_tl',
         })
         .select()
         .single();
@@ -137,7 +149,7 @@ describe.skip('RBAC Flow Integration', () => {
           leave_type: 'sick',
           start_date: '2027-10-10',
           end_date: '2027-10-11',
-          status: 'pending_tl'
+          status: 'pending_tl',
         })
         .select()
         .single();
@@ -145,9 +157,9 @@ describe.skip('RBAC Flow Integration', () => {
       // TL approves
       const { error } = await serviceSupabase
         .from('leave_requests')
-        .update({ 
+        .update({
           status: 'pending_wfm',
-          tl_approved_at: new Date().toISOString()
+          tl_approved_at: new Date().toISOString(),
         })
         .eq('id', leave!.id);
 
@@ -165,7 +177,7 @@ describe.skip('RBAC Flow Integration', () => {
           leave_type: 'casual',
           start_date: '2027-10-15',
           end_date: '2027-10-16',
-          status: 'pending_tl'
+          status: 'pending_tl',
         })
         .select()
         .single();
@@ -184,16 +196,12 @@ describe.skip('RBAC Flow Integration', () => {
 
   describe('WFM Role', () => {
     it('should allow WFM to view all data', async () => {
-      const { data: users, error: userError } = await serviceSupabase
-        .from('users')
-        .select('*');
+      const { data: users, error: userError } = await serviceSupabase.from('users').select('*');
 
       expect(userError).toBeNull();
       expect(users).toBeDefined();
 
-      const { data: shifts, error: shiftError } = await serviceSupabase
-        .from('shifts')
-        .select('*');
+      const { data: shifts, error: shiftError } = await serviceSupabase.from('shifts').select('*');
 
       expect(shiftError).toBeNull();
     });
@@ -205,7 +213,7 @@ describe.skip('RBAC Flow Integration', () => {
         .insert({
           user_id: agentId,
           date: '2027-10-20',
-          shift_type: 'AM'
+          shift_type: 'AM',
         })
         .select()
         .single();
@@ -238,16 +246,16 @@ describe.skip('RBAC Flow Integration', () => {
           start_date: '2027-10-25',
           end_date: '2027-10-26',
           status: 'pending_wfm',
-          tl_approved_at: new Date().toISOString()
+          tl_approved_at: new Date().toISOString(),
         })
         .select()
         .single();
 
       const { error } = await serviceSupabase
         .from('leave_requests')
-        .update({ 
+        .update({
           status: 'approved',
-          wfm_approved_at: new Date().toISOString()
+          wfm_approved_at: new Date().toISOString(),
         })
         .eq('id', leave!.id);
 

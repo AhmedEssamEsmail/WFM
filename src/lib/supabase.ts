@@ -1,10 +1,10 @@
-import { createClient } from '@supabase/supabase-js'
+import { createClient } from '@supabase/supabase-js';
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
 if (!supabaseUrl || !supabaseAnonKey) {
-  throw new Error('Missing Supabase environment variables')
+  throw new Error('Missing Supabase environment variables');
 }
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
@@ -25,15 +25,15 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
     // Configure fetch timeout (30 seconds) using Supabase's native configuration
     // This is safer than overriding globalThis.fetch as it only affects Supabase requests
     fetch: (url: RequestInfo | URL, init?: RequestInit) => {
-      const controller = new AbortController()
-      const timeoutId = setTimeout(() => controller.abort(), 30000)
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 30000);
 
       return fetch(url, {
         ...init,
         signal: init?.signal || controller.signal,
       }).finally(() => {
-        clearTimeout(timeoutId)
-      })
+        clearTimeout(timeoutId);
+      });
     },
   },
   db: {
@@ -44,4 +44,4 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
       eventsPerSecond: 10,
     },
   },
-})
+});

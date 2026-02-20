@@ -1,28 +1,32 @@
-import { useState, useRef } from 'react'
-import { useAuth } from '../hooks/useAuth'
-import { useBreakSchedules } from '../hooks/useBreakSchedules'
-import { formatDateISO } from '../utils'
-import { useToast } from '../contexts/ToastContext'
-import { QUERY_KEYS } from '../constants/cache'
-import DateNavigation from '../components/BreakSchedule/DateNavigation'
-import FilterBar from '../components/BreakSchedule/FilterBar'
-import BreakScheduleTable from '../components/BreakSchedule/BreakScheduleTable'
-import WarningPopup from '../components/BreakSchedule/WarningPopup'
-import { exportToCSV, importFromCSV } from '../lib/breakScheduleCSV'
-import type { BreakScheduleUpdateRequest, AutoDistributeRequest, AgentBreakSchedule } from '../types'
+import { useState, useRef } from 'react';
+import { useAuth } from '../hooks/useAuth';
+import { useBreakSchedules } from '../hooks/useBreakSchedules';
+import { formatDateISO } from '../utils';
+import { useToast } from '../contexts/ToastContext';
+import { QUERY_KEYS } from '../constants/cache';
+import DateNavigation from '../components/BreakSchedule/DateNavigation';
+import FilterBar from '../components/BreakSchedule/FilterBar';
+import BreakScheduleTable from '../components/BreakSchedule/BreakScheduleTable';
+import WarningPopup from '../components/BreakSchedule/WarningPopup';
+import { exportToCSV, importFromCSV } from '../lib/breakScheduleCSV';
+import type {
+  BreakScheduleUpdateRequest,
+  AutoDistributeRequest,
+  AgentBreakSchedule,
+} from '../types';
 
 export default function BreakSchedule() {
-  const { user } = useAuth()
-  const { success, error: showError, loading, updateToast } = useToast()
-  const fileInputRef = useRef<HTMLInputElement>(null)
-  const [currentDate, setCurrentDate] = useState(new Date())
-  const [searchQuery, setSearchQuery] = useState('')
-  const [selectedDepartment, setSelectedDepartment] = useState('')
-  const [selectedWarning, setSelectedWarning] = useState<string | null>(null)
-  const [isImporting, setIsImporting] = useState(false)
-  const [failedAgentsMap, setFailedAgentsMap] = useState<Record<string, string>>({}) // Store failure reasons by user_id
+  const { user } = useAuth();
+  const { success, error: showError, loading, updateToast } = useToast();
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [currentDate, setCurrentDate] = useState(new Date());
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedDepartment, setSelectedDepartment] = useState('');
+  const [selectedWarning, setSelectedWarning] = useState<string | null>(null);
+  const [isImporting, setIsImporting] = useState(false);
+  const [failedAgentsMap, setFailedAgentsMap] = useState<Record<string, string>>({}); // Store failure reasons by user_id
 
-  const dateStr = formatDateISO(currentDate)
+  const dateStr = formatDateISO(currentDate);
   const {
     schedules,
     intervals,
@@ -33,176 +37,184 @@ export default function BreakSchedule() {
     autoDistribute,
     clearAllBreaks,
     queryClient,
-  } = useBreakSchedules(dateStr)
+  } = useBreakSchedules(dateStr);
 
-  const isWFM = user?.role === 'wfm'
-  const isEditable = isWFM
+  const isWFM = user?.role === 'wfm';
+  const isEditable = isWFM;
 
   // Filter schedules based on search and department
   const filteredSchedules = schedules.filter((schedule: AgentBreakSchedule) => {
-    const matchesSearch = schedule.name
-      .toLowerCase()
-      .includes(searchQuery.toLowerCase())
-    const matchesDepartment =
-      !selectedDepartment || schedule.department === selectedDepartment
-    return matchesSearch && matchesDepartment
-  })
-  
+    const matchesSearch = schedule.name.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesDepartment = !selectedDepartment || schedule.department === selectedDepartment;
+    return matchesSearch && matchesDepartment;
+  });
+
   // Sort schedules by shift type (AM, BET, PM, OFF, null) then by name
   const sortedSchedules = [...filteredSchedules].sort((a, b) => {
     // Define shift order priority
     const shiftOrder: Record<string, number> = {
-      'AM': 1,
-      'BET': 2,
-      'PM': 3,
-      'OFF': 4,
-    }
-    
+      AM: 1,
+      BET: 2,
+      PM: 3,
+      OFF: 4,
+    };
+
     // Get shift priorities (null/undefined shifts go last)
-    const aShiftPriority = a.shift_type ? (shiftOrder[a.shift_type] || 5) : 5
-    const bShiftPriority = b.shift_type ? (shiftOrder[b.shift_type] || 5) : 5
-    
+    const aShiftPriority = a.shift_type ? shiftOrder[a.shift_type] || 5 : 5;
+    const bShiftPriority = b.shift_type ? shiftOrder[b.shift_type] || 5 : 5;
+
     // First sort by shift type
     if (aShiftPriority !== bShiftPriority) {
-      return aShiftPriority - bShiftPriority
+      return aShiftPriority - bShiftPriority;
     }
-    
+
     // Then sort by name alphabetically
-    return a.name.localeCompare(b.name)
-  })
-  
+    return a.name.localeCompare(b.name);
+  });
+
   // Merge failure reasons into schedules
   const schedulesWithFailures = sortedSchedules.map((schedule: AgentBreakSchedule) => ({
     ...schedule,
     auto_distribution_failure: failedAgentsMap[schedule.user_id] || undefined,
-  }))
+  }));
 
   // Get unique departments
-  const departments = Array.from(new Set(schedules.map((s: AgentBreakSchedule) => s.department).filter(Boolean))) as string[]
+  const departments = Array.from(
+    new Set(schedules.map((s: AgentBreakSchedule) => s.department).filter(Boolean))
+  ) as string[];
 
   // Handle break schedule updates
   const handleUpdate = async (updates: BreakScheduleUpdateRequest[]) => {
-    await updateBreakSchedules.mutateAsync(updates)
-  }
+    await updateBreakSchedules.mutateAsync(updates);
+  };
 
   // Handle auto-distribute - directly apply ladder strategy to all agents
   const handleAutoDistribute = async () => {
-    if (!window.confirm('This will automatically assign breaks to all agents using the ladder distribution pattern. Continue?')) {
-      return
+    if (
+      !window.confirm(
+        'This will automatically assign breaks to all agents using the ladder distribution pattern. Continue?'
+      )
+    ) {
+      return;
     }
-    
+
     // Show loading toast
-    const toastId = loading('Distributing breaks...')
-    
+    const toastId = loading('Distributing breaks...');
+
     try {
       const request: AutoDistributeRequest = {
         schedule_date: dateStr,
         strategy: 'ladder',
         apply_mode: 'all_agents',
-      }
-      
-      await autoDistribute.mutateAsync(request)
-      
+      };
+
+      await autoDistribute.mutateAsync(request);
+
       // Update toast to success
-      updateToast(toastId, 'Breaks distributed successfully!', 'success', 5000)
-      
+      updateToast(toastId, 'Breaks distributed successfully!', 'success', 5000);
+
       // Clear failed agents map on successful distribution
-      setFailedAgentsMap({})
+      setFailedAgentsMap({});
     } catch (error) {
-      console.error('Auto-distribution failed:', error)
+      console.error('Auto-distribution failed:', error);
       // Update toast to error
-      updateToast(toastId, 'Failed to auto-distribute breaks', 'error', 5000)
+      updateToast(toastId, 'Failed to auto-distribute breaks', 'error', 5000);
     }
-  }
+  };
 
   // Handle CSV import
   const handleImport = () => {
-    fileInputRef.current?.click()
-  }
+    fileInputRef.current?.click();
+  };
 
   const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0]
-    if (!file) return
+    const file = event.target.files?.[0];
+    if (!file) return;
 
-    setIsImporting(true)
+    setIsImporting(true);
     try {
-      const result = await importFromCSV(file)
-      
+      const result = await importFromCSV(file);
+
       if (result.success) {
-        success(`Successfully imported ${result.imported} break schedules!`)
+        success(`Successfully imported ${result.imported} break schedules!`);
         // Refresh the schedule data using React Query invalidation
-        queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.BREAK_SCHEDULES] })
+        queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.BREAK_SCHEDULES] });
       } else {
-        const errorMsg = result.errors.length > 0
-          ? `Import completed with ${result.errors.length} errors. Check console for details.`
-          : 'Import failed'
-        showError(errorMsg)
-        console.error('Import errors:', result.errors)
+        const errorMsg =
+          result.errors.length > 0
+            ? `Import completed with ${result.errors.length} errors. Check console for details.`
+            : 'Import failed';
+        showError(errorMsg);
+        console.error('Import errors:', result.errors);
       }
     } catch (error) {
-      showError('Failed to import CSV file')
-      console.error('Import error:', error)
+      showError('Failed to import CSV file');
+      console.error('Import error:', error);
     } finally {
-      setIsImporting(false)
+      setIsImporting(false);
       // Reset file input
       if (fileInputRef.current) {
-        fileInputRef.current.value = ''
+        fileInputRef.current.value = '';
       }
     }
-  }
+  };
 
   // Handle CSV export
   const handleExport = async () => {
     try {
-      const blob = await exportToCSV(schedules, dateStr)
-      
+      const blob = await exportToCSV(schedules, dateStr);
+
       // Create download link
-      const link = document.createElement('a')
-      const url = URL.createObjectURL(blob)
-      
-      link.setAttribute('href', url)
-      link.setAttribute('download', `break-schedules-${dateStr}.csv`)
-      link.style.visibility = 'hidden'
-      document.body.appendChild(link)
-      link.click()
-      document.body.removeChild(link)
-      
-      success('Break schedules exported successfully!')
+      const link = document.createElement('a');
+      const url = URL.createObjectURL(blob);
+
+      link.setAttribute('href', url);
+      link.setAttribute('download', `break-schedules-${dateStr}.csv`);
+      link.style.visibility = 'hidden';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+
+      success('Break schedules exported successfully!');
     } catch (error) {
-      showError('Failed to export break schedules')
-      console.error('Export error:', error)
+      showError('Failed to export break schedules');
+      console.error('Export error:', error);
     }
-  }
+  };
 
   // Handle warning dismissal
   const handleDismissWarning = async () => {
     if (selectedWarning) {
-      await dismissWarning.mutateAsync(selectedWarning)
-      setSelectedWarning(null)
+      await dismissWarning.mutateAsync(selectedWarning);
+      setSelectedWarning(null);
     }
-  }
+  };
 
   // Handle clear all breaks
   const handleClearAll = async () => {
-    if (window.confirm(`Are you sure you want to clear all breaks for ${dateStr}? This action cannot be undone.`)) {
-      await clearAllBreaks.mutateAsync(dateStr)
+    if (
+      window.confirm(
+        `Are you sure you want to clear all breaks for ${dateStr}? This action cannot be undone.`
+      )
+    ) {
+      await clearAllBreaks.mutateAsync(dateStr);
       // Clear failed agents map
-      setFailedAgentsMap({})
+      setFailedAgentsMap({});
     }
-  }
+  };
 
-  const activeWarning = warnings.find((w) => w.id === selectedWarning)
+  const activeWarning = warnings.find((w) => w.id === selectedWarning);
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
+      <div className="flex h-64 items-center justify-center">
+        <div className="h-12 w-12 animate-spin rounded-full border-b-2 border-primary-600"></div>
       </div>
-    )
+    );
   }
 
   return (
-    <div className="space-y-6 w-full md:w-[95%]">
+    <div className="w-full space-y-6 md:w-[95%]">
       <div className="sm:flex sm:items-center sm:justify-between">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Break Schedule</h1>
@@ -210,18 +222,18 @@ export default function BreakSchedule() {
             {isWFM
               ? 'Manage team break schedules'
               : user?.role === 'tl'
-              ? 'View team break schedules'
-              : 'View your break schedule'}
+                ? 'View team break schedules'
+                : 'View your break schedule'}
           </p>
         </div>
       </div>
 
       {/* Warnings banner */}
       {warnings.length > 0 && (
-        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+        <div className="rounded-lg border border-yellow-200 bg-yellow-50 p-4">
           <div className="flex items-start gap-3">
             <svg
-              className="w-5 h-5 text-yellow-600 flex-shrink-0 mt-0.5"
+              className="mt-0.5 h-5 w-5 flex-shrink-0 text-yellow-600"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -242,7 +254,7 @@ export default function BreakSchedule() {
               </p>
               <button
                 onClick={() => setSelectedWarning(warnings[0].id)}
-                className="mt-2 text-sm font-medium text-yellow-800 hover:text-yellow-900 underline"
+                className="mt-2 text-sm font-medium text-yellow-800 underline hover:text-yellow-900"
               >
                 Review warnings
               </button>
@@ -293,5 +305,5 @@ export default function BreakSchedule() {
         disabled={isImporting}
       />
     </div>
-  )
+  );
 }

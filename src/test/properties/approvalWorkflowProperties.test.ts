@@ -4,52 +4,66 @@
  * Properties: 17
  */
 
-import { describe, it, expect } from 'vitest'
-import * as fc from 'fast-check'
-import type { SwapRequest, LeaveRequest, OvertimeRequest } from '../../types'
+import { describe, it, expect } from 'vitest';
+import * as fc from 'fast-check';
+import type { SwapRequest, LeaveRequest, OvertimeRequest } from '../../types';
 
 // Arbitraries for generating approval workflow data
-const uuidArb = fc.uuid()
-const minTs = Date.parse('2020-01-01T00:00:00.000Z')
-const maxTs = Date.parse('2030-12-31T23:59:59.999Z')
-const dateArb = fc.integer({ min: minTs, max: maxTs }).map(ts => new Date(ts).toISOString().split('T')[0])
-const timestampArb = fc.integer({ min: minTs, max: maxTs }).map(ts => new Date(ts).toISOString())
+const uuidArb = fc.uuid();
+const minTs = Date.parse('2020-01-01T00:00:00.000Z');
+const maxTs = Date.parse('2030-12-31T23:59:59.999Z');
+const dateArb = fc
+  .integer({ min: minTs, max: maxTs })
+  .map((ts) => new Date(ts).toISOString().split('T')[0]);
+const timestampArb = fc.integer({ min: minTs, max: maxTs }).map((ts) => new Date(ts).toISOString());
 
 // Status transitions for different request types
-const swapRequestStatuses = ['pending_acceptance', 'pending_tl', 'pending_wfm', 'approved', 'rejected'] as const
-const leaveRequestStatuses = ['pending_tl', 'pending_wfm', 'approved', 'rejected', 'denied'] as const
-const overtimeRequestStatuses = ['pending_tl', 'pending_wfm', 'approved', 'rejected'] as const
+const swapRequestStatuses = [
+  'pending_acceptance',
+  'pending_tl',
+  'pending_wfm',
+  'approved',
+  'rejected',
+] as const;
+const leaveRequestStatuses = [
+  'pending_tl',
+  'pending_wfm',
+  'approved',
+  'rejected',
+  'denied',
+] as const;
+const overtimeRequestStatuses = ['pending_tl', 'pending_wfm', 'approved', 'rejected'] as const;
 
 // Valid status transitions
 const swapStatusTransitions: Record<string, string[]> = {
-  'pending_acceptance': ['pending_tl', 'rejected'],
-  'pending_tl': ['pending_wfm', 'rejected'],
-  'pending_wfm': ['approved', 'rejected'],
-  'approved': [],
-  'rejected': []
-}
+  pending_acceptance: ['pending_tl', 'rejected'],
+  pending_tl: ['pending_wfm', 'rejected'],
+  pending_wfm: ['approved', 'rejected'],
+  approved: [],
+  rejected: [],
+};
 
 const leaveStatusTransitions: Record<string, string[]> = {
-  'pending_tl': ['pending_wfm', 'rejected', 'denied'],
-  'pending_wfm': ['approved', 'rejected', 'denied'],
-  'approved': [],
-  'rejected': [],
-  'denied': []
-}
+  pending_tl: ['pending_wfm', 'rejected', 'denied'],
+  pending_wfm: ['approved', 'rejected', 'denied'],
+  approved: [],
+  rejected: [],
+  denied: [],
+};
 
 const overtimeStatusTransitions: Record<string, string[]> = {
-  'pending_tl': ['pending_wfm', 'rejected'],
-  'pending_wfm': ['approved', 'rejected'],
-  'approved': [],
-  'rejected': []
-}
+  pending_tl: ['pending_wfm', 'rejected'],
+  pending_wfm: ['approved', 'rejected'],
+  approved: [],
+  rejected: [],
+};
 
 describe('Approval Workflow Properties', () => {
   /**
    * Property 17: Integration Test Coverage
    * For any valid approval workflow, the status transitions should
    * follow the defined workflow rules and record timestamps correctly.
-   * 
+   *
    * Validates: Requirements 6.4
    */
   describe('Swap Request Workflow', () => {
@@ -59,17 +73,17 @@ describe('Approval Workflow Properties', () => {
           fc.constantFrom(...swapRequestStatuses),
           fc.constantFrom(...swapRequestStatuses),
           (fromStatus, toStatus) => {
-            const validTransitions = swapStatusTransitions[fromStatus] || []
-            
+            const validTransitions = swapStatusTransitions[fromStatus] || [];
+
             // If the transition is valid, it should be in the allowed list
             if (validTransitions.includes(toStatus) || fromStatus === toStatus) {
-              expect(validTransitions.includes(toStatus) || toStatus === fromStatus).toBe(true)
+              expect(validTransitions.includes(toStatus) || toStatus === fromStatus).toBe(true);
             }
           }
         ),
         { numRuns: 50 }
-      )
-    })
+      );
+    });
 
     it('Property 17: Approved requests should have all approval timestamps', () => {
       fc.assert(
@@ -81,34 +95,31 @@ describe('Approval Workflow Properties', () => {
           (requesterId, targetId, tlTime, wfmTime) => {
             // If a request is approved, it should have both TL and WFM approval timestamps
             // and TL approval should come before WFM approval
-            const tlApproval = new Date(tlTime).getTime()
-            const wfmApproval = new Date(wfmTime).getTime()
-            
+            const tlApproval = new Date(tlTime).getTime();
+            const wfmApproval = new Date(wfmTime).getTime();
+
             // Generate ordered timestamps: ensure TL comes before or at same time as WFM
-            const orderedTlApproval = Math.min(tlApproval, wfmApproval)
-            const orderedWfmApproval = Math.max(tlApproval, wfmApproval)
-            
-            expect(orderedTlApproval).toBeLessThanOrEqual(orderedWfmApproval)
+            const orderedTlApproval = Math.min(tlApproval, wfmApproval);
+            const orderedWfmApproval = Math.max(tlApproval, wfmApproval);
+
+            expect(orderedTlApproval).toBeLessThanOrEqual(orderedWfmApproval);
           }
         ),
         { numRuns: 20 }
-      )
-    })
+      );
+    });
 
     it('Property 17: Rejected requests can be rejected at any stage', () => {
       fc.assert(
-        fc.property(
-          fc.constantFrom('pending_acceptance', 'pending_tl', 'pending_wfm'),
-          (stage) => {
-            // Rejection is valid at any pre-approval stage
-            const validRejectionStages = ['pending_acceptance', 'pending_tl', 'pending_wfm']
-            expect(validRejectionStages.includes(stage)).toBe(true)
-          }
-        ),
+        fc.property(fc.constantFrom('pending_acceptance', 'pending_tl', 'pending_wfm'), (stage) => {
+          // Rejection is valid at any pre-approval stage
+          const validRejectionStages = ['pending_acceptance', 'pending_tl', 'pending_wfm'];
+          expect(validRejectionStages.includes(stage)).toBe(true);
+        }),
         { numRuns: 10 }
-      )
-    })
-  })
+      );
+    });
+  });
 
   describe('Leave Request Workflow', () => {
     it('Property 17: Status transitions should follow valid workflow', () => {
@@ -117,55 +128,47 @@ describe('Approval Workflow Properties', () => {
           fc.constantFrom(...leaveRequestStatuses),
           fc.constantFrom(...leaveRequestStatuses),
           (fromStatus, toStatus) => {
-            const validTransitions = leaveStatusTransitions[fromStatus] || []
-            
+            const validTransitions = leaveStatusTransitions[fromStatus] || [];
+
             // If the transition is valid, it should be in the allowed list
             if (validTransitions.includes(toStatus) || fromStatus === toStatus) {
-              expect(validTransitions.includes(toStatus) || toStatus === fromStatus).toBe(true)
+              expect(validTransitions.includes(toStatus) || toStatus === fromStatus).toBe(true);
             }
           }
         ),
         { numRuns: 50 }
-      )
-    })
+      );
+    });
 
     it('Property 17: Approved leave requests should have both approval timestamps', () => {
       fc.assert(
-        fc.property(
-          uuidArb,
-          timestampArb,
-          timestampArb,
-          (userId, tlTime, wfmTime) => {
-            const tlApproval = new Date(tlTime).getTime()
-            const wfmApproval = new Date(wfmTime).getTime()
-            
-            // Generate ordered timestamps: ensure TL comes before or at same time as WFM
-            const orderedTlApproval = Math.min(tlApproval, wfmApproval)
-            const orderedWfmApproval = Math.max(tlApproval, wfmApproval)
-            
-            // TL approval should come before or at the same time as WFM approval
-            expect(orderedTlApproval).toBeLessThanOrEqual(orderedWfmApproval)
-          }
-        ),
+        fc.property(uuidArb, timestampArb, timestampArb, (userId, tlTime, wfmTime) => {
+          const tlApproval = new Date(tlTime).getTime();
+          const wfmApproval = new Date(wfmTime).getTime();
+
+          // Generate ordered timestamps: ensure TL comes before or at same time as WFM
+          const orderedTlApproval = Math.min(tlApproval, wfmApproval);
+          const orderedWfmApproval = Math.max(tlApproval, wfmApproval);
+
+          // TL approval should come before or at the same time as WFM approval
+          expect(orderedTlApproval).toBeLessThanOrEqual(orderedWfmApproval);
+        }),
         { numRuns: 20 }
-      )
-    })
+      );
+    });
 
     it('Property 17: Denied requests should not have approval timestamps', () => {
       fc.assert(
-        fc.property(
-          uuidArb,
-          (userId) => {
-            // Denied requests should not have approval timestamps
-            // This is a validation property - if status is 'denied', approval timestamps should be null
-            const status = 'denied'
-            expect(status).toBe('denied')
-          }
-        ),
+        fc.property(uuidArb, (userId) => {
+          // Denied requests should not have approval timestamps
+          // This is a validation property - if status is 'denied', approval timestamps should be null
+          const status = 'denied';
+          expect(status).toBe('denied');
+        }),
         { numRuns: 10 }
-      )
-    })
-  })
+      );
+    });
+  });
 
   describe('Overtime Request Workflow', () => {
     it('Property 17: Status transitions should follow valid workflow', () => {
@@ -174,61 +177,52 @@ describe('Approval Workflow Properties', () => {
           fc.constantFrom(...overtimeRequestStatuses),
           fc.constantFrom(...overtimeRequestStatuses),
           (fromStatus, toStatus) => {
-            const validTransitions = overtimeStatusTransitions[fromStatus] || []
-            
+            const validTransitions = overtimeStatusTransitions[fromStatus] || [];
+
             // If the transition is valid, it should be in the allowed list
             if (validTransitions.includes(toStatus) || fromStatus === toStatus) {
-              expect(validTransitions.includes(toStatus) || toStatus === fromStatus).toBe(true)
+              expect(validTransitions.includes(toStatus) || toStatus === fromStatus).toBe(true);
             }
           }
         ),
         { numRuns: 50 }
-      )
-    })
+      );
+    });
 
     it('Property 17: Approved overtime should have both approval timestamps', () => {
       fc.assert(
-        fc.property(
-          uuidArb,
-          timestampArb,
-          timestampArb,
-          (userId, tlTime, wfmTime) => {
-            const tlApproval = new Date(tlTime).getTime()
-            const wfmApproval = new Date(wfmTime).getTime()
-            
-            // Generate ordered timestamps: ensure TL comes before or at same time as WFM
-            const orderedTlApproval = Math.min(tlApproval, wfmApproval)
-            const orderedWfmApproval = Math.max(tlApproval, wfmApproval)
-            
-            expect(orderedTlApproval).toBeLessThanOrEqual(orderedWfmApproval)
-          }
-        ),
+        fc.property(uuidArb, timestampArb, timestampArb, (userId, tlTime, wfmTime) => {
+          const tlApproval = new Date(tlTime).getTime();
+          const wfmApproval = new Date(wfmTime).getTime();
+
+          // Generate ordered timestamps: ensure TL comes before or at same time as WFM
+          const orderedTlApproval = Math.min(tlApproval, wfmApproval);
+          const orderedWfmApproval = Math.max(tlApproval, wfmApproval);
+
+          expect(orderedTlApproval).toBeLessThanOrEqual(orderedWfmApproval);
+        }),
         { numRuns: 20 }
-      )
-    })
-  })
+      );
+    });
+  });
 
   describe('Cross-workflow properties', () => {
     it('Property 17: All workflows require TL approval before WFM approval', () => {
       fc.assert(
-        fc.property(
-          timestampArb,
-          timestampArb,
-          (tlTime, wfmTime) => {
-            const tlApproval = new Date(tlTime).getTime()
-            const wfmApproval = new Date(wfmTime).getTime()
-            
-            // Generate ordered timestamps to ensure TL comes before WFM
-            const orderedTlApproval = Math.min(tlApproval, wfmApproval)
-            const orderedWfmApproval = Math.max(tlApproval, wfmApproval)
-            
-            // TL approval must come before or at same time as WFM approval
-            expect(orderedTlApproval).toBeLessThanOrEqual(orderedWfmApproval)
-          }
-        ),
+        fc.property(timestampArb, timestampArb, (tlTime, wfmTime) => {
+          const tlApproval = new Date(tlTime).getTime();
+          const wfmApproval = new Date(wfmTime).getTime();
+
+          // Generate ordered timestamps to ensure TL comes before WFM
+          const orderedTlApproval = Math.min(tlApproval, wfmApproval);
+          const orderedWfmApproval = Math.max(tlApproval, wfmApproval);
+
+          // TL approval must come before or at same time as WFM approval
+          expect(orderedTlApproval).toBeLessThanOrEqual(orderedWfmApproval);
+        }),
         { numRuns: 30 }
-      )
-    })
+      );
+    });
 
     it('Property 17: Once approved, status cannot change', () => {
       fc.assert(
@@ -237,14 +231,14 @@ describe('Approval Workflow Properties', () => {
           fc.constantFrom('pending_tl', 'pending_wfm', 'rejected'),
           (approvedStatus, newStatus) => {
             // Once approved, cannot transition to other statuses
-            const validApprovedTransitions: string[] = []
+            const validApprovedTransitions: string[] = [];
             // This test validates that approved status has no valid transitions
-            expect(validApprovedTransitions.includes(newStatus)).toBe(false)
+            expect(validApprovedTransitions.includes(newStatus)).toBe(false);
           }
         ),
         { numRuns: 20 }
-      )
-    })
+      );
+    });
 
     it('Property 17: Once rejected, status cannot change', () => {
       fc.assert(
@@ -253,15 +247,15 @@ describe('Approval Workflow Properties', () => {
           fc.constantFrom('pending_tl', 'pending_wfm', 'approved'),
           (rejectedStatus, newStatus) => {
             // Once rejected, cannot transition back to pending statuses
-            const validRejectedTransitions: string[] = []
+            const validRejectedTransitions: string[] = [];
             // This test validates that rejected status has no valid transitions
-            expect(validRejectedTransitions.includes(newStatus)).toBe(false)
+            expect(validRejectedTransitions.includes(newStatus)).toBe(false);
           }
         ),
         { numRuns: 20 }
-      )
-    })
-  })
+      );
+    });
+  });
 
   describe('Timestamp ordering', () => {
     it('Property 17: Created timestamp should be before any approval', () => {
@@ -271,42 +265,38 @@ describe('Approval Workflow Properties', () => {
           timestampArb,
           timestampArb,
           (createdAt, tlApproved, wfmApproved) => {
-            const created = new Date(createdAt).getTime()
-            const tl = new Date(tlApproved).getTime()
-            const wfm = new Date(wfmApproved).getTime()
-            
+            const created = new Date(createdAt).getTime();
+            const tl = new Date(tlApproved).getTime();
+            const wfm = new Date(wfmApproved).getTime();
+
             // Generate ordered timestamps to ensure proper sequence
-            const timestamps = [created, tl, wfm].sort((a, b) => a - b)
-            const orderedCreated = timestamps[0]
-            const orderedTl = timestamps[1]
-            const orderedWfm = timestamps[2]
-            
-            expect(orderedCreated).toBeLessThanOrEqual(orderedTl)
-            expect(orderedTl).toBeLessThanOrEqual(orderedWfm)
+            const timestamps = [created, tl, wfm].sort((a, b) => a - b);
+            const orderedCreated = timestamps[0];
+            const orderedTl = timestamps[1];
+            const orderedWfm = timestamps[2];
+
+            expect(orderedCreated).toBeLessThanOrEqual(orderedTl);
+            expect(orderedTl).toBeLessThanOrEqual(orderedWfm);
           }
         ),
         { numRuns: 20 }
-      )
-    })
+      );
+    });
 
     it('Property 17: Updated timestamp should be after created', () => {
       fc.assert(
-        fc.property(
-          timestampArb,
-          timestampArb,
-          (createdAt, updatedAt) => {
-            const created = new Date(createdAt).getTime()
-            const updated = new Date(updatedAt).getTime()
-            
-            // Generate ordered timestamps to ensure updated is after created
-            const orderedCreated = Math.min(created, updated)
-            const orderedUpdated = Math.max(created, updated)
-            
-            expect(orderedCreated).toBeLessThanOrEqual(orderedUpdated)
-          }
-        ),
+        fc.property(timestampArb, timestampArb, (createdAt, updatedAt) => {
+          const created = new Date(createdAt).getTime();
+          const updated = new Date(updatedAt).getTime();
+
+          // Generate ordered timestamps to ensure updated is after created
+          const orderedCreated = Math.min(created, updated);
+          const orderedUpdated = Math.max(created, updated);
+
+          expect(orderedCreated).toBeLessThanOrEqual(orderedUpdated);
+        }),
         { numRuns: 20 }
-      )
-    })
-  })
-})
+      );
+    });
+  });
+});

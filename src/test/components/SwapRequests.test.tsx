@@ -1,22 +1,22 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { render, screen, waitFor, fireEvent } from '@testing-library/react'
-import { BrowserRouter } from 'react-router-dom'
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import SwapRequests from '../../pages/SwapRequests/SwapRequests'
-import { AuthContext } from '../../contexts/AuthContext'
-import { swapRequestsService } from '../../services'
-import type { User, SwapRequest } from '../../types'
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { render, screen, waitFor, fireEvent } from '@testing-library/react';
+import { BrowserRouter } from 'react-router-dom';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import SwapRequests from '../../pages/SwapRequests/SwapRequests';
+import { AuthContext } from '../../contexts/AuthContext';
+import { swapRequestsService } from '../../services';
+import type { User, SwapRequest } from '../../types';
 
 vi.mock('../../services', () => ({
   swapRequestsService: {
     getSwapRequests: vi.fn(),
-    getUserSwapRequests: vi.fn()
-  }
-}))
+    getUserSwapRequests: vi.fn(),
+  },
+}));
 
 describe('SwapRequests Page', () => {
-  let queryClient: QueryClient
-  let mockUser: User
+  let queryClient: QueryClient;
+  let mockUser: User;
 
   const mockSwapRequests: SwapRequest[] = [
     {
@@ -33,36 +33,36 @@ describe('SwapRequests Page', () => {
         email: 'requester@dabdoob.com',
         name: 'John Requester',
         role: 'agent',
-        created_at: '2024-01-01T00:00:00Z'
+        created_at: '2024-01-01T00:00:00Z',
       },
       target_user: {
         id: 'user-2',
         email: 'target@dabdoob.com',
         name: 'Jane Target',
         role: 'agent',
-        created_at: '2024-01-01T00:00:00Z'
-      }
-    } as any
-  ]
+        created_at: '2024-01-01T00:00:00Z',
+      },
+    } as any,
+  ];
 
   beforeEach(() => {
     queryClient = new QueryClient({
       defaultOptions: {
         queries: { retry: false },
-        mutations: { retry: false }
-      }
-    })
+        mutations: { retry: false },
+      },
+    });
 
     mockUser = {
       id: 'user-1',
       email: 'user@dabdoob.com',
       name: 'John Doe',
       role: 'agent',
-      created_at: '2024-01-01T00:00:00Z'
-    }
+      created_at: '2024-01-01T00:00:00Z',
+    };
 
-    vi.clearAllMocks()
-  })
+    vi.clearAllMocks();
+  });
 
   const renderSwapRequests = (user: User | null = mockUser) => {
     return render(
@@ -73,121 +73,121 @@ describe('SwapRequests Page', () => {
           </AuthContext.Provider>
         </BrowserRouter>
       </QueryClientProvider>
-    )
-  }
+    );
+  };
 
   describe('List rendering', () => {
     it('should render page title', () => {
-      vi.mocked(swapRequestsService.getUserSwapRequests).mockResolvedValue([])
+      vi.mocked(swapRequestsService.getUserSwapRequests).mockResolvedValue([]);
 
-      renderSwapRequests()
+      renderSwapRequests();
 
-      expect(screen.getByText('Swap Requests')).toBeInTheDocument()
-    })
+      expect(screen.getByText('Swap Requests')).toBeInTheDocument();
+    });
 
     it('should render swap requests with new table styling', async () => {
-      vi.mocked(swapRequestsService.getUserSwapRequests).mockResolvedValue(mockSwapRequests)
+      vi.mocked(swapRequestsService.getUserSwapRequests).mockResolvedValue(mockSwapRequests);
 
-      renderSwapRequests()
+      renderSwapRequests();
 
       await waitFor(() => {
         // Use getAllByText since the name appears in both desktop and mobile views
-        const elements = screen.getAllByText('John Requester')
-        expect(elements.length).toBeGreaterThan(0)
+        const elements = screen.getAllByText('John Requester');
+        expect(elements.length).toBeGreaterThan(0);
         // Verify table headers are present using role
-        const table = document.querySelector('table')
-        expect(table).toBeInTheDocument()
-        expect(screen.getByText('Requester')).toBeInTheDocument()
-        expect(screen.getByText('Type')).toBeInTheDocument()
-        expect(screen.getByText('Details')).toBeInTheDocument()
-        expect(screen.getByText('Created')).toBeInTheDocument()
-      })
-    })
+        const table = document.querySelector('table');
+        expect(table).toBeInTheDocument();
+        expect(screen.getByText('Requester')).toBeInTheDocument();
+        expect(screen.getByText('Type')).toBeInTheDocument();
+        expect(screen.getByText('Details')).toBeInTheDocument();
+        expect(screen.getByText('Created')).toBeInTheDocument();
+      });
+    });
 
     it('should render TypeBadge for swap requests', async () => {
-      vi.mocked(swapRequestsService.getUserSwapRequests).mockResolvedValue(mockSwapRequests)
+      vi.mocked(swapRequestsService.getUserSwapRequests).mockResolvedValue(mockSwapRequests);
 
-      renderSwapRequests()
+      renderSwapRequests();
 
       await waitFor(() => {
         // Use getAllByText since the badge appears in both desktop and mobile views
-        const elements = screen.getAllByText('Swap')
-        expect(elements.length).toBeGreaterThan(0)
-      })
-    })
+        const elements = screen.getAllByText('Swap');
+        expect(elements.length).toBeGreaterThan(0);
+      });
+    });
 
     it('should render target user in details column', async () => {
-      vi.mocked(swapRequestsService.getUserSwapRequests).mockResolvedValue(mockSwapRequests)
+      vi.mocked(swapRequestsService.getUserSwapRequests).mockResolvedValue(mockSwapRequests);
 
-      renderSwapRequests()
+      renderSwapRequests();
 
       await waitFor(() => {
         // Use getAllByText since the text appears in both desktop and mobile views
-        const elements = screen.getAllByText('→ Jane Target')
-        expect(elements.length).toBeGreaterThan(0)
-      })
-    })
+        const elements = screen.getAllByText('→ Jane Target');
+        expect(elements.length).toBeGreaterThan(0);
+      });
+    });
 
     it('should show empty state when no requests', async () => {
-      vi.mocked(swapRequestsService.getUserSwapRequests).mockResolvedValue([])
+      vi.mocked(swapRequestsService.getUserSwapRequests).mockResolvedValue([]);
 
-      renderSwapRequests()
+      renderSwapRequests();
 
       await waitFor(() => {
-        expect(screen.getByText(/no swap requests found/i)).toBeInTheDocument()
-      })
-    })
-  })
+        expect(screen.getByText(/no swap requests found/i)).toBeInTheDocument();
+      });
+    });
+  });
 
   describe('Filtering', () => {
     it('should render filter controls', async () => {
-      vi.mocked(swapRequestsService.getUserSwapRequests).mockResolvedValue([])
+      vi.mocked(swapRequestsService.getUserSwapRequests).mockResolvedValue([]);
 
-      renderSwapRequests()
+      renderSwapRequests();
 
       await waitFor(() => {
-        expect(screen.getByLabelText(/start date/i)).toBeInTheDocument()
-        expect(screen.getByLabelText(/end date/i)).toBeInTheDocument()
-        expect(screen.getByLabelText(/status/i)).toBeInTheDocument()
-      })
-    })
-  })
+        expect(screen.getByLabelText(/start date/i)).toBeInTheDocument();
+        expect(screen.getByLabelText(/end date/i)).toBeInTheDocument();
+        expect(screen.getByLabelText(/status/i)).toBeInTheDocument();
+      });
+    });
+  });
 
   describe('Loading states', () => {
     it('should show loading state initially', () => {
       vi.mocked(swapRequestsService.getUserSwapRequests).mockImplementation(
         () => new Promise(() => {})
-      )
+      );
 
-      renderSwapRequests()
+      renderSwapRequests();
 
-      const spinners = document.querySelectorAll('.animate-spin')
-      expect(spinners.length).toBeGreaterThan(0)
-    })
+      const spinners = document.querySelectorAll('.animate-spin');
+      expect(spinners.length).toBeGreaterThan(0);
+    });
 
     it('should hide loading state after data loads', async () => {
-      vi.mocked(swapRequestsService.getUserSwapRequests).mockResolvedValue([])
+      vi.mocked(swapRequestsService.getUserSwapRequests).mockResolvedValue([]);
 
-      renderSwapRequests()
+      renderSwapRequests();
 
       await waitFor(() => {
-        const spinners = document.querySelectorAll('.animate-spin')
-        expect(spinners.length).toBe(0)
-      })
-    })
-  })
+        const spinners = document.querySelectorAll('.animate-spin');
+        expect(spinners.length).toBe(0);
+      });
+    });
+  });
 
   describe('Pagination', () => {
     it('should render requests when data is available', async () => {
-      vi.mocked(swapRequestsService.getUserSwapRequests).mockResolvedValue(mockSwapRequests)
+      vi.mocked(swapRequestsService.getUserSwapRequests).mockResolvedValue(mockSwapRequests);
 
-      renderSwapRequests()
+      renderSwapRequests();
 
       await waitFor(() => {
         // Use getAllByText since the name appears in both desktop and mobile views
-        const elements = screen.getAllByText('John Requester')
-        expect(elements.length).toBeGreaterThan(0)
-      })
-    })
-  })
-})
+        const elements = screen.getAllByText('John Requester');
+        expect(elements.length).toBeGreaterThan(0);
+      });
+    });
+  });
+});

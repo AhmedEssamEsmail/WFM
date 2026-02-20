@@ -1,20 +1,20 @@
 // Shift Configurations Service
 
-import { supabase } from '../lib/supabase'
-import type { ShiftConfiguration } from '../types'
+import { supabase } from '../lib/supabase';
+import type { ShiftConfiguration } from '../types';
 
-const SHIFT_CONFIGURATIONS_TABLE = 'shift_configurations'
+const SHIFT_CONFIGURATIONS_TABLE = 'shift_configurations';
 
 /**
  * Convert Supabase error to proper Error instance
  */
 function toError(error: unknown): Error {
-  if (error instanceof Error) return error
+  if (error instanceof Error) return error;
   if (typeof error === 'object' && error !== null) {
-    const err = error as { message?: string; code?: string }
-    return new Error(err.message || 'Unknown error')
+    const err = error as { message?: string; code?: string };
+    return new Error(err.message || 'Unknown error');
   }
-  return new Error(String(error))
+  return new Error(String(error));
 }
 
 export const shiftConfigurationsService = {
@@ -25,10 +25,10 @@ export const shiftConfigurationsService = {
     const { data, error } = await supabase
       .from(SHIFT_CONFIGURATIONS_TABLE)
       .select('*')
-      .order('display_order', { ascending: true })
+      .order('display_order', { ascending: true });
 
-    if (error) throw toError(error)
-    return data as ShiftConfiguration[]
+    if (error) throw toError(error);
+    return data as ShiftConfiguration[];
   },
 
   /**
@@ -39,10 +39,10 @@ export const shiftConfigurationsService = {
       .from(SHIFT_CONFIGURATIONS_TABLE)
       .select('*')
       .eq('is_active', true)
-      .order('display_order', { ascending: true })
+      .order('display_order', { ascending: true });
 
-    if (error) throw toError(error)
-    return data as ShiftConfiguration[]
+    if (error) throw toError(error);
+    return data as ShiftConfiguration[];
   },
 
   /**
@@ -53,10 +53,10 @@ export const shiftConfigurationsService = {
       .from(SHIFT_CONFIGURATIONS_TABLE)
       .select('*')
       .eq('shift_code', shiftCode)
-      .maybeSingle()
+      .maybeSingle();
 
-    if (error) throw toError(error)
-    return data as ShiftConfiguration | null
+    if (error) throw toError(error);
+    return data as ShiftConfiguration | null;
   },
 
   /**
@@ -69,10 +69,10 @@ export const shiftConfigurationsService = {
       .from(SHIFT_CONFIGURATIONS_TABLE)
       .insert(shift)
       .select()
-      .single()
+      .single();
 
-    if (error) throw toError(error)
-    return data as ShiftConfiguration
+    if (error) throw toError(error);
+    return data as ShiftConfiguration;
   },
 
   /**
@@ -87,22 +87,19 @@ export const shiftConfigurationsService = {
       .update(updates)
       .eq('id', id)
       .select()
-      .single()
+      .single();
 
-    if (error) throw toError(error)
-    return data as ShiftConfiguration
+    if (error) throw toError(error);
+    return data as ShiftConfiguration;
   },
 
   /**
    * Delete a shift configuration
    */
   async deleteShiftConfiguration(id: string): Promise<void> {
-    const { error } = await supabase
-      .from(SHIFT_CONFIGURATIONS_TABLE)
-      .delete()
-      .eq('id', id)
+    const { error } = await supabase.from(SHIFT_CONFIGURATIONS_TABLE).delete().eq('id', id);
 
-    if (error) throw toError(error)
+    if (error) throw toError(error);
   },
 
   /**
@@ -114,30 +111,30 @@ export const shiftConfigurationsService = {
       .update({ is_active: isActive })
       .eq('id', id)
       .select()
-      .single()
+      .single();
 
-    if (error) throw toError(error)
-    return data as ShiftConfiguration
+    if (error) throw toError(error);
+    return data as ShiftConfiguration;
   },
 
   /**
    * Get shift hours map for auto-distribution
    */
   async getShiftHoursMap(): Promise<Record<string, { start: string; end: string } | null>> {
-    const shifts = await this.getActiveShiftConfigurations()
-    const map: Record<string, { start: string; end: string } | null> = {}
+    const shifts = await this.getActiveShiftConfigurations();
+    const map: Record<string, { start: string; end: string } | null> = {};
 
     for (const shift of shifts) {
       if (shift.shift_code === 'OFF') {
-        map[shift.shift_code] = null
+        map[shift.shift_code] = null;
       } else {
         map[shift.shift_code] = {
           start: shift.start_time,
           end: shift.end_time,
-        }
+        };
       }
     }
 
-    return map
+    return map;
   },
-}
+};

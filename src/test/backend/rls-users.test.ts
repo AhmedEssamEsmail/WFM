@@ -1,6 +1,6 @@
 /**
  * RLS Policy Tests - Users Table
- * 
+ *
  * Tests Row Level Security policies for the users table:
  * - Agent can view all users
  * - Agent can update own profile
@@ -27,13 +27,16 @@ describe.skip('RLS Policy Tests - Users Table', () => {
 
   beforeAll(async () => {
     // Create test users
-    const { data: users } = await serviceSupabase.from('users').insert([
-      { email: `agent-rls-${Date.now()}@dabdoob.com`, name: 'Agent User', role: 'agent' },
-      { email: `wfm-rls-${Date.now()}@dabdoob.com`, name: 'WFM User', role: 'wfm' },
-      { email: `other-agent-${Date.now()}@dabdoob.com`, name: 'Other Agent', role: 'agent' }
-    ]).select();
-    
-    testUserIds.push(...users!.map(u => u.id));
+    const { data: users } = await serviceSupabase
+      .from('users')
+      .insert([
+        { email: `agent-rls-${Date.now()}@dabdoob.com`, name: 'Agent User', role: 'agent' },
+        { email: `wfm-rls-${Date.now()}@dabdoob.com`, name: 'WFM User', role: 'wfm' },
+        { email: `other-agent-${Date.now()}@dabdoob.com`, name: 'Other Agent', role: 'agent' },
+      ])
+      .select();
+
+    testUserIds.push(...users!.map((u) => u.id));
     agentUserId = users![0].id;
     wfmUserId = users![1].id;
     otherAgentId = users![2].id;
@@ -41,13 +44,15 @@ describe.skip('RLS Policy Tests - Users Table', () => {
     // Create authenticated clients (simulated with service key for testing)
     agentClient = createClient(
       process.env.VITE_SUPABASE_TEST_URL || 'http://127.0.0.1:54321',
-      process.env.VITE_SUPABASE_TEST_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0',
+      process.env.VITE_SUPABASE_TEST_ANON_KEY ||
+        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0',
       { auth: { autoRefreshToken: false, persistSession: false } }
     );
 
     wfmClient = createClient(
       process.env.VITE_SUPABASE_TEST_URL || 'http://127.0.0.1:54321',
-      process.env.VITE_SUPABASE_TEST_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0',
+      process.env.VITE_SUPABASE_TEST_ANON_KEY ||
+        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0',
       { auth: { autoRefreshToken: false, persistSession: false } }
     );
   });
@@ -63,10 +68,7 @@ describe.skip('RLS Policy Tests - Users Table', () => {
   });
 
   it('should allow agent to view all users', async () => {
-    const { data, error } = await serviceSupabase
-      .from('users')
-      .select('*')
-      .in('id', testUserIds);
+    const { data, error } = await serviceSupabase.from('users').select('*').in('id', testUserIds);
 
     expect(error).toBeNull();
     expect(data).toBeDefined();
@@ -120,10 +122,7 @@ describe.skip('RLS Policy Tests - Users Table', () => {
   });
 
   it('should allow WFM to view all users', async () => {
-    const { data, error } = await serviceSupabase
-      .from('users')
-      .select('*')
-      .in('id', testUserIds);
+    const { data, error } = await serviceSupabase.from('users').select('*').in('id', testUserIds);
 
     expect(error).toBeNull();
     expect(data).toBeDefined();

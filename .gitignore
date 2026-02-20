@@ -15,6 +15,7 @@ dist-ssr
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
+!.vscode/settings.json
 .idea
 .DS_Store
 *.suo
@@ -33,3 +34,26 @@ dist-ssr
 
 # Build / test artifacts
 coverage
+.nyc_output
+
+# Temporary files
+*.tmp
+*.temp
+.cache
+
+# OS files
+Thumbs.db
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# IDE
+.vscode/settings.json.bak
+*.code-workspace
+
+# Lint/Format outputs
+eslint-results.json
+.eslintcache
+
+# Husky (keep the hooks)
+.husky/_

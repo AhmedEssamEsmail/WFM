@@ -1,22 +1,22 @@
 // Headcount service
 
-import { supabase } from '../lib/supabase'
+import { supabase } from '../lib/supabase';
 import type {
   Department,
   HeadcountAuditLog,
   HeadcountDepartmentSummary,
   HeadcountUser,
   JsonObject,
-} from '../types'
-import { API_ENDPOINTS, PAGINATION } from '../constants'
-import type { PaginatedResponse } from '../hooks/usePaginatedQuery'
+} from '../types';
+import { API_ENDPOINTS, PAGINATION } from '../constants';
+import type { PaginatedResponse } from '../hooks/usePaginatedQuery';
 
 type UserUpdatePayload = Partial<
   Pick<
     HeadcountUser,
     'name' | 'email' | 'role' | 'employee_id' | 'status' | 'department' | 'hire_date' | 'manager_id'
   >
->
+>;
 
 type ProfileUpdatePayload = Partial<
   Pick<
@@ -35,7 +35,7 @@ type ProfileUpdatePayload = Partial<
     | 'termination_date'
     | 'onboarding_status'
   >
-> & { updated_at?: string }
+> & { updated_at?: string };
 
 const userFields: (keyof UserUpdatePayload)[] = [
   'name',
@@ -46,7 +46,7 @@ const userFields: (keyof UserUpdatePayload)[] = [
   'department',
   'hire_date',
   'manager_id',
-]
+];
 
 const profileFields: (keyof ProfileUpdatePayload)[] = [
   'job_title',
@@ -62,7 +62,7 @@ const profileFields: (keyof ProfileUpdatePayload)[] = [
   'budget_code',
   'termination_date',
   'onboarding_status',
-]
+];
 
 export const headcountService = {
   /**
@@ -75,41 +75,36 @@ export const headcountService = {
     limit: number = PAGINATION.DEFAULT_PAGE_SIZE
   ): Promise<PaginatedResponse<HeadcountUser>> {
     // Validate and cap limit
-    const validatedLimit = Math.min(
-      Math.max(1, limit),
-      PAGINATION.MAX_PAGE_SIZE
-    )
+    const validatedLimit = Math.min(Math.max(1, limit), PAGINATION.MAX_PAGE_SIZE);
 
     // Build query
     let query = supabase
       .from('v_headcount_active')
       .select('*')
       .order('name', { ascending: true })
-      .limit(validatedLimit + 1) // Fetch one extra to check if there are more
+      .limit(validatedLimit + 1); // Fetch one extra to check if there are more
 
     // Apply cursor if provided (for alphabetical pagination)
     if (cursor) {
-      query = query.gt('name', cursor)
+      query = query.gt('name', cursor);
     }
 
-    const { data, error } = await query
+    const { data, error } = await query;
 
-    if (error) throw error
+    if (error) throw error;
 
     // Check if there are more results
-    const hasMore = data.length > validatedLimit
-    const items = hasMore ? data.slice(0, validatedLimit) : data
+    const hasMore = data.length > validatedLimit;
+    const items = hasMore ? data.slice(0, validatedLimit) : data;
 
     // Get next cursor from last item
-    const nextCursor = hasMore && items.length > 0
-      ? items[items.length - 1].name
-      : undefined
+    const nextCursor = hasMore && items.length > 0 ? items[items.length - 1].name : undefined;
 
     return {
       data: items as HeadcountUser[],
       nextCursor,
       hasMore,
-    }
+    };
   },
 
   /**
@@ -119,10 +114,10 @@ export const headcountService = {
     const { data, error } = await supabase
       .from('v_headcount_active')
       .select('*')
-      .order('name', { ascending: true })
-    
-    if (error) throw error
-    return data as HeadcountUser[]
+      .order('name', { ascending: true });
+
+    if (error) throw error;
+    return data as HeadcountUser[];
   },
 
   /**
@@ -133,10 +128,10 @@ export const headcountService = {
       .from('v_headcount_active')
       .select('*')
       .eq('id', id)
-      .single()
-    
-    if (error) throw error
-    return data as HeadcountUser
+      .single();
+
+    if (error) throw error;
+    return data as HeadcountUser;
   },
 
   /**
@@ -144,38 +139,35 @@ export const headcountService = {
    */
   async updateEmployee(id: string, updates: Partial<HeadcountUser>): Promise<void> {
     // Split updates between users and headcount_profiles tables
-    const userUpdates: UserUpdatePayload = {}
-    const profileUpdates: ProfileUpdatePayload = {}
+    const userUpdates: Partial<UserUpdatePayload> = {};
+    const profileUpdates: Partial<ProfileUpdatePayload> = {};
 
     for (const [key, value] of Object.entries(updates) as Array<
       [keyof HeadcountUser, HeadcountUser[keyof HeadcountUser]]
     >) {
       if (userFields.includes(key as keyof UserUpdatePayload)) {
-        (userUpdates as any)[key] = value
+        (userUpdates as Record<string, unknown>)[key] = value;
       } else if (profileFields.includes(key as keyof ProfileUpdatePayload)) {
-        (profileUpdates as any)[key] = value
+        (profileUpdates as Record<string, unknown>)[key] = value;
       }
     }
-    
+
     // Update users table
     if (Object.keys(userUpdates).length > 0) {
-      const { error } = await supabase
-        .from(API_ENDPOINTS.USERS)
-        .update(userUpdates)
-        .eq('id', id)
-      
-      if (error) throw error
+      const { error } = await supabase.from(API_ENDPOINTS.USERS).update(userUpdates).eq('id', id);
+
+      if (error) throw error;
     }
-    
+
     // Update headcount_profiles table
     if (Object.keys(profileUpdates).length > 0) {
-      profileUpdates.updated_at = new Date().toISOString()
-      
+      profileUpdates.updated_at = new Date().toISOString();
+
       const { error } = await supabase
         .from(API_ENDPOINTS.HEADCOUNT_PROFILES)
-        .upsert({ user_id: id, ...profileUpdates }, { onConflict: 'user_id' })
-      
-      if (error) throw error
+        .upsert({ user_id: id, ...profileUpdates }, { onConflict: 'user_id' });
+
+      if (error) throw error;
     }
   },
 
@@ -187,22 +179,20 @@ export const headcountService = {
       .from(API_ENDPOINTS.DEPARTMENTS)
       .select('*')
       .eq('active', true)
-      .order('name', { ascending: true })
-    
-    if (error) throw error
-    return data as Department[]
+      .order('name', { ascending: true });
+
+    if (error) throw error;
+    return data as Department[];
   },
 
   /**
    * Get headcount metrics
    */
   async getHeadcountMetrics(): Promise<HeadcountDepartmentSummary[]> {
-    const { data, error } = await supabase
-      .from('v_department_summary')
-      .select('*')
-    
-    if (error) throw error
-    return (data || []) as HeadcountDepartmentSummary[]
+    const { data, error } = await supabase.from('v_department_summary').select('*');
+
+    if (error) throw error;
+    return (data || []) as HeadcountDepartmentSummary[];
   },
 
   /**
@@ -216,19 +206,17 @@ export const headcountService = {
     performedBy: string,
     reason?: string
   ): Promise<void> {
-    const { error } = await supabase
-      .from(API_ENDPOINTS.HEADCOUNT_AUDIT_LOG)
-      .insert({
-        user_id: userId,
-        action,
-        previous_values: previousValues,
-        new_values: newValues,
-        performed_by: performedBy,
-        reason,
-        effective_date: new Date().toISOString().split('T')[0],
-      })
-    
-    if (error) throw error
+    const { error } = await supabase.from(API_ENDPOINTS.HEADCOUNT_AUDIT_LOG).insert({
+      user_id: userId,
+      action,
+      previous_values: previousValues,
+      new_values: newValues,
+      performed_by: performedBy,
+      reason,
+      effective_date: new Date().toISOString().split('T')[0],
+    });
+
+    if (error) throw error;
   },
 
   /**
@@ -239,9 +227,9 @@ export const headcountService = {
       .from(API_ENDPOINTS.HEADCOUNT_AUDIT_LOG)
       .select('*')
       .eq('user_id', userId)
-      .order('performed_at', { ascending: false })
-    
-    if (error) throw error
-    return (data || []) as HeadcountAuditLog[]
+      .order('performed_at', { ascending: false });
+
+    if (error) throw error;
+    return (data || []) as HeadcountAuditLog[];
   },
-}
+};

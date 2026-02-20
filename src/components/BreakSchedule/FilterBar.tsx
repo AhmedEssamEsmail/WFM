@@ -1,17 +1,17 @@
-import { useState, useEffect } from 'react'
-import { BUTTON_STYLES, INPUT_STYLES } from '../../lib/designSystem'
+import { useState, useEffect } from 'react';
+import { BUTTON_STYLES, INPUT_STYLES } from '../../lib/designSystem';
 
 interface FilterBarProps {
-  searchQuery: string
-  onSearchChange: (query: string) => void
-  selectedDepartment: string
-  onDepartmentChange: (department: string) => void
-  departments: string[]
-  isWFM?: boolean
-  onAutoDistribute?: () => void
-  onImport?: () => void
-  onExport?: () => void
-  onClearAll?: () => void
+  searchQuery: string;
+  onSearchChange: (query: string) => void;
+  selectedDepartment: string;
+  onDepartmentChange: (department: string) => void;
+  departments: string[];
+  isWFM?: boolean;
+  onAutoDistribute?: () => void;
+  onImport?: () => void;
+  onExport?: () => void;
+  onClearAll?: () => void;
 }
 
 export default function FilterBar({
@@ -26,23 +26,23 @@ export default function FilterBar({
   onExport,
   onClearAll,
 }: FilterBarProps) {
-  const [localSearch, setLocalSearch] = useState(searchQuery)
+  const [localSearch, setLocalSearch] = useState(searchQuery);
 
   // Debounce search input (300ms)
   useEffect(() => {
     const timer = setTimeout(() => {
-      onSearchChange(localSearch)
-    }, 300)
+      onSearchChange(localSearch);
+    }, 300);
 
-    return () => clearTimeout(timer)
-  }, [localSearch, onSearchChange])
+    return () => clearTimeout(timer);
+  }, [localSearch, onSearchChange]);
 
   return (
-    <div className="bg-white rounded-lg shadow p-4">
-      <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
-        <div className="flex flex-col sm:flex-row gap-3 flex-1 w-full sm:w-auto">
+    <div className="rounded-lg bg-white p-4 shadow">
+      <div className="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
+        <div className="flex w-full flex-1 flex-col gap-3 sm:w-auto sm:flex-row">
           {/* Search input */}
-          <div className="flex-1 min-w-[200px]">
+          <div className="min-w-[200px] flex-1">
             <label htmlFor="agent-search" className="sr-only">
               Search agents
             </label>
@@ -65,7 +65,7 @@ export default function FilterBar({
               id="department-filter"
               value={selectedDepartment}
               onChange={(e) => onDepartmentChange(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500 bg-white text-sm text-gray-700"
+              className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 shadow-sm focus:border-primary-500 focus:ring-2 focus:ring-primary-500"
             >
               <option value="">All Departments</option>
               {departments.map((dept) => (
@@ -79,29 +79,29 @@ export default function FilterBar({
 
         {/* WFM action buttons */}
         {isWFM && (
-          <div className="flex flex-wrap gap-2 w-full sm:w-auto justify-end">
+          <div className="flex w-full flex-wrap justify-end gap-2 sm:w-auto">
             <button
               onClick={onAutoDistribute}
-              className={`${BUTTON_STYLES.primary} text-sm whitespace-nowrap flex-shrink-0`}
+              className={`${BUTTON_STYLES.primary} flex-shrink-0 whitespace-nowrap text-sm`}
             >
               Auto-Distribute
             </button>
             <button
               onClick={onClearAll}
-              className={`${BUTTON_STYLES.danger} text-sm whitespace-nowrap flex-shrink-0`}
+              className={`${BUTTON_STYLES.danger} flex-shrink-0 whitespace-nowrap text-sm`}
               title="Clear all breaks for this date"
             >
               Clear All
             </button>
             <button
               onClick={onImport}
-              className={`${BUTTON_STYLES.secondary} text-sm whitespace-nowrap flex-shrink-0`}
+              className={`${BUTTON_STYLES.secondary} flex-shrink-0 whitespace-nowrap text-sm`}
             >
               Import CSV
             </button>
             <button
               onClick={onExport}
-              className={`${BUTTON_STYLES.secondary} text-sm whitespace-nowrap flex-shrink-0`}
+              className={`${BUTTON_STYLES.secondary} flex-shrink-0 whitespace-nowrap text-sm`}
             >
               Export CSV
             </button>
@@ -109,5 +109,5 @@ export default function FilterBar({
         )}
       </div>
     </div>
-  )
+  );
 }

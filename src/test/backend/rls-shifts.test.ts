@@ -1,6 +1,6 @@
 /**
  * RLS Policy Tests - Shifts Table
- * 
+ *
  * Tests Row Level Security policies for the shifts table:
  * - Agent can view all shifts
  * - Agent can update own shifts
@@ -27,22 +27,28 @@ describe.skip('RLS Policy Tests - Shifts Table', () => {
 
   beforeAll(async () => {
     // Create test users
-    const { data: users } = await serviceSupabase.from('users').insert([
-      { email: `shift-agent-${Date.now()}@dabdoob.com`, name: 'Shift Agent', role: 'agent' },
-      { email: `shift-wfm-${Date.now()}@dabdoob.com`, name: 'Shift WFM', role: 'wfm' }
-    ]).select();
-    
-    testUserIds.push(...users!.map(u => u.id));
+    const { data: users } = await serviceSupabase
+      .from('users')
+      .insert([
+        { email: `shift-agent-${Date.now()}@dabdoob.com`, name: 'Shift Agent', role: 'agent' },
+        { email: `shift-wfm-${Date.now()}@dabdoob.com`, name: 'Shift WFM', role: 'wfm' },
+      ])
+      .select();
+
+    testUserIds.push(...users!.map((u) => u.id));
     agentUserId = users![0].id;
     wfmUserId = users![1].id;
 
     // Create test shifts
-    const { data: shifts } = await serviceSupabase.from('shifts').insert([
-      { user_id: agentUserId, date: '2027-03-01', shift_type: 'AM' },
-      { user_id: wfmUserId, date: '2027-03-01', shift_type: 'PM' }
-    ]).select();
-    
-    testShiftIds.push(...shifts!.map(s => s.id));
+    const { data: shifts } = await serviceSupabase
+      .from('shifts')
+      .insert([
+        { user_id: agentUserId, date: '2027-03-01', shift_type: 'AM' },
+        { user_id: wfmUserId, date: '2027-03-01', shift_type: 'PM' },
+      ])
+      .select();
+
+    testShiftIds.push(...shifts!.map((s) => s.id));
     agentShiftId = shifts![0].id;
     wfmShiftId = shifts![1].id;
   });
@@ -53,10 +59,7 @@ describe.skip('RLS Policy Tests - Shifts Table', () => {
   });
 
   it('should allow viewing all shifts', async () => {
-    const { data, error } = await serviceSupabase
-      .from('shifts')
-      .select('*')
-      .in('id', testShiftIds);
+    const { data, error } = await serviceSupabase.from('shifts').select('*').in('id', testShiftIds);
 
     expect(error).toBeNull();
     expect(data).toBeDefined();
@@ -127,10 +130,7 @@ describe.skip('RLS Policy Tests - Shifts Table', () => {
       .select()
       .single();
 
-    const { error } = await serviceSupabase
-      .from('shifts')
-      .delete()
-      .eq('id', newShift!.id);
+    const { error } = await serviceSupabase.from('shifts').delete().eq('id', newShift!.id);
 
     expect(error).toBeNull();
   });

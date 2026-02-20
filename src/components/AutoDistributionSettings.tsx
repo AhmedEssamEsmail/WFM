@@ -1,11 +1,11 @@
-import { useState } from 'react'
-import { DistributionStrategy, ApplyMode } from '../types'
-import { BUTTON_STYLES } from '../lib/designSystem'
+import { useState } from 'react';
+import { DistributionStrategy, ApplyMode } from '../types';
+import { BUTTON_STYLES } from '../lib/designSystem';
 
 interface AutoDistributionSettingsProps {
-  defaultStrategy: DistributionStrategy
-  defaultApplyMode: ApplyMode
-  onSave: (strategy: DistributionStrategy, applyMode: ApplyMode) => Promise<void>
+  defaultStrategy: DistributionStrategy;
+  defaultApplyMode: ApplyMode;
+  onSave: (strategy: DistributionStrategy, applyMode: ApplyMode) => Promise<void>;
 }
 
 export default function AutoDistributionSettings({
@@ -13,31 +13,30 @@ export default function AutoDistributionSettings({
   defaultApplyMode,
   onSave,
 }: AutoDistributionSettingsProps) {
-  const [strategy, setStrategy] = useState<DistributionStrategy>(defaultStrategy)
-  const [applyMode, setApplyMode] = useState<ApplyMode>(defaultApplyMode)
-  const [isSaving, setIsSaving] = useState(false)
+  const [strategy, setStrategy] = useState<DistributionStrategy>(defaultStrategy);
+  const [applyMode, setApplyMode] = useState<ApplyMode>(defaultApplyMode);
+  const [isSaving, setIsSaving] = useState(false);
 
   const handleSave = async () => {
-    setIsSaving(true)
+    setIsSaving(true);
     try {
-      await onSave(strategy, applyMode)
+      await onSave(strategy, applyMode);
     } catch (error) {
-      console.error('Failed to save settings:', error)
+      console.error('Failed to save settings:', error);
     } finally {
-      setIsSaving(false)
+      setIsSaving(false);
     }
-  }
+  };
 
-  const hasChanges =
-    strategy !== defaultStrategy || applyMode !== defaultApplyMode
+  const hasChanges = strategy !== defaultStrategy || applyMode !== defaultApplyMode;
 
   return (
     <div className="space-y-6">
       <div>
-        <h3 className="text-lg font-medium text-gray-900 mb-4">
+        <h3 className="mb-4 text-lg font-medium text-gray-900">
           Auto-Distribution Default Settings
         </h3>
-        <p className="text-sm text-gray-600 mb-6">
+        <p className="mb-6 text-sm text-gray-600">
           Configure default settings for the auto-distribution feature. These will be pre-selected
           when opening the auto-distribution modal.
         </p>
@@ -45,11 +44,11 @@ export default function AutoDistributionSettings({
 
       {/* Default Strategy */}
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-3">
+        <label className="mb-3 block text-sm font-medium text-gray-700">
           Default Distribution Strategy
         </label>
         <div className="space-y-2">
-          <label className="flex items-start gap-3 p-3 border rounded-lg cursor-pointer hover:bg-gray-50">
+          <label className="flex cursor-pointer items-start gap-3 rounded-lg border p-3 hover:bg-gray-50">
             <input
               type="radio"
               name="strategy"
@@ -59,13 +58,13 @@ export default function AutoDistributionSettings({
               className="mt-1"
             />
             <div>
-              <div className="font-medium text-sm">Ladder Distribution</div>
+              <div className="text-sm font-medium">Ladder Distribution</div>
               <div className="text-xs text-gray-600">
                 Assigns breaks sequentially with predictable 15-minute increments
               </div>
             </div>
           </label>
-          <label className="flex items-start gap-3 p-3 border rounded-lg cursor-pointer hover:bg-gray-50">
+          <label className="flex cursor-pointer items-start gap-3 rounded-lg border p-3 hover:bg-gray-50">
             <input
               type="radio"
               name="strategy"
@@ -75,13 +74,13 @@ export default function AutoDistributionSettings({
               className="mt-1"
             />
             <div>
-              <div className="font-medium text-sm">Balanced Coverage</div>
+              <div className="text-sm font-medium">Balanced Coverage</div>
               <div className="text-xs text-gray-600">
                 Minimizes variance in coverage across all intervals
               </div>
             </div>
           </label>
-          <label className="flex items-start gap-3 p-3 border rounded-lg cursor-pointer hover:bg-gray-50">
+          <label className="flex cursor-pointer items-start gap-3 rounded-lg border p-3 hover:bg-gray-50">
             <input
               type="radio"
               name="strategy"
@@ -91,7 +90,7 @@ export default function AutoDistributionSettings({
               className="mt-1"
             />
             <div>
-              <div className="font-medium text-sm">Staggered Timing</div>
+              <div className="text-sm font-medium">Staggered Timing</div>
               <div className="text-xs text-gray-600">
                 Spreads breaks evenly throughout shift thirds
               </div>
@@ -102,11 +101,9 @@ export default function AutoDistributionSettings({
 
       {/* Default Apply Mode */}
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-3">
-          Default Apply Mode
-        </label>
+        <label className="mb-3 block text-sm font-medium text-gray-700">Default Apply Mode</label>
         <div className="space-y-2">
-          <label className="flex items-start gap-3 p-3 border rounded-lg cursor-pointer hover:bg-gray-50">
+          <label className="flex cursor-pointer items-start gap-3 rounded-lg border p-3 hover:bg-gray-50">
             <input
               type="radio"
               name="applyMode"
@@ -116,13 +113,13 @@ export default function AutoDistributionSettings({
               className="mt-1"
             />
             <div>
-              <div className="font-medium text-sm">Only Unscheduled</div>
+              <div className="text-sm font-medium">Only Unscheduled</div>
               <div className="text-xs text-gray-600">
                 Only assign breaks to agents without existing schedules
               </div>
             </div>
           </label>
-          <label className="flex items-start gap-3 p-3 border rounded-lg cursor-pointer hover:bg-gray-50">
+          <label className="flex cursor-pointer items-start gap-3 rounded-lg border p-3 hover:bg-gray-50">
             <input
               type="radio"
               name="applyMode"
@@ -132,16 +129,14 @@ export default function AutoDistributionSettings({
               className="mt-1"
             />
             <div>
-              <div className="font-medium text-sm">All Agents</div>
-              <div className="text-xs text-gray-600">
-                Clear and reassign breaks for all agents
-              </div>
+              <div className="text-sm font-medium">All Agents</div>
+              <div className="text-xs text-gray-600">Clear and reassign breaks for all agents</div>
             </div>
           </label>
         </div>
       </div>
 
-      <div className="flex justify-end pt-4 border-t">
+      <div className="flex justify-end border-t pt-4">
         <button
           onClick={handleSave}
           disabled={!hasChanges || isSaving}
@@ -151,5 +146,5 @@ export default function AutoDistributionSettings({
         </button>
       </div>
     </div>
-  )
+  );
 }

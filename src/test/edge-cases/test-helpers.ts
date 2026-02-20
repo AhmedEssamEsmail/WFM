@@ -1,6 +1,6 @@
 /**
  * Test Helpers for Edge Case Testing
- * 
+ *
  * Provides utilities for creating test data and managing test state
  */
 
@@ -34,11 +34,7 @@ export const createTestUser = async (overrides?: {
     department: overrides?.department || 'Test Department',
   };
 
-  const { data, error } = await testSupabase
-    .from('users')
-    .insert(user)
-    .select()
-    .single();
+  const { data, error } = await testSupabase.from('users').insert(user).select().single();
 
   if (error) throw error;
   return data;
@@ -55,11 +51,7 @@ export const createTestShift = async (overrides?: {
     shift_type: overrides?.shift_type || 'AM',
   };
 
-  const { data, error } = await testSupabase
-    .from('shifts')
-    .insert(shift)
-    .select()
-    .single();
+  const { data, error } = await testSupabase.from('shifts').insert(shift).select().single();
 
   if (error) throw error;
   return data;
@@ -132,11 +124,7 @@ export const getLeaveBalance = async (userId: string, leaveType: string) => {
   return data;
 };
 
-export const updateLeaveBalance = async (
-  userId: string,
-  leaveType: string,
-  balance: number
-) => {
+export const updateLeaveBalance = async (userId: string, leaveType: string, balance: number) => {
   const { data, error } = await testSupabase
     .from('leave_balances')
     .update({ balance })
@@ -157,33 +145,21 @@ export const cleanupTestData = async (ids: {
   leaveRequestIds?: string[];
 }) => {
   if (ids.swapRequestIds?.length) {
-    await testSupabase
-      .from('swap_requests')
-      .delete()
-      .in('id', ids.swapRequestIds);
+    await testSupabase.from('swap_requests').delete().in('id', ids.swapRequestIds);
   }
 
   if (ids.leaveRequestIds?.length) {
-    await testSupabase
-      .from('leave_requests')
-      .delete()
-      .in('id', ids.leaveRequestIds);
+    await testSupabase.from('leave_requests').delete().in('id', ids.leaveRequestIds);
   }
 
   if (ids.shiftIds?.length) {
-    await testSupabase
-      .from('shifts')
-      .delete()
-      .in('id', ids.shiftIds);
+    await testSupabase.from('shifts').delete().in('id', ids.shiftIds);
   }
 
   if (ids.userIds?.length) {
-    await testSupabase
-      .from('users')
-      .delete()
-      .in('id', ids.userIds);
+    await testSupabase.from('users').delete().in('id', ids.userIds);
   }
 };
 
 // Wait helper for async operations
-export const wait = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+export const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));

@@ -1,16 +1,16 @@
-import { useAuth } from '../../hooks/useAuth'
+import { useAuth } from '../../hooks/useAuth';
 
 interface ProtectedEditProps {
-  children: React.ReactNode
-  fallback?: React.ReactNode
+  children: React.ReactNode;
+  fallback?: React.ReactNode;
 }
 
 export default function ProtectedEdit({ children, fallback }: ProtectedEditProps) {
-  const { canEditHeadcount } = useAuth()
-  
+  const { canEditHeadcount } = useAuth();
+
   if (canEditHeadcount()) {
-    return <>{children}</>
+    return <>{children}</>;
   }
-  
-  return fallback ? <>{fallback}</> : null
+
+  return fallback ? <>{fallback}</> : null;
 }

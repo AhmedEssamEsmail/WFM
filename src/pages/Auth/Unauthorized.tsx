@@ -1,7 +1,7 @@
 export default function Unauthorized() {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full space-y-8">
+    <div className="flex min-h-screen items-center justify-center bg-gray-50 px-4 py-12 sm:px-6 lg:px-8">
+      <div className="w-full max-w-md space-y-8">
         <div className="text-center">
           <svg
             className="mx-auto h-16 w-16 text-red-500"
@@ -19,7 +19,8 @@ export default function Unauthorized() {
           <h1 className="mt-6 text-3xl font-bold text-gray-900">Access Restricted</h1>
           <div className="mt-4 rounded-md bg-red-50 p-4">
             <p className="text-sm text-red-800">
-              This application is only accessible to users with <strong>@dabdoob.com</strong> email addresses.
+              This application is only accessible to users with <strong>@dabdoob.com</strong> email
+              addresses.
             </p>
           </div>
           <p className="mt-4 text-sm text-gray-600">
@@ -28,7 +29,7 @@ export default function Unauthorized() {
           <div className="mt-6">
             <a
               href="/login"
-              className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
+              className="inline-flex items-center rounded-md border border-transparent bg-primary-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
             >
               Return to Login
             </a>
@@ -36,5 +37,5 @@ export default function Unauthorized() {
         </div>
       </div>
     </div>
-  )
+  );
 }

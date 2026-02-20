@@ -3,9 +3,9 @@
  * Zod schemas for user data and auth validation
  */
 
-import { z } from 'zod'
-import { uuidSchema, emailSchema, domainEmailSchema } from './common'
-import { VALIDATION, getAllowedEmailDomain, REGEX } from '../../constants'
+import { z } from 'zod';
+import { uuidSchema, emailSchema, domainEmailSchema } from './common';
+import { VALIDATION, getAllowedEmailDomain, REGEX } from '../../constants';
 
 // ============================================
 // Auth Schemas
@@ -16,7 +16,7 @@ import { VALIDATION, getAllowedEmailDomain, REGEX } from '../../constants'
  * Uses lazy evaluation to get the allowed email domain at runtime
  */
 export const loginSchema = z.object({
-  email: z.lazy(() => 
+  email: z.lazy(() =>
     domainEmailSchema(getAllowedEmailDomain()).max(
       VALIDATION.EMAIL_MAX_LENGTH,
       `Email must be less than ${VALIDATION.EMAIL_MAX_LENGTH} characters`
@@ -32,7 +32,7 @@ export const loginSchema = z.object({
       VALIDATION.PASSWORD_MAX_LENGTH,
       `Password must be less than ${VALIDATION.PASSWORD_MAX_LENGTH} characters`
     ),
-})
+});
 
 /**
  * Signup schema
@@ -55,7 +55,7 @@ export const signupSchema = loginSchema
   .refine((data) => data.password === data.confirmPassword, {
     message: "Passwords don't match",
     path: ['confirmPassword'],
-  })
+  });
 
 // ============================================
 // User/Employee Schemas
@@ -64,7 +64,7 @@ export const signupSchema = loginSchema
 /**
  * User role schema
  */
-export const userRoleSchema = z.enum(['agent', 'tl', 'wfm'])
+export const userRoleSchema = z.enum(['agent', 'tl', 'wfm']);
 
 /**
  * User status schema
@@ -75,7 +75,7 @@ export const userStatusSchema = z.enum([
   'on_leave',
   'terminated',
   'suspended',
-])
+]);
 
 /**
  * Job level schema
@@ -88,17 +88,12 @@ export const jobLevelSchema = z.enum([
   'lead',
   'manager',
   'director',
-])
+]);
 
 /**
  * Employment type schema
  */
-export const employmentTypeSchema = z.enum([
-  'full_time',
-  'part_time',
-  'contractor',
-  'intern',
-])
+export const employmentTypeSchema = z.enum(['full_time', 'part_time', 'contractor', 'intern']);
 
 /**
  * Employee/user schema
@@ -117,10 +112,7 @@ export const employeeSchema = z.object({
   email: emailSchema.max(VALIDATION.EMAIL_MAX_LENGTH),
   employee_id: z
     .string()
-    .regex(
-      VALIDATION.EMPLOYEE_ID_PATTERN,
-      'Employee ID must be 4-10 alphanumeric characters'
-    )
+    .regex(VALIDATION.EMPLOYEE_ID_PATTERN, 'Employee ID must be 4-10 alphanumeric characters')
     .optional()
     .nullable(),
   role: userRoleSchema,
@@ -138,16 +130,16 @@ export const employeeSchema = z.object({
     .regex(VALIDATION.PHONE_PATTERN, 'Invalid phone number format')
     .optional()
     .nullable(),
-})
+});
 
 // ============================================
 // Type Exports
 // ============================================
 
-export type LoginInput = z.infer<typeof loginSchema>
-export type SignupInput = z.infer<typeof signupSchema>
-export type UserRole = z.infer<typeof userRoleSchema>
-export type UserStatus = z.infer<typeof userStatusSchema>
-export type JobLevel = z.infer<typeof jobLevelSchema>
-export type EmploymentType = z.infer<typeof employmentTypeSchema>
-export type EmployeeInput = z.infer<typeof employeeSchema>
+export type LoginInput = z.infer<typeof loginSchema>;
+export type SignupInput = z.infer<typeof signupSchema>;
+export type UserRole = z.infer<typeof userRoleSchema>;
+export type UserStatus = z.infer<typeof userStatusSchema>;
+export type JobLevel = z.infer<typeof jobLevelSchema>;
+export type EmploymentType = z.infer<typeof employmentTypeSchema>;
+export type EmployeeInput = z.infer<typeof employeeSchema>;

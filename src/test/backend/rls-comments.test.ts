@@ -1,6 +1,6 @@
 /**
  * RLS Policy Tests - Comments Table
- * 
+ *
  * Tests Row Level Security policies for comments:
  * - System comment protection
  * - User can create comments
@@ -28,55 +28,73 @@ describe.skip('RLS Policy Tests - Comments', () => {
 
   beforeAll(async () => {
     // Create test user
-    const { data: user } = await serviceSupabase.from('users').insert({
-      email: `comment-user-${Date.now()}@dabdoob.com`,
-      name: 'Comment User',
-      role: 'agent'
-    }).select().single();
-    
+    const { data: user } = await serviceSupabase
+      .from('users')
+      .insert({
+        email: `comment-user-${Date.now()}@dabdoob.com`,
+        name: 'Comment User',
+        role: 'agent',
+      })
+      .select()
+      .single();
+
     testUserIds.push(user!.id);
     userId = user!.id;
 
     // Create leave request
-    const { data: leave } = await serviceSupabase.from('leave_requests').insert({
-      user_id: userId,
-      leave_type: 'annual',
-      start_date: '2027-06-01',
-      end_date: '2027-06-02',
-      status: 'pending_tl'
-    }).select().single();
-    
+    const { data: leave } = await serviceSupabase
+      .from('leave_requests')
+      .insert({
+        user_id: userId,
+        leave_type: 'annual',
+        start_date: '2027-06-01',
+        end_date: '2027-06-02',
+        status: 'pending_tl',
+      })
+      .select()
+      .single();
+
     testLeaveIds.push(leave!.id);
     leaveRequestId = leave!.id;
 
     // Create user comment
-    const { data: userComment } = await serviceSupabase.from('comments').insert({
-      request_type: 'leave',
-      request_id: leaveRequestId,
-      user_id: userId,
-      content: 'User comment',
-      is_system: false
-    }).select().single();
-    
+    const { data: userComment } = await serviceSupabase
+      .from('comments')
+      .insert({
+        request_type: 'leave',
+        request_id: leaveRequestId,
+        user_id: userId,
+        content: 'User comment',
+        is_system: false,
+      })
+      .select()
+      .single();
+
     testCommentIds.push(userComment!.id);
     userCommentId = userComment!.id;
 
     // Create system comment
-    const { data: sysComment } = await serviceSupabase.from('comments').insert({
-      request_type: 'leave',
-      request_id: leaveRequestId,
-      user_id: userId,
-      content: 'System comment',
-      is_system: true
-    }).select().single();
-    
+    const { data: sysComment } = await serviceSupabase
+      .from('comments')
+      .insert({
+        request_type: 'leave',
+        request_id: leaveRequestId,
+        user_id: userId,
+        content: 'System comment',
+        is_system: true,
+      })
+      .select()
+      .single();
+
     testCommentIds.push(sysComment!.id);
     systemCommentId = sysComment!.id;
   });
 
   afterAll(async () => {
-    if (testCommentIds.length) await serviceSupabase.from('comments').delete().in('id', testCommentIds);
-    if (testLeaveIds.length) await serviceSupabase.from('leave_requests').delete().in('id', testLeaveIds);
+    if (testCommentIds.length)
+      await serviceSupabase.from('comments').delete().in('id', testCommentIds);
+    if (testLeaveIds.length)
+      await serviceSupabase.from('leave_requests').delete().in('id', testLeaveIds);
     if (testUserIds.length) await serviceSupabase.from('users').delete().in('id', testUserIds);
   });
 
@@ -88,7 +106,7 @@ describe.skip('RLS Policy Tests - Comments', () => {
         request_id: leaveRequestId,
         user_id: userId,
         content: 'New user comment',
-        is_system: false
+        is_system: false,
       })
       .select()
       .single();

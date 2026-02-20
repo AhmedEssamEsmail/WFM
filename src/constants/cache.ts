@@ -10,46 +10,46 @@
 export const STALE_TIMES = {
   /** Settings data - rarely changes (10 minutes) */
   SETTINGS: 10 * 60 * 1000,
-  
+
   /** User profile data - changes infrequently (5 minutes) */
   USER_PROFILE: 5 * 60 * 1000,
-  
+
   /** Leave balances - moderate update frequency (5 minutes) */
   LEAVE_BALANCES: 5 * 60 * 1000,
-  
+
   /** Employee/headcount data - changes infrequently (5 minutes) */
   EMPLOYEES: 5 * 60 * 1000,
-  
+
   /** Shift data - moderate update frequency (2 minutes) */
   SHIFTS: 2 * 60 * 1000,
-  
+
   /** Leave requests - frequent updates (1 minute) */
   LEAVE_REQUESTS: 1 * 60 * 1000,
-  
+
   /** Swap requests - frequent updates (1 minute) */
   SWAP_REQUESTS: 1 * 60 * 1000,
-  
+
   /** Comments - frequent updates (1 minute) */
   COMMENTS: 1 * 60 * 1000,
-  
+
   /** Break schedules - frequent updates (1 minute) */
   BREAK_SCHEDULES: 1 * 60 * 1000,
-  
+
   /** Break warnings - frequent updates (1 minute) */
   BREAK_WARNINGS: 1 * 60 * 1000,
-  
+
   /** Break rules - changes infrequently (5 minutes) */
   BREAK_RULES: 5 * 60 * 1000,
-  
+
   /** Distribution settings - changes infrequently (5 minutes) */
   DISTRIBUTION_SETTINGS: 5 * 60 * 1000,
-  
+
   /** Overtime requests - frequent updates (1 minute) */
   OVERTIME_REQUESTS: 1 * 60 * 1000,
-  
+
   /** Overtime settings - changes infrequently (5 minutes) */
   OVERTIME_SETTINGS: 5 * 60 * 1000,
-} as const
+} as const;
 
 /**
  * Cache time constants (in milliseconds)
@@ -58,13 +58,13 @@ export const STALE_TIMES = {
 export const CACHE_TIMES = {
   /** Default cache time for most queries (5 minutes) */
   DEFAULT: 5 * 60 * 1000,
-  
+
   /** Extended cache time for rarely changing data (30 minutes) */
   EXTENDED: 30 * 60 * 1000,
-  
+
   /** Short cache time for frequently changing data (2 minutes) */
   SHORT: 2 * 60 * 1000,
-} as const
+} as const;
 
 /**
  * Query key prefixes for consistent cache management
@@ -86,4 +86,4 @@ export const QUERY_KEYS = {
   OVERTIME_REQUESTS: 'overtimeRequests',
   OVERTIME_SETTINGS: 'overtimeSettings',
   SKILLS: 'skills',
-} as const
+} as const;

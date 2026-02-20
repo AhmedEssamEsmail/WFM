@@ -1,6 +1,6 @@
 /**
  * Swap Request Flow Integration Test
- * 
+ *
  * Tests the complete swap request workflow:
  * - Create swap request
  * - Target accepts request
@@ -28,26 +28,33 @@ describe.skip('Swap Request Flow Integration', () => {
 
   beforeAll(async () => {
     // Create test users
-    const { data: users } = await serviceSupabase.from('users').insert([
-      { email: `flow-req-${Date.now()}@dabdoob.com`, name: 'Flow Requester', role: 'agent' },
-      { email: `flow-tgt-${Date.now()}@dabdoob.com`, name: 'Flow Target', role: 'agent' }
-    ]).select();
-    
-    testUserIds.push(...users!.map(u => u.id));
+    const { data: users } = await serviceSupabase
+      .from('users')
+      .insert([
+        { email: `flow-req-${Date.now()}@dabdoob.com`, name: 'Flow Requester', role: 'agent' },
+        { email: `flow-tgt-${Date.now()}@dabdoob.com`, name: 'Flow Target', role: 'agent' },
+      ])
+      .select();
+
+    testUserIds.push(...users!.map((u) => u.id));
     requesterId = users![0].id;
     targetId = users![1].id;
 
     // Create shifts
-    const { data: shifts } = await serviceSupabase.from('shifts').insert([
-      { user_id: requesterId, date: '2027-08-01', shift_type: 'AM' },
-      { user_id: targetId, date: '2027-08-01', shift_type: 'PM' }
-    ]).select();
-    
-    testShiftIds.push(...shifts!.map(s => s.id));
+    const { data: shifts } = await serviceSupabase
+      .from('shifts')
+      .insert([
+        { user_id: requesterId, date: '2027-08-01', shift_type: 'AM' },
+        { user_id: targetId, date: '2027-08-01', shift_type: 'PM' },
+      ])
+      .select();
+
+    testShiftIds.push(...shifts!.map((s) => s.id));
   });
 
   afterAll(async () => {
-    if (testSwapIds.length) await serviceSupabase.from('swap_requests').delete().in('id', testSwapIds);
+    if (testSwapIds.length)
+      await serviceSupabase.from('swap_requests').delete().in('id', testSwapIds);
     if (testShiftIds.length) await serviceSupabase.from('shifts').delete().in('id', testShiftIds);
     if (testUserIds.length) await serviceSupabase.from('users').delete().in('id', testUserIds);
   });
@@ -61,7 +68,7 @@ describe.skip('Swap Request Flow Integration', () => {
         target_user_id: targetId,
         requester_shift_id: testShiftIds[0],
         target_shift_id: testShiftIds[1],
-        status: 'pending_acceptance'
+        status: 'pending_acceptance',
       })
       .select()
       .single();
@@ -91,9 +98,9 @@ describe.skip('Swap Request Flow Integration', () => {
     // Step 3: TL approves request
     const { error: tlError } = await serviceSupabase
       .from('swap_requests')
-      .update({ 
+      .update({
         status: 'pending_wfm',
-        tl_approved_at: new Date().toISOString()
+        tl_approved_at: new Date().toISOString(),
       })
       .eq('id', swapRequestId);
 
@@ -111,9 +118,9 @@ describe.skip('Swap Request Flow Integration', () => {
     // Step 4: WFM approves request
     const { error: wfmError } = await serviceSupabase
       .from('swap_requests')
-      .update({ 
+      .update({
         status: 'approved',
-        wfm_approved_at: new Date().toISOString()
+        wfm_approved_at: new Date().toISOString(),
       })
       .eq('id', swapRequestId);
 
@@ -149,7 +156,7 @@ describe.skip('Swap Request Flow Integration', () => {
         target_user_id: targetId,
         requester_shift_id: testShiftIds[0],
         target_shift_id: testShiftIds[1],
-        status: 'pending_tl'
+        status: 'pending_tl',
       })
       .select()
       .single();
@@ -181,7 +188,7 @@ describe.skip('Swap Request Flow Integration', () => {
         target_user_id: targetId,
         requester_shift_id: testShiftIds[0],
         target_shift_id: testShiftIds[1],
-        status: 'pending_tl'
+        status: 'pending_tl',
       })
       .select()
       .single();
