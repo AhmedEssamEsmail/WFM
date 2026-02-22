@@ -1,7 +1,7 @@
 // Leave balances service
 
 import { supabase } from '../lib/supabase';
-import type { LeaveBalance, LeaveBalanceHistory, LeaveType } from '../types';
+import type { LeaveBalance, LeaveBalanceHistory, LeaveType, User } from '../types';
 import { API_ENDPOINTS } from '../constants';
 
 export const leaveBalancesService = {
@@ -147,5 +147,54 @@ export const leaveBalancesService = {
     });
 
     return updatedBalance;
+  },
+
+  /**
+   * Get all leave balances with user information
+   * Supports role-based filtering:
+   * - agent: sees only their own balances
+   * - tl: sees team balances (currently all users - adjust if team filtering is needed)
+   * - wfm: sees all balances
+   */
+  async getAllLeaveBalances(
+    currentUserId: string,
+    currentUserRole: 'agent' | 'tl' | 'wfm'
+  ): Promise<Array<{ user: User; balances: LeaveBalance[] }>> {
+    // Fetch users based on role
+    let usersQuery = supabase.from('users').select('*');
+
+    if (currentUserRole === 'agent') {
+      usersQuery = usersQuery.eq('id', currentUserId);
+    }
+    // TL and WFM see all users (adjust TL filtering if team-based filtering is needed)
+
+    const { data: usersData, error: usersError } = await usersQuery.order('name');
+    if (usersError) throw usersError;
+
+    // Fetch leave balances based on role
+    let balancesQuery = supabase.from(API_ENDPOINTS.LEAVE_BALANCES).select('*');
+
+    if (currentUserRole === 'agent') {
+      balancesQuery = balancesQuery.eq('user_id', currentUserId);
+    }
+    // TL and WFM see all balances
+
+    const { data: balancesData, error: balancesError } = await balancesQuery;
+    if (balancesError) throw balancesError;
+
+    // Group balances by user
+    const balancesByUser = new Map<string, LeaveBalance[]>();
+    (balancesData || []).forEach((balance: LeaveBalance) => {
+      if (!balancesByUser.has(balance.user_id)) {
+        balancesByUser.set(balance.user_id, []);
+      }
+      balancesByUser.get(balance.user_id)!.push(balance);
+    });
+
+    // Combine users with their balances
+    return (usersData || []).map((user) => ({
+      user,
+      balances: balancesByUser.get(user.id) || [],
+    }));
   },
 };

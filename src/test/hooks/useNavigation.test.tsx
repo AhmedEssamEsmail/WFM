@@ -1,16 +1,15 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { renderHook } from '@testing-library/react';
 import { BrowserRouter, MemoryRouter } from 'react-router-dom';
-import { useNavigation } from '../../hooks/useNavigation';
-import { AuthProvider } from '../../contexts/AuthContext';
 import { ToastProvider } from '../../contexts/ToastContext';
 
-// Mock useAuth
+// Mock useAuth BEFORE importing useNavigation
 vi.mock('../../hooks/useAuth', () => ({
   useAuth: vi.fn(),
 }));
 
 import { useAuth } from '../../hooks/useAuth';
+import { useNavigation } from '../../hooks/useNavigation';
 
 describe('useNavigation', () => {
   beforeEach(() => {

@@ -1,9 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
-import { supabase } from '../../lib/supabase';
 import type { User, Shift, ShiftType } from '../../types';
-import { shiftsService } from '../../services';
+import { usersService, swapRequestsService, shiftsService } from '../../services';
 import { formatDate } from '../../utils';
 import { swapRequestCreateSchema } from '../../validation';
 import { ROUTES, ERROR_MESSAGES } from '../../constants';
@@ -70,10 +69,8 @@ export default function CreateSwapRequest() {
   const fetchAllUsers = async () => {
     setLoadingAllUsers(true);
     try {
-      const { data, error } = await supabase.from('users').select('*').order('name');
-
-      if (error) throw error;
-      setAllUsers(data || []);
+      const users = await usersService.getUsers();
+      setAllUsers(users || []);
     } catch (err) {
       console.error('Error fetching all users:', err);
     } finally {
@@ -87,15 +84,10 @@ export default function CreateSwapRequest() {
       // Get the effective requester ID (selected user for WFM/TL, or current user)
       const effectiveRequesterId = canSubmitOnBehalf ? requesterUserId : user!.id;
 
-      const { data, error } = await supabase
-        .from('users')
-        .select('*')
-        .eq('role', 'agent')
-        .neq('id', effectiveRequesterId)
-        .order('name');
-
-      if (error) throw error;
-      setAgents(data || []);
+      const agents = await usersService.getUsersByRole('agent');
+      // Filter out the requester in component code
+      const filteredAgents = agents.filter((agent) => agent.id !== effectiveRequesterId);
+      setAgents(filteredAgents || []);
       // Reset target selection when requester changes
       setTargetUserId('');
       setTargetShifts([]);
@@ -154,12 +146,11 @@ export default function CreateSwapRequest() {
 
     setLoading(true);
     try {
-      const { error: insertError } = await supabase.from('swap_requests').insert({
+      await swapRequestsService.createSwapRequest({
         requester_id: effectiveRequesterId,
         requester_shift_id: myShiftId,
         target_user_id: targetUserId,
         target_shift_id: targetShiftId,
-        status: 'pending_acceptance',
         // Store ALL 4 original shift types for complete swap display
         requester_original_date: myShifts.find((s) => s.id === myShiftId)?.date,
         requester_original_shift_type: myShifts.find((s) => s.id === myShiftId)?.shift_type,
@@ -173,8 +164,6 @@ export default function CreateSwapRequest() {
           (s) => s.date === myShifts.find((m) => m.id === myShiftId)?.date
         )?.shift_type,
       });
-
-      if (insertError) throw insertError;
 
       navigate(ROUTES.DASHBOARD);
     } catch (err) {

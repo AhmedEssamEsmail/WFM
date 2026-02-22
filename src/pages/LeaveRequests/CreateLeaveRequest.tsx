@@ -2,9 +2,8 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import { useLeaveTypes } from '../../hooks/useLeaveTypes';
-import { supabase } from '../../lib/supabase';
 import type { LeaveType, User } from '../../types';
-import { leaveBalancesService } from '../../services';
+import { usersService, leaveRequestsService, leaveBalancesService } from '../../services';
 import { getDaysBetween, isValidDateRange } from '../../utils';
 import { leaveRequestCreateSchema } from '../../validation';
 import { ROUTES, ERROR_MESSAGES } from '../../constants';
@@ -62,10 +61,8 @@ export default function CreateLeaveRequest() {
   const fetchAgents = async () => {
     setLoadingAgents(true);
     try {
-      const { data, error } = await supabase.from('users').select('*').order('name');
-
-      if (error) throw error;
-      setAgents(data || []);
+      const users = await usersService.getUsers();
+      setAgents(users || []);
     } catch (err) {
       console.error('Error fetching agents:', err);
     } finally {
@@ -128,17 +125,17 @@ export default function CreateLeaveRequest() {
       // If requested days exceed available balance, auto-deny the request
       const status = exceedsBalance ? 'denied' : 'pending_tl';
 
-      // Use Supabase directly for insert to set custom status
-      const { error: insertError } = await supabase.from('leave_requests').insert({
-        user_id: targetUserId,
-        leave_type: leaveType,
-        start_date: startDate,
-        end_date: endDate,
-        notes: notes || null,
-        status: status,
-      });
-
-      if (insertError) throw insertError;
+      // Use service method to create leave request with custom status
+      await leaveRequestsService.createLeaveRequest(
+        {
+          user_id: targetUserId,
+          leave_type: leaveType,
+          start_date: startDate,
+          end_date: endDate,
+          notes: notes || null,
+        },
+        status
+      );
 
       navigate(ROUTES.LEAVE_REQUESTS);
     } catch (err) {

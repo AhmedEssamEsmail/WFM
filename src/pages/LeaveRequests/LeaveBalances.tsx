@@ -1,9 +1,8 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../hooks/useAuth';
 import { useLeaveTypes } from '../../hooks/useLeaveTypes';
 import { User, LeaveType } from '../../types';
-import { leaveBalancesService } from '../../services';
+import { usersService, leaveBalancesService } from '../../services';
 import { downloadCSV, parseCSV, arrayToCSV } from '../../utils';
 import { ERROR_MESSAGES } from '../../constants';
 
@@ -64,47 +63,25 @@ export default function LeaveBalances() {
     setLoading(true);
 
     try {
-      // Fetch users based on role
-      let usersQuery = supabase.from('users').select('*');
-
-      if (user.role === 'agent') {
-        usersQuery = usersQuery.eq('id', user.id);
-      } else if (user.role === 'tl') {
-        // TL sees only their team members (same department/team)
-        // For now, TL sees all users - adjust if team filtering is needed
-      }
-      // WFM sees all users
-
-      const { data: usersData, error: usersError } = await usersQuery.order('name');
-      if (usersError) throw usersError;
-
-      // Fetch leave balances - use Supabase directly since service doesn't have getAllLeaveBalances
-      let balancesQuery = supabase.from('leave_balances').select('*');
-
-      if (user.role === 'agent') {
-        balancesQuery = balancesQuery.eq('user_id', user.id);
-      }
-      // TL and WFM see all balances
-
-      const { data: balancesData, error: balancesError } = await balancesQuery;
-      if (balancesError) throw balancesError;
-
-      // Combine users with their balances
-      const balanceMap = new Map<string, Record<LeaveType, number>>();
-
-      balancesData?.forEach(
-        (b: { user_id: string; leave_type: LeaveType; balance: string | number }) => {
-          if (!balanceMap.has(b.user_id)) {
-            balanceMap.set(b.user_id, {} as Record<LeaveType, number>);
-          }
-          balanceMap.get(b.user_id)![b.leave_type as LeaveType] = parseFloat(String(b.balance));
-        }
+      // Fetch leave balances using service layer
+      const balancesWithUsers = await leaveBalancesService.getAllLeaveBalances(
+        user.id,
+        user.role as 'agent' | 'tl' | 'wfm'
       );
 
-      const combined: UserWithBalances[] = (usersData || []).map((u) => ({
-        ...u,
-        balances: balanceMap.get(u.id) || ({} as Record<LeaveType, number>),
-      }));
+      // Transform to UserWithBalances format
+      const combined: UserWithBalances[] = balancesWithUsers.map(({ user: userData, balances }) => {
+        const balanceMap: Record<LeaveType, number> = {} as Record<LeaveType, number>;
+
+        balances.forEach((b) => {
+          balanceMap[b.leave_type as LeaveType] = parseFloat(String(b.balance));
+        });
+
+        return {
+          ...userData,
+          balances: balanceMap,
+        };
+      });
 
       setUsersWithBalances(combined);
     } catch (error) {
@@ -144,31 +121,12 @@ export default function LeaveBalances() {
     setError('');
 
     try {
-      // Get current balance for history
-      const userBalances = usersWithBalances.find((u) => u.id === editingCell.userId)?.balances;
-      const currentBalance = userBalances?.[editingCell.leaveType] || 0;
-
-      // Update the balance using service
+      // Update the balance using service (service handles history recording)
       await leaveBalancesService.updateLeaveBalance(
         editingCell.userId,
         editingCell.leaveType,
         newBalance
       );
-
-      // Record in history (optional - won't fail if table doesn't exist)
-      try {
-        await supabase.from('leave_balance_history').insert({
-          user_id: editingCell.userId,
-          leave_type: editingCell.leaveType,
-          previous_balance: currentBalance,
-          new_balance: newBalance,
-          change_reason: 'manual_adjustment',
-          changed_by: user.id,
-        });
-      } catch (historyError) {
-        // Ignore history errors - not critical
-        console.warn('Could not record balance history:', historyError);
-      }
 
       // Update local state
       setUsersWithBalances((prev) =>
@@ -301,17 +259,16 @@ export default function LeaveBalances() {
 
       // Resolve emails to user IDs
       const emails = parsed.map((r) => r.email);
-      const { data: users } = await supabase
-        .from('users')
-        .select('id, email, name')
-        .in('email', emails);
+      const users = await usersService.getUsersByEmails(emails);
 
       const userMap = new Map(
         users?.map((u) => [u.email.toLowerCase(), { id: u.id, name: u.name }]) || []
       );
 
       parsed.forEach((row) => {
-        const userData = userMap.get(row.email.toLowerCase());
+        const userData = userMap.get(row.email.toLowerCase()) as
+          | { id: string; name: string }
+          | undefined;
         if (userData) {
           row.userId = userData.id;
           row.userName = userData.name;
@@ -343,36 +300,16 @@ export default function LeaveBalances() {
           continue;
         }
 
-        // Get current balances for history
-        const currentUser = usersWithBalances.find((u) => u.id === row.userId);
-
         for (const [leaveType, newBalance] of Object.entries(row.balances)) {
           if (typeof newBalance !== 'number') continue;
 
           try {
-            const currentBalance = currentUser?.balances[leaveType as LeaveType] || 0;
-
-            // Update balance using service
+            // Update balance using service (service handles history recording)
             await leaveBalancesService.updateLeaveBalance(
               row.userId,
               leaveType as LeaveType,
               newBalance
             );
-
-            // Record in history (optional)
-            try {
-              await supabase.from('leave_balance_history').insert({
-                user_id: row.userId,
-                leave_type: leaveType,
-                previous_balance: currentBalance,
-                new_balance: newBalance,
-                change_reason: 'csv_import',
-                changed_by: user.id,
-              });
-            } catch (historyError) {
-              // Ignore history errors
-              console.warn('Could not record balance history:', historyError);
-            }
 
             successCount++;
           } catch (err) {

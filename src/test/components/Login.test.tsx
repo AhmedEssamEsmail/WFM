@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { BrowserRouter } from 'react-router-dom';
 import Login from '../../pages/Auth/Login';
 import { AuthContext } from '../../contexts/AuthContext';
@@ -79,12 +80,12 @@ describe('Login Component', () => {
       const passwordInput = screen.getByLabelText('Password');
       const submitButton = screen.getByRole('button', { name: /sign in/i });
 
-      fireEvent.change(emailInput, { target: { value: 'user@gmail.com' } });
-      fireEvent.change(passwordInput, { target: { value: 'password123' } });
-      fireEvent.click(submitButton);
+      await userEvent.type(emailInput, 'user@gmail.com');
+      await userEvent.type(passwordInput, 'password123');
+      await userEvent.click(submitButton);
 
       await waitFor(() => {
-        expect(screen.getByText('Email must be from @dabdoob.com domain')).toBeInTheDocument();
+        expect(screen.getByText(/Email must be from @dabdoob\.com domain/i)).toBeInTheDocument();
       });
 
       expect(mockSignIn).not.toHaveBeenCalled();
@@ -98,12 +99,12 @@ describe('Login Component', () => {
       const passwordInput = screen.getByLabelText('Password');
       const submitButton = screen.getByRole('button', { name: /sign in/i });
 
-      fireEvent.change(emailInput, { target: { value: 'user@dabdoob.com' } });
-      fireEvent.change(passwordInput, { target: { value: '123' } });
-      fireEvent.click(submitButton);
+      await userEvent.type(emailInput, 'user@dabdoob.com');
+      await userEvent.type(passwordInput, '123');
+      await userEvent.click(submitButton);
 
       await waitFor(() => {
-        expect(screen.getByText('Password must be at least 8 characters')).toBeInTheDocument();
+        expect(screen.getByText(/Password must be at least 8 characters/i)).toBeInTheDocument();
       });
 
       expect(mockSignIn).not.toHaveBeenCalled();
@@ -119,9 +120,9 @@ describe('Login Component', () => {
       const passwordInput = screen.getByLabelText('Password');
       const submitButton = screen.getByRole('button', { name: /sign in/i });
 
-      fireEvent.change(emailInput, { target: { value: 'user@dabdoob.com' } });
-      fireEvent.change(passwordInput, { target: { value: 'password123' } });
-      fireEvent.click(submitButton);
+      await userEvent.type(emailInput, 'user@dabdoob.com');
+      await userEvent.type(passwordInput, 'password123');
+      await userEvent.click(submitButton);
 
       await waitFor(() => {
         expect(mockSignIn).toHaveBeenCalledWith('user@dabdoob.com', 'password123');
@@ -136,9 +137,9 @@ describe('Login Component', () => {
       const passwordInput = screen.getByLabelText('Password');
       const submitButton = screen.getByRole('button', { name: /sign in/i });
 
-      fireEvent.change(emailInput, { target: { value: 'user@dabdoob.com' } });
-      fireEvent.change(passwordInput, { target: { value: 'wrongpassword' } });
-      fireEvent.click(submitButton);
+      await userEvent.type(emailInput, 'user@dabdoob.com');
+      await userEvent.type(passwordInput, 'wrongpassword');
+      await userEvent.click(submitButton);
 
       await waitFor(() => {
         expect(screen.getByText('Invalid credentials')).toBeInTheDocument();
@@ -155,9 +156,9 @@ describe('Login Component', () => {
       const passwordInput = screen.getByLabelText('Password');
       const submitButton = screen.getByRole('button', { name: /sign in/i });
 
-      fireEvent.change(emailInput, { target: { value: 'user@dabdoob.com' } });
-      fireEvent.change(passwordInput, { target: { value: 'password123' } });
-      fireEvent.click(submitButton);
+      await userEvent.type(emailInput, 'user@dabdoob.com');
+      await userEvent.type(passwordInput, 'password123');
+      await userEvent.click(submitButton);
 
       expect(screen.getByText('Signing in...')).toBeInTheDocument();
       expect(submitButton).toBeDisabled();

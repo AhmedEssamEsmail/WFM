@@ -174,6 +174,7 @@ export const swapRequestsService = {
 
   /**
    * Create a new swap request with validation
+   * Supports all original shift type fields and complex swap request data structure
    */
   async createSwapRequest(
     request: Omit<
@@ -228,17 +229,43 @@ export const swapRequestsService = {
       );
     }
 
-    // Create the swap request
+    // Create the swap request with all fields including original shift types
+    const swapRequestData = {
+      requester_id: request.requester_id,
+      target_user_id: request.target_user_id,
+      requester_shift_id: request.requester_shift_id,
+      target_shift_id: request.target_shift_id,
+      status: 'pending_acceptance' as SwapRequestStatus,
+      // Include all original shift type fields if provided
+      ...(request.requester_original_date && {
+        requester_original_date: request.requester_original_date,
+      }),
+      ...(request.requester_original_shift_type && {
+        requester_original_shift_type: request.requester_original_shift_type,
+      }),
+      ...(request.target_original_date && { target_original_date: request.target_original_date }),
+      ...(request.target_original_shift_type && {
+        target_original_shift_type: request.target_original_shift_type,
+      }),
+      ...(request.requester_original_shift_type_on_target_date && {
+        requester_original_shift_type_on_target_date:
+          request.requester_original_shift_type_on_target_date,
+      }),
+      ...(request.target_original_shift_type_on_requester_date && {
+        target_original_shift_type_on_requester_date:
+          request.target_original_shift_type_on_requester_date,
+      }),
+    };
+
     const { data, error } = await supabase
       .from(API_ENDPOINTS.SWAP_REQUESTS)
-      .insert(request)
+      .insert(swapRequestData)
       .select()
       .single();
 
     if (error) throw error;
     return data as SwapRequest;
   },
-
   /**
    * Clear approval timestamps (used when revoking)
    */

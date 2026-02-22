@@ -1,10 +1,14 @@
 import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../hooks/useAuth';
 import { ShiftType, LeaveType, Shift } from '../../types';
 import { format, eachDayOfInterval } from 'date-fns';
-import { shiftsService, shiftConfigurationsService } from '../../services';
+import {
+  usersService,
+  leaveRequestsService,
+  shiftsService,
+  shiftConfigurationsService,
+} from '../../services';
 import { downloadCSV, arrayToCSV } from '../../utils';
 import { ROUTES, ERROR_MESSAGES } from '../../constants';
 import { handleDatabaseError, handleValidationError } from '../../lib/errorHandler';
@@ -190,10 +194,7 @@ export default function ScheduleUpload() {
       // Resolve emails to user IDs
       const emails = result.rows.map((r) => r.email);
       if (emails.length > 0) {
-        const { data: users } = await supabase
-          .from('users')
-          .select('id, email, name')
-          .in('email', emails);
+        const users = await usersService.getUsersByEmails(emails);
 
         const userMap = new Map(
           users?.map((u) => [u.email.toLowerCase(), { id: u.id, name: u.name }]) || []
@@ -250,21 +251,22 @@ export default function ScheduleUpload() {
                 continue;
               }
 
-              // Create a leave request for this single day
-              const { error: leaveError } = await supabase.from('leave_requests').insert({
-                user_id: row.userId,
-                leave_type: leaveTypeCode,
-                start_date: shift.date,
-                end_date: shift.date,
-                status: 'approved', // Auto-approve bulk uploaded leaves
-                notes: 'Bulk schedule upload',
-              });
-
-              if (leaveError) {
+              // Create a leave request for this single day using service method
+              try {
+                await leaveRequestsService.createLeaveRequest(
+                  {
+                    user_id: row.userId,
+                    leave_type: leaveTypeCode,
+                    start_date: shift.date,
+                    end_date: shift.date,
+                    notes: 'Bulk schedule upload',
+                  },
+                  'approved' // Auto-approve bulk uploaded leaves
+                );
+                successCount++;
+              } catch (leaveError) {
                 console.error('Failed to create leave request:', leaveError);
                 failedCount++;
-              } else {
-                successCount++;
               }
             } else {
               // It's a regular shift
@@ -312,25 +314,18 @@ export default function ScheduleUpload() {
 
     try {
       // Get all users
-      const { data: users, error: usersError } = await supabase
-        .from('users')
-        .select('id, email, name')
-        .order('name');
-
-      if (usersError) throw usersError;
+      const users = await usersService.getUsers('name');
 
       // Get all shifts in date range using service
       const shifts = await shiftsService.getShifts(exportStartDate, exportEndDate);
 
-      // Get all approved leaves in date range
-      const { data: leaves, error: leavesError } = await supabase
-        .from('leave_requests')
-        .select('*')
-        .eq('status', 'approved')
-        .lte('start_date', exportEndDate)
-        .gte('end_date', exportStartDate);
-
-      if (leavesError) throw leavesError;
+      // Get all approved leaves in date range using service method
+      const allLeaves = await leaveRequestsService.getLeaveRequestsByDateRange(
+        exportStartDate,
+        exportEndDate
+      );
+      // Filter by approved status in component code
+      const leaves = allLeaves.filter((leave) => leave.status === 'approved');
 
       // Generate date range
       const dateRange = eachDayOfInterval({ start: startDate, end: endDate });

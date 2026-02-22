@@ -91,7 +91,8 @@ export const leaveRequestsService = {
     request: Omit<
       LeaveRequest,
       'id' | 'created_at' | 'status' | 'tl_approved_at' | 'wfm_approved_at'
-    >
+    >,
+    status: LeaveRequestStatus = 'pending_tl'
   ): Promise<LeaveRequest> {
     // Input validation
     validateUUID(request.user_id, 'user_id');
@@ -133,6 +134,7 @@ export const leaveRequestsService = {
       .insert({
         ...request,
         notes: sanitizedNotes,
+        status,
       })
       .select()
       .single();
@@ -140,7 +142,6 @@ export const leaveRequestsService = {
     if (error) throw error;
     return data as LeaveRequest;
   },
-
   /**
    * Update leave request status with optimistic locking
    */
