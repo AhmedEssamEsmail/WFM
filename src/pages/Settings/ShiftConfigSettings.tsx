@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useToast } from '../../contexts/ToastContext';
 import { shiftConfigurationsService } from '../../services';
 import type { ShiftConfiguration } from '../../types';
@@ -10,11 +10,7 @@ export default function ShiftConfigSettings() {
   const [shiftConfigurations, setShiftConfigurations] = useState<ShiftConfiguration[]>([]);
   const [loadingShiftConfigurations, setLoadingShiftConfigurations] = useState(false);
 
-  useEffect(() => {
-    fetchShiftConfigurations();
-  }, []);
-
-  async function fetchShiftConfigurations() {
+  const fetchShiftConfigurations = useCallback(async () => {
     setLoadingShiftConfigurations(true);
     try {
       const data = await shiftConfigurationsService.getAllShiftConfigurations();
@@ -25,7 +21,11 @@ export default function ShiftConfigSettings() {
     } finally {
       setLoadingShiftConfigurations(false);
     }
-  }
+  }, [showError]);
+
+  useEffect(() => {
+    fetchShiftConfigurations();
+  }, [fetchShiftConfigurations]);
 
   async function handleUpdateShift(shiftId: string, updates: Partial<ShiftConfiguration>) {
     try {

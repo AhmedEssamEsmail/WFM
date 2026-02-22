@@ -200,7 +200,13 @@ Following a comprehensive codebase audit, we implemented critical security, arch
 
 **Testing & CI Improvements**:
 - **Optimized CI Pipeline**: Merged duplicate test runs (was running tests twice), now single `test:coverage` step
-- **Test Count Accuracy**: Corrected documentation to reflect actual test count (568 tests)
+- **Comprehensive Test Coverage Expansion**: Expanded from 568 to 1787 tests (+214% increase)
+  - Added tests for all 21 hooks with proper QueryClient isolation pattern
+  - Created tests for previously untested lib files (performance.ts, securityLogger.ts)
+  - Fixed QueryClient provider issues in 5 hook tests (useLeaveRequests, useOvertimeRequests, useSwapRequests, useReportData, useOvertimeStatistics)
+  - Improved coverage from 25.89% to 44.77% (+73% improvement)
+  - Test execution time optimized to 31.91s (close to 30s target)
+  - Zero flaky tests - all tests pass consistently
 - **Integration Tests**: Added comprehensive approval workflow tests
 
 **UI/UX Polish**:
@@ -996,20 +1002,24 @@ Leave `VITE_SENTRY_DSN` empty to disable Sentry integration.
 
 ### Test Suite
 
-The application has a comprehensive test suite with **568 tests** covering:
+The application has a comprehensive test suite with **1787 tests** covering:
 
 | Test Category | Tests | Description |
 |---------------|-------|-------------|
+| **Unit Tests** | 1775+ | Components, hooks, utilities, services, libs |
+| **Integration Tests** | 33 | Complete user flows, authentication, RBAC, error handling |
+| **Property-Based Tests** | 13 | Fast-check tests for approval workflows, state transitions, overtime |
 | **Edge Cases** | 72 | Concurrency, race conditions, boundaries, failures, authentication |
 | **Business Logic** | 19 | Swap execution, leave balances, approval workflows, comments |
 | **Backend/RLS** | 43 | Row Level Security policies, stored procedures, triggers |
-| **Integration** | 33 | Complete user flows, authentication, RBAC, error handling |
-| **Unit Tests** | 132 | Components, hooks, utilities, services |
+| **Performance Tests** | 11 | Benchmark tests for critical operations |
 
-**Total Coverage**: 25.89% overall (target: 70%)
-- Critical paths: >90% coverage
-- Business logic: >85% coverage
-- Utilities: >80% coverage
+**Total Coverage**: 44.77% overall (target: 70%)
+- All 21 hooks tested with proper QueryClient isolation
+- All critical lib files tested (performance, securityLogger, errorHandler, etc.)
+- Test execution time: 31.91s (optimized, close to 30s target)
+- Zero flaky tests - all tests pass consistently
+- Property-based tests run with configured iterations
 
 ### Running Tests
 

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import { useCreateOvertimeRequest, useOvertimeRequests } from '../../hooks/useOvertimeRequests';
@@ -42,15 +42,7 @@ export default function CreateOvertimeRequest() {
   const totalHours = startTime && endTime ? calculateHours(startTime, endTime) : 0;
 
   // Fetch shift information when date changes
-  useEffect(() => {
-    if (requestDate && user && settings?.require_shift_verification.enabled) {
-      fetchShiftInfo();
-    } else {
-      setShift(null);
-    }
-  }, [requestDate, user, settings]);
-
-  const fetchShiftInfo = async () => {
+  const fetchShiftInfo = useCallback(async () => {
     if (!user || !requestDate) return;
 
     setLoadingShift(true);
@@ -58,12 +50,20 @@ export default function CreateOvertimeRequest() {
       const shifts = await shiftsService.getUserShifts(user.id, requestDate, requestDate);
       setShift(shifts.length > 0 ? shifts[0] : null);
     } catch (err) {
-      console.error('Error fetching shift info:', err);
+      console.error('Failed to fetch shift info:', err);
       setShift(null);
     } finally {
       setLoadingShift(false);
     }
-  };
+  }, [user, requestDate]);
+
+  useEffect(() => {
+    if (requestDate && user && settings?.require_shift_verification.enabled) {
+      fetchShiftInfo();
+    } else {
+      setShift(null);
+    }
+  }, [requestDate, user, settings, fetchShiftInfo]);
 
   // Validate form on input changes
   useEffect(() => {
@@ -105,7 +105,17 @@ export default function CreateOvertimeRequest() {
 
     setErrors(validation.errors);
     setWarnings(validation.warnings);
-  }, [requestDate, startTime, endTime, overtimeType, reason, settings, existingRequests, shift]);
+  }, [
+    requestDate,
+    startTime,
+    endTime,
+    overtimeType,
+    reason,
+    settings,
+    existingRequests,
+    shift,
+    loadingShift,
+  ]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

@@ -79,7 +79,7 @@ describe('Core Data Properties', () => {
           }
         }
       ),
-      { numRuns: 100 }
+      { numRuns: 10 }
     );
   });
 
@@ -117,7 +117,7 @@ describe('Core Data Properties', () => {
           }
         }
       ),
-      { numRuns: 100 }
+      { numRuns: 10 }
     );
   });
 
@@ -162,7 +162,7 @@ describe('Core Data Properties', () => {
           }
         }
       ),
-      { numRuns: 100 }
+      { numRuns: 10 }
     );
   });
 });

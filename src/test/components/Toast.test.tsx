@@ -34,27 +34,49 @@ describe('Toast Component', () => {
     expect(screen.getByText('Info message')).toBeInTheDocument();
   });
 
+  it('should render loading toast', () => {
+    render(<Toast id="test-5" message="Loading message" type="loading" onClose={mockOnClose} />);
+
+    expect(screen.getByText('Loading message')).toBeInTheDocument();
+  });
+
   it('should call onClose when close button is clicked', () => {
-    render(<Toast id="test-5" message="Test message" type="info" onClose={mockOnClose} />);
+    render(<Toast id="test-6" message="Test message" type="info" onClose={mockOnClose} />);
 
     const closeButton = screen.getByRole('button');
     fireEvent.click(closeButton);
 
-    expect(mockOnClose).toHaveBeenCalledWith('test-5');
+    expect(mockOnClose).toHaveBeenCalledWith('test-6');
   });
 
   it('should auto-dismiss after duration', async () => {
     vi.useFakeTimers();
 
     render(
-      <Toast id="test-6" message="Auto dismiss" type="info" duration={3000} onClose={mockOnClose} />
+      <Toast id="test-7" message="Auto dismiss" type="info" duration={3000} onClose={mockOnClose} />
     );
 
     expect(mockOnClose).not.toHaveBeenCalled();
 
     vi.advanceTimersByTime(3000);
 
-    expect(mockOnClose).toHaveBeenCalledWith('test-6');
+    expect(mockOnClose).toHaveBeenCalledWith('test-7');
+
+    vi.useRealTimers();
+  });
+
+  it('should use default duration of 5000ms when not specified', async () => {
+    vi.useFakeTimers();
+
+    render(<Toast id="test-8" message="Default duration" type="info" onClose={mockOnClose} />);
+
+    expect(mockOnClose).not.toHaveBeenCalled();
+
+    vi.advanceTimersByTime(4999);
+    expect(mockOnClose).not.toHaveBeenCalled();
+
+    vi.advanceTimersByTime(1);
+    expect(mockOnClose).toHaveBeenCalledWith('test-8');
 
     vi.useRealTimers();
   });
@@ -63,7 +85,7 @@ describe('Toast Component', () => {
     vi.useFakeTimers();
 
     render(
-      <Toast id="test-7" message="No auto dismiss" type="info" duration={0} onClose={mockOnClose} />
+      <Toast id="test-9" message="No auto dismiss" type="info" duration={0} onClose={mockOnClose} />
     );
 
     vi.advanceTimersByTime(10000);

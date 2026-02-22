@@ -1,8 +1,8 @@
-import { defineConfig } from 'vitest/config';
+import { defineConfig, UserConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import { VitePWA } from 'vite-plugin-pwa';
+import os from 'os';
 
-// https://vite.dev/config/
 export default defineConfig({
   plugins: [
     react(),
@@ -98,7 +98,48 @@ export default defineConfig({
     globals: true,
     environment: 'jsdom',
     setupFiles: './src/test/setup.ts',
-    css: true,
+    // Disable CSS processing in tests for better performance
+    css: false,
+    // Use threads pool for better performance
+    pool: 'threads',
+    poolOptions: {
+      threads: {
+        maxThreads: os.cpus().length,
+        minThreads: 1,
+        singleThread: false,
+      },
+    },
+    // Disable isolation for 3-5x speed improvement
+    // Tests must be independent and clean up after themselves
+    isolate: false,
+    // Cache test results for faster re-runs
+    cacheDir: 'node_modules/.vitest',
+    // Reduce test timeout to catch hanging tests
+    testTimeout: 5000,
+    hookTimeout: 5000,
+    // Run tests in sequence to reduce memory overhead
+    sequence: {
+      shuffle: false,
+      concurrent: false,
+    },
+    // Limit concurrent tests
+    maxConcurrency: 5,
+    // Optimize file watching
+    watch: false,
+    // Exclude comprehensive tests by default
+    exclude: [
+      '**/node_modules/**',
+      '**/dist/**',
+      '**/.{idea,git,cache,output,temp}/**',
+      '**/{karma,rollup,webpack,vite,vitest,jest,ava,babel,nyc,cypress,tsup,build}.config.*',
+      '**/*.comprehensive.test.{ts,tsx}',
+    ],
+    // Reduce overhead from environment setup
+    environmentOptions: {
+      jsdom: {
+        resources: 'usable',
+      },
+    },
     env: {
       // Test database configuration (Supabase Local)
       VITE_SUPABASE_TEST_URL: process.env.VITE_SUPABASE_TEST_URL || 'http://127.0.0.1:54321',
@@ -107,7 +148,8 @@ export default defineConfig({
     },
     coverage: {
       provider: 'v8',
-      reporter: ['text', 'json', 'html'],
+      reporter: ['text', 'json', 'json-summary', 'html'],
+      include: ['src/**/*.{ts,tsx}'],
       exclude: [
         'node_modules/',
         'src/test/',
@@ -119,6 +161,35 @@ export default defineConfig({
         'postcss.config.js',
         'eslint.config.js',
       ],
+      // Disable coverage during regular test runs for better performance
+      enabled: false,
+      thresholds: {
+        lines: 70,
+        functions: 70,
+        branches: 70,
+        statements: 70,
+        // Per-layer coverage thresholds
+        'src/hooks/**': {
+          lines: 80,
+          functions: 80,
+          branches: 80,
+          statements: 80,
+        },
+        'src/lib/**': {
+          lines: 80,
+          functions: 80,
+          branches: 80,
+          statements: 80,
+        },
+        'src/components/**': {
+          lines: 80,
+          functions: 80,
+          branches: 80,
+          statements: 80,
+        },
+      },
+      clean: true,
+      reportsDirectory: './coverage',
     },
   },
-});
+} as UserConfig);

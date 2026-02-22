@@ -29,7 +29,7 @@ const mockWFM: User = {
   created_at: '2024-01-01',
 };
 
-const createWrapper = (user: User | null, initialPath: string = '/') => {
+const createQueryWrapper = (user: User | null, initialPath: string = '/') => {
   return ({ children }: { children: React.ReactNode }) => (
     <AuthContext.Provider
       value={{
@@ -52,7 +52,7 @@ describe('useNavigation - Role-Based Visibility', () => {
   describe('Agent role navigation', () => {
     it('should show "Swap Requests" but not "Requests" for agent', () => {
       const { result } = renderHook(() => useNavigation(), {
-        wrapper: createWrapper(mockAgent),
+        wrapper: createQueryWrapper(mockAgent),
       });
 
       const navItems = result.current.navItems;
@@ -64,7 +64,7 @@ describe('useNavigation - Role-Based Visibility', () => {
 
     it('should include common items for agent', () => {
       const { result } = renderHook(() => useNavigation(), {
-        wrapper: createWrapper(mockAgent),
+        wrapper: createQueryWrapper(mockAgent),
       });
 
       const navItems = result.current.navItems;
@@ -78,7 +78,7 @@ describe('useNavigation - Role-Based Visibility', () => {
 
     it('should not include manager-only items for agent', () => {
       const { result } = renderHook(() => useNavigation(), {
-        wrapper: createWrapper(mockAgent),
+        wrapper: createQueryWrapper(mockAgent),
       });
 
       const navItems = result.current.navItems;
@@ -94,7 +94,7 @@ describe('useNavigation - Role-Based Visibility', () => {
   describe('TL role navigation', () => {
     it('should show "Swap Requests" but not "Requests" for tl', () => {
       const { result } = renderHook(() => useNavigation(), {
-        wrapper: createWrapper(mockTL),
+        wrapper: createQueryWrapper(mockTL),
       });
 
       const navItems = result.current.navItems;
@@ -106,7 +106,7 @@ describe('useNavigation - Role-Based Visibility', () => {
 
     it('should include manager items for tl', () => {
       const { result } = renderHook(() => useNavigation(), {
-        wrapper: createWrapper(mockTL),
+        wrapper: createQueryWrapper(mockTL),
       });
 
       const navItems = result.current.navItems;
@@ -118,7 +118,7 @@ describe('useNavigation - Role-Based Visibility', () => {
 
     it('should not include wfm-only items for tl', () => {
       const { result } = renderHook(() => useNavigation(), {
-        wrapper: createWrapper(mockTL),
+        wrapper: createQueryWrapper(mockTL),
       });
 
       const navItems = result.current.navItems;
@@ -133,7 +133,7 @@ describe('useNavigation - Role-Based Visibility', () => {
   describe('WFM role navigation', () => {
     it('should show "Requests" but not "Swap Requests" for wfm', () => {
       const { result } = renderHook(() => useNavigation(), {
-        wrapper: createWrapper(mockWFM),
+        wrapper: createQueryWrapper(mockWFM),
       });
 
       const navItems = result.current.navItems;
@@ -145,7 +145,7 @@ describe('useNavigation - Role-Based Visibility', () => {
 
     it('should include all wfm-specific items', () => {
       const { result } = renderHook(() => useNavigation(), {
-        wrapper: createWrapper(mockWFM),
+        wrapper: createQueryWrapper(mockWFM),
       });
 
       const navItems = result.current.navItems;
@@ -161,13 +161,13 @@ describe('useNavigation - Role-Based Visibility', () => {
   describe('Navigation item counts', () => {
     it('should have correct number of items for each role', () => {
       const agentHook = renderHook(() => useNavigation(), {
-        wrapper: createWrapper(mockAgent),
+        wrapper: createQueryWrapper(mockAgent),
       });
       const tlHook = renderHook(() => useNavigation(), {
-        wrapper: createWrapper(mockTL),
+        wrapper: createQueryWrapper(mockTL),
       });
       const wfmHook = renderHook(() => useNavigation(), {
-        wrapper: createWrapper(mockWFM),
+        wrapper: createQueryWrapper(mockWFM),
       });
 
       // Agent should have fewer items than managers
@@ -185,7 +185,7 @@ describe('useNavigation - Role-Based Visibility', () => {
   describe('Route active detection', () => {
     it('should correctly identify active routes', () => {
       const { result } = renderHook(() => useNavigation(), {
-        wrapper: createWrapper(mockAgent, '/swap-requests'),
+        wrapper: createQueryWrapper(mockAgent, '/swap-requests'),
       });
 
       expect(result.current.isRouteActive('/swap-requests')).toBe(true);

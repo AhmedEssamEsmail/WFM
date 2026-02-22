@@ -92,15 +92,15 @@ export default function Dashboard() {
   const { data: stats, isLoading: statsLoading } = useDashboardStats();
   const { data: coverageData, isLoading: coverageLoading } = useCoverageData();
 
-  const swapRequests = data?.swapRequests || [];
-  const leaveRequests = data?.leaveRequests || [];
-
   const formatDate = useCallback((dateString: string) => {
     return formatDateUtil(dateString);
   }, []);
 
   // Merge and sort swap and leave requests - Requirements 3.2, 3.8
   const recentRequests = useMemo<UnifiedRequest[]>(() => {
+    const swapRequests = data?.swapRequests || [];
+    const leaveRequests = data?.leaveRequests || [];
+
     const swapUnified: UnifiedRequest[] = swapRequests.map((req) => ({
       id: req.id,
       type: 'swap' as const,
@@ -125,7 +125,7 @@ export default function Dashboard() {
     return [...swapUnified, ...leaveUnified]
       .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
       .slice(0, 10);
-  }, [swapRequests, leaveRequests, formatDate]);
+  }, [data?.swapRequests, data?.leaveRequests, formatDate]);
 
   return (
     <div className="space-y-6 pb-4">

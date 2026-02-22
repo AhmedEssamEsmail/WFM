@@ -1,0 +1,39 @@
+{
+  "thresholds": {
+    "overall": 70,
+    "services": 70,
+    "components": 70,
+    "utils": 70,
+    "criticalPaths": 90,
+    "newCode": 80
+  },
+  "priorities": {
+    "p0": ["src/services/**/*.ts", "src/lib/validations/**/*.ts"],
+    "p1": ["src/lib/utils/**/*.ts", "src/contexts/**/*.tsx"],
+    "p2": ["src/components/**/*.tsx"],
+    "p3": ["src/pages/**/*.tsx"]
+  },
+  "exclusions": [
+    "**/*.test.ts",
+    "**/*.test.tsx",
+    "src/test/**/*",
+    "src/vite-env.d.ts",
+    "vite.config.ts",
+    "tailwind.config.ts",
+    "postcss.config.js",
+    "eslint.config.js",
+    "**/*.d.ts"
+  ],
+  "propertyTestConfig": {
+    "numRuns": 100,
+    "maxSize": 50,
+    "seed": 42,
+    "timeout": 5000
+  },
+  "criticalPaths": [
+    "src/services/authService.ts",
+    "src/services/leaveRequestService.ts",
+    "src/services/swapRequestService.ts",
+    "src/services/breakScheduleService.ts"
+  ]
+}

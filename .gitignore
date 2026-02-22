@@ -35,6 +35,10 @@ dist-ssr
 # Build / test artifacts
 coverage
 .nyc_output
+coverage-report.json
+coverage-summary-temp.json
+slow-tests-report.json
+test-output.txt
 
 # Temporary files
 *.tmp

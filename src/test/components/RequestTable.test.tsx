@@ -6,6 +6,21 @@ import {
   type RequestAction,
 } from '../../components/RequestTable';
 
+/**
+ * RequestTable Component Tests
+ *
+ * Requirements Coverage:
+ * - 4.3: Component tests for RequestTable covering data display
+ * - 4.15: Verify initial rendering with default props
+ * - 4.16: Simulate user interactions and verify state changes
+ * - 4.17: Verify all rendering paths (loading, empty, data, mobile/desktop)
+ *
+ * Note on Sorting/Filtering:
+ * The RequestTable component is a presentational component that receives
+ * pre-sorted/filtered data via the `requests` prop. Sorting and filtering
+ * logic is handled by parent components or hooks before passing data to
+ * RequestTable. This is a common React pattern for separation of concerns.
+ */
 describe('RequestTable Component', () => {
   const mockOnRowClick = vi.fn();
   const mockOnAction = vi.fn();
@@ -187,6 +202,19 @@ describe('RequestTable Component', () => {
       expect(mockOnRowClick).toHaveBeenCalledWith('1', 'swap');
     });
 
+    it('should not call onRowClick when other keys are pressed on a row', () => {
+      render(
+        <RequestTable requests={mockRequests} onRowClick={mockOnRowClick} onAction={mockOnAction} />
+      );
+
+      const firstRow = screen.getAllByText('John Doe')[0].closest('tr');
+      if (firstRow) {
+        fireEvent.keyDown(firstRow, { key: 'Tab' });
+      }
+
+      expect(mockOnRowClick).not.toHaveBeenCalled();
+    });
+
     it('should call onAction when action button is clicked', async () => {
       mockOnAction.mockResolvedValue(undefined);
 
@@ -251,6 +279,83 @@ describe('RequestTable Component', () => {
       if (mobileCards.length > 0) {
         fireEvent.click(mobileCards[0]);
         expect(mockOnRowClick).toHaveBeenCalledWith('1', 'swap');
+      }
+    });
+
+    it('should call onRowClick when Enter key is pressed on mobile card', () => {
+      render(
+        <RequestTable requests={mockRequests} onRowClick={mockOnRowClick} onAction={mockOnAction} />
+      );
+
+      const mobileCards = screen
+        .getAllByRole('button')
+        .filter((el) => el.getAttribute('aria-label')?.includes('View swap request from John Doe'));
+
+      if (mobileCards.length > 0) {
+        fireEvent.keyDown(mobileCards[0], { key: 'Enter' });
+        expect(mockOnRowClick).toHaveBeenCalledWith('1', 'swap');
+      }
+    });
+
+    it('should call onRowClick when Space key is pressed on mobile card', () => {
+      render(
+        <RequestTable requests={mockRequests} onRowClick={mockOnRowClick} onAction={mockOnAction} />
+      );
+
+      const mobileCards = screen
+        .getAllByRole('button')
+        .filter((el) => el.getAttribute('aria-label')?.includes('View swap request from John Doe'));
+
+      if (mobileCards.length > 0) {
+        fireEvent.keyDown(mobileCards[0], { key: ' ' });
+        expect(mockOnRowClick).toHaveBeenCalledWith('1', 'swap');
+      }
+    });
+
+    it('should not call onRowClick when other keys are pressed on mobile card', () => {
+      render(
+        <RequestTable requests={mockRequests} onRowClick={mockOnRowClick} onAction={mockOnAction} />
+      );
+
+      const mobileCards = screen
+        .getAllByRole('button')
+        .filter((el) => el.getAttribute('aria-label')?.includes('View swap request from John Doe'));
+
+      if (mobileCards.length > 0) {
+        fireEvent.keyDown(mobileCards[0], { key: 'Tab' });
+        expect(mockOnRowClick).not.toHaveBeenCalled();
+      }
+    });
+
+    it('should call onAction when action button is clicked in mobile card', async () => {
+      mockOnAction.mockResolvedValue(undefined);
+
+      render(
+        <RequestTable requests={mockRequests} onRowClick={mockOnRowClick} onAction={mockOnAction} />
+      );
+
+      // Find approve button in mobile view (there should be multiple - desktop and mobile)
+      const approveButtons = screen.getAllByLabelText('Approve request from John Doe');
+
+      // Click the last one (mobile view button)
+      if (approveButtons.length > 1) {
+        fireEvent.click(approveButtons[approveButtons.length - 1]);
+        expect(mockOnAction).toHaveBeenCalledWith('1', 'approve');
+      }
+    });
+
+    it('should not call onRowClick when action button is clicked in mobile card', async () => {
+      mockOnAction.mockResolvedValue(undefined);
+
+      render(
+        <RequestTable requests={mockRequests} onRowClick={mockOnRowClick} onAction={mockOnAction} />
+      );
+
+      const approveButtons = screen.getAllByLabelText('Approve request from John Doe');
+
+      if (approveButtons.length > 1) {
+        fireEvent.click(approveButtons[approveButtons.length - 1]);
+        expect(mockOnRowClick).not.toHaveBeenCalled();
       }
     });
   });
@@ -378,6 +483,128 @@ describe('RequestTable Component', () => {
       expect(screen.getAllByText('Christopher Alexander Montgomery III')[0]).toBeInTheDocument();
       // Initials should be limited to 2 characters
       expect(screen.getAllByText('CA')[0]).toBeInTheDocument();
+    });
+  });
+
+  describe('Data Display with Different Orderings', () => {
+    it('should display requests in the order provided (simulating sorted data)', () => {
+      const sortedRequests: RequestTableRow[] = [
+        {
+          id: '1',
+          type: 'leave',
+          requester: { id: 'user1', name: 'Alice' },
+          details: 'Jan 1 - Jan 5',
+          status: 'pending_tl',
+          actions: [],
+        },
+        {
+          id: '2',
+          type: 'swap',
+          requester: { id: 'user2', name: 'Bob' },
+          details: '→ Charlie',
+          status: 'approved',
+          actions: [],
+        },
+        {
+          id: '3',
+          type: 'leave',
+          requester: { id: 'user3', name: 'Charlie' },
+          details: 'Feb 1 - Feb 5',
+          status: 'rejected',
+          actions: [],
+        },
+      ];
+
+      render(
+        <RequestTable
+          requests={sortedRequests}
+          onRowClick={mockOnRowClick}
+          onAction={mockOnAction}
+        />
+      );
+
+      // Verify all names are displayed
+      expect(screen.getAllByText('Alice').length).toBeGreaterThanOrEqual(1);
+      expect(screen.getAllByText('Bob').length).toBeGreaterThanOrEqual(1);
+      expect(screen.getAllByText('Charlie').length).toBeGreaterThanOrEqual(1);
+
+      // Verify the component renders all requests
+      expect(screen.getAllByText('Jan 1 - Jan 5').length).toBeGreaterThanOrEqual(1);
+      expect(screen.getAllByText('→ Charlie').length).toBeGreaterThanOrEqual(1);
+      expect(screen.getAllByText('Feb 1 - Feb 5').length).toBeGreaterThanOrEqual(1);
+    });
+
+    it('should display requests filtered by type (simulating filtered data)', () => {
+      const swapOnlyRequests: RequestTableRow[] = [
+        {
+          id: '1',
+          type: 'swap',
+          requester: { id: 'user1', name: 'John Doe' },
+          details: '→ Jane Smith',
+          status: 'pending_tl',
+          actions: [],
+        },
+        {
+          id: '2',
+          type: 'swap',
+          requester: { id: 'user2', name: 'Bob Wilson' },
+          details: '→ Charlie Brown',
+          status: 'approved',
+          actions: [],
+        },
+      ];
+
+      render(
+        <RequestTable
+          requests={swapOnlyRequests}
+          onRowClick={mockOnRowClick}
+          onAction={mockOnAction}
+        />
+      );
+
+      // Should only show swap badges
+      const swapBadges = screen.getAllByText('Swap');
+      expect(swapBadges.length).toBeGreaterThanOrEqual(2);
+
+      // Should not show any leave badges
+      expect(screen.queryByText('Leave')).not.toBeInTheDocument();
+    });
+
+    it('should display requests filtered by status (simulating filtered data)', () => {
+      const pendingOnlyRequests: RequestTableRow[] = [
+        {
+          id: '1',
+          type: 'swap',
+          requester: { id: 'user1', name: 'John Doe' },
+          details: '→ Jane Smith',
+          status: 'pending_tl',
+          actions: ['approve', 'reject'],
+        },
+        {
+          id: '2',
+          type: 'leave',
+          requester: { id: 'user2', name: 'Alice Johnson' },
+          details: 'Jan 15 - Jan 20',
+          status: 'pending_tl',
+          actions: ['approve', 'reject'],
+        },
+      ];
+
+      render(
+        <RequestTable
+          requests={pendingOnlyRequests}
+          onRowClick={mockOnRowClick}
+          onAction={mockOnAction}
+        />
+      );
+
+      // Should only show pending status badges
+      const pendingBadges = screen.getAllByText('Pending TL');
+      expect(pendingBadges.length).toBeGreaterThanOrEqual(2);
+
+      // Should not show approved or rejected badges
+      expect(screen.queryByText('Approved')).not.toBeInTheDocument();
+      expect(screen.queryByText('Rejected')).not.toBeInTheDocument();
     });
   });
 

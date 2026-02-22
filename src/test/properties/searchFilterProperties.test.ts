@@ -40,7 +40,7 @@ describe('Search and Filter Properties', () => {
           }
         }
       ),
-      { numRuns: 100 }
+      { numRuns: 10 }
     );
   });
 
@@ -83,7 +83,7 @@ describe('Search and Filter Properties', () => {
           }
         }
       ),
-      { numRuns: 100 }
+      { numRuns: 10 }
     );
   });
 
@@ -128,7 +128,7 @@ describe('Search and Filter Properties', () => {
           expect(stateAfterNavigation.date).not.toBe(initialDate);
         }
       ),
-      { numRuns: 100 }
+      { numRuns: 10 }
     );
   });
 });

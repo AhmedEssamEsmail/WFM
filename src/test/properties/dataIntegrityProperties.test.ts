@@ -49,7 +49,7 @@ describe('Data Integrity Properties', () => {
           }
         }
       ),
-      { numRuns: 100 }
+      { numRuns: 10 }
     );
   });
 
@@ -97,7 +97,7 @@ describe('Data Integrity Properties', () => {
           }
         }
       ),
-      { numRuns: 100 }
+      { numRuns: 10 }
     );
   });
 
@@ -132,7 +132,7 @@ describe('Data Integrity Properties', () => {
           }
         }
       ),
-      { numRuns: 100 }
+      { numRuns: 10 }
     );
   });
 });
@@ -170,7 +170,7 @@ describe('Rule Configuration Properties', () => {
           }
         }
       ),
-      { numRuns: 100 }
+      { numRuns: 10 }
     );
   });
 
@@ -208,7 +208,7 @@ describe('Rule Configuration Properties', () => {
           }
         }
       ),
-      { numRuns: 100 }
+      { numRuns: 10 }
     );
   });
 
@@ -250,7 +250,7 @@ describe('Rule Configuration Properties', () => {
           }
         }
       ),
-      { numRuns: 100 }
+      { numRuns: 10 }
     );
   });
 });

@@ -44,6 +44,11 @@ export default function SkillsFilter({ selectedSkillIds, onChange }: SkillsFilte
         type="button"
         id="skills-filter"
         onClick={() => setIsOpen(!isOpen)}
+        aria-label={
+          selectedSkills.length > 0
+            ? `${selectedSkills.length} skill${selectedSkills.length > 1 ? 's' : ''} selected`
+            : 'All skills'
+        }
         className="flex w-full items-center justify-between rounded-md border border-gray-300 bg-white px-3 py-2 text-left text-sm shadow-sm focus:border-primary-500 focus:ring-2 focus:ring-primary-500"
       >
         <span className="text-gray-700">

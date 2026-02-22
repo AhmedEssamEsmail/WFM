@@ -1,13 +1,112 @@
-// Property-Based Test Generators for Break Schedule Management
+/**
+ * Property-Based Test Generators for Break Schedule Management
+ *
+ * This module provides fast-check arbitraries (generators) for property-based testing
+ * of break schedule functionality. These generators create random but valid test data
+ * that conforms to business rules.
+ *
+ * ## What is Property-Based Testing?
+ *
+ * Property-based testing validates that certain properties (invariants) hold true
+ * for all possible inputs, not just specific examples. Instead of writing:
+ * ```typescript
+ * expect(parseTime('09:00')).toBe('09:00:00')
+ * ```
+ *
+ * You write:
+ * ```typescript
+ * fc.assert(fc.property(timeArb, (time) => {
+ *   const parsed = parseTime(time);
+ *   expect(parsed).toMatch(/^\d{2}:\d{2}:\d{2}$/);
+ * }));
+ * ```
+ *
+ * This runs 100+ times with different random times, catching edge cases you might miss.
+ *
+ * ## Usage Patterns
+ *
+ * ### 1. Basic Type Generators
+ * Use these for generating individual values:
+ * ```typescript
+ * fc.assert(fc.property(breakTypeArb, (breakType) => {
+ *   expect(['IN', 'HB1', 'B', 'HB2']).toContain(breakType);
+ * }));
+ * ```
+ *
+ * ### 2. Composite Generators
+ * Use these for generating complex objects:
+ * ```typescript
+ * fc.assert(fc.property(agentBreakScheduleArb, (agent) => {
+ *   // Test properties of the entire agent schedule
+ *   expect(agent.name).toBeTruthy();
+ * }));
+ * ```
+ *
+ * ### 3. CSV Testing
+ * Use CSV generators for round-trip testing:
+ * ```typescript
+ * fc.assert(fc.property(breakScheduleCSVDataArb, (data) => {
+ *   const csv = generateCSV(data);
+ *   const parsed = parseCSV(csv);
+ *   expect(parsed).toEqual(data);
+ * }));
+ * ```
+ */
 import * as fc from 'fast-check';
 import type { BreakType, ShiftType, AgentBreakSchedule, BreakScheduleRule } from '../../types';
 
-// Basic type generators
+/**
+ * Generates random break types (IN, HB1, B, HB2)
+ *
+ * @example
+ * ```typescript
+ * fc.assert(fc.property(breakTypeArb, (breakType) => {
+ *   expect(['IN', 'HB1', 'B', 'HB2']).toContain(breakType);
+ * }));
+ * ```
+ */
 export const breakTypeArb = fc.constantFrom<BreakType>('IN', 'HB1', 'B', 'HB2');
+
+/**
+ * Generates random shift types including OFF (AM, PM, BET, OFF)
+ *
+ * @example
+ * ```typescript
+ * fc.assert(fc.property(shiftTypeArb, (shift) => {
+ *   expect(['AM', 'PM', 'BET', 'OFF']).toContain(shift);
+ * }));
+ * ```
+ */
 export const shiftTypeArb = fc.constantFrom<ShiftType>('AM', 'PM', 'BET', 'OFF');
+
+/**
+ * Generates random working shift types excluding OFF (AM, PM, BET)
+ * Use this when testing break scheduling logic that doesn't apply to OFF shifts
+ *
+ * @example
+ * ```typescript
+ * fc.assert(fc.property(nonOffShiftTypeArb, (shift) => {
+ *   expect(shift).not.toBe('OFF');
+ * }));
+ * ```
+ */
 export const nonOffShiftTypeArb = fc.constantFrom<ShiftType>('AM', 'PM', 'BET');
 
-// Time generators (HH:MM format)
+/**
+ * Generates random times in HH:MM format within business hours (09:00-19:00)
+ * Times are in 15-minute intervals to match break scheduling constraints
+ *
+ * @example
+ * ```typescript
+ * fc.assert(fc.property(timeArb, (time) => {
+ *   expect(time).toMatch(/^\d{2}:\d{2}$/);
+ *   const [hours, minutes] = time.split(':').map(Number);
+ *   expect(hours).toBeGreaterThanOrEqual(9);
+ *   expect(hours).toBeLessThanOrEqual(19);
+ *   expect([0, 15, 30, 45]).toContain(minutes);
+ * }));
+ * ```
+ */
 export const timeArb = fc
   .tuple(
     fc.integer({ min: 9, max: 19 }), // hours 9-19 (to stay within all shift types)
@@ -15,25 +114,71 @@ export const timeArb = fc
   )
   .map(([h, m]) => `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`);
 
-// Time with seconds (HH:MM:SS format)
+/**
+ * Generates random times in HH:MM:SS format (adds :00 seconds to timeArb)
+ * Use this when testing functions that expect or return times with seconds
+ *
+ * @example
+ * ```typescript
+ * fc.assert(fc.property(timeWithSecondsArb, (time) => {
+ *   expect(time).toMatch(/^\d{2}:\d{2}:\d{2}$/);
+ *   expect(time.endsWith(':00')).toBe(true);
+ * }));
+ * ```
+ */
 export const timeWithSecondsArb = timeArb.map((t) => `${t}:00`);
 
-// Date generator (ISO format)
+/**
+ * Generates random dates in ISO format (YYYY-MM-DD) between 2024-2026
+ * Filters out invalid dates (NaN timestamps)
+ *
+ * @example
+ * ```typescript
+ * fc.assert(fc.property(dateArb, (date) => {
+ *   expect(date).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+ *   expect(new Date(date).getTime()).not.toBeNaN();
+ * }));
+ * ```
+ */
 export const dateArb = fc
   .date({ min: new Date('2024-01-01'), max: new Date('2026-12-31') })
   .filter((d) => !isNaN(d.getTime()))
   .map((d) => d.toISOString().split('T')[0]);
 
-// UUID generator
+/**
+ * Generates random UUIDs using fast-check's built-in UUID generator
+ *
+ * @example
+ * ```typescript
+ * fc.assert(fc.property(uuidArb, (uuid) => {
+ *   expect(uuid).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i);
+ * }));
+ * ```
+ */
 export const uuidArb = fc.uuid();
 
-// Department generator
+/**
+ * Generates random department names from a predefined list
+ */
 export const departmentArb = fc.constantFrom('Sales', 'Support', 'Customer Success', 'Engineering');
 
-// User role generator
+/**
+ * Generates random user roles (agent, tl, wfm)
+ */
 export const userRoleArb = fc.constantFrom('agent', 'tl', 'wfm');
 
-// Agent name generator
+/**
+ * Generates random agent names by combining first and last names
+ * Produces realistic-looking names for test data
+ *
+ * @example
+ * ```typescript
+ * fc.assert(fc.property(agentNameArb, (name) => {
+ *   expect(name).toContain(' '); // Has space between first and last
+ *   expect(name.split(' ')).toHaveLength(2);
+ * }));
+ * ```
+ */
 export const agentNameArb = fc
   .tuple(
     fc.constantFrom('John', 'Jane', 'Mike', 'Sarah', 'Tom', 'Lisa'),
@@ -41,7 +186,21 @@ export const agentNameArb = fc
   )
   .map(([first, last]) => `${first} ${last}`);
 
-// Break times generator (ensures proper ordering)
+/**
+ * Generates ordered break times ensuring HB1 < B < HB2
+ * Times are represented as minutes from shift start
+ *
+ * This generator ensures breaks are in the correct order, which is a business rule
+ * that must always be satisfied.
+ *
+ * @example
+ * ```typescript
+ * fc.assert(fc.property(orderedBreakTimesArb, (times) => {
+ *   expect(times.hb1).toBeLessThan(times.b);
+ *   expect(times.b).toBeLessThan(times.hb2);
+ * }));
+ * ```
+ */
 export const orderedBreakTimesArb = fc
   .record({
     hb1: fc.integer({ min: 0, max: 200 }), // minutes from shift start
@@ -50,7 +209,20 @@ export const orderedBreakTimesArb = fc
   })
   .filter((times) => times.hb1 < times.b && times.b < times.hb2);
 
-// Convert minutes to time string
+/**
+ * Converts minutes from shift start to HH:MM time string
+ * Assumes shifts start at 09:00 and rounds to 15-minute intervals
+ *
+ * @param minutes - Minutes elapsed since shift start (09:00)
+ * @returns Time string in HH:MM format
+ *
+ * @example
+ * ```typescript
+ * minutesToTime(0)   // '09:00' (shift start)
+ * minutesToTime(90)  // '10:30' (90 minutes later)
+ * minutesToTime(180) // '12:00' (3 hours later)
+ * ```
+ */
 export function minutesToTime(minutes: number): string {
   const hours = Math.floor(minutes / 60) + 9; // Start from 9:00
   const mins = minutes % 60;
@@ -183,5 +355,75 @@ export const coverageSummaryArb = fc.dictionary(
     hb1: fc.integer({ min: 0, max: 5 }),
     b: fc.integer({ min: 0, max: 5 }),
     hb2: fc.integer({ min: 0, max: 5 }),
+  })
+);
+
+// CSV Break Schedule Data Generator for Property-Based Testing
+// Used for testing CSV round-trip properties
+
+/**
+ * Generates valid break schedule data for CSV testing
+ * Ensures data conforms to expected CSV format
+ */
+export const breakScheduleCSVDataArb = fc
+  .record({
+    agent_name: agentNameArb,
+    date: dateArb,
+    shift: nonOffShiftTypeArb,
+    hb1_start: fc.option(timeArb, { nil: null }),
+    b_start: fc.option(timeArb, { nil: null }),
+    hb2_start: fc.option(timeArb, { nil: null }),
+  })
+  .filter((data) => {
+    // Ensure all break times are different (no duplicates)
+    const times = [data.hb1_start, data.b_start, data.hb2_start].filter((t) => t !== null);
+    const uniqueTimes = new Set(times);
+    return times.length === uniqueTimes.size;
+  });
+
+/**
+ * Generates an array of break schedule data for CSV testing
+ * Useful for testing CSV parsing with multiple rows
+ */
+export const breakScheduleCSVArrayArb = fc.array(breakScheduleCSVDataArb, {
+  minLength: 1,
+  maxLength: 20,
+});
+
+/**
+ * Generates invalid CSV data for error handling tests
+ * Tests various malformed inputs
+ */
+export const invalidCSVDataArb = fc.oneof(
+  // Empty string
+  fc.constant(''),
+  // Header only
+  fc.constant('agent_name,date,shift,hb1_start,b_start,hb2_start'),
+  // Invalid date format
+  fc.record({
+    agent_name: agentNameArb,
+    date: fc.constantFrom('2024/01/01', '01-01-2024', 'invalid-date'),
+    shift: nonOffShiftTypeArb,
+    hb1_start: fc.option(timeArb, { nil: null }),
+    b_start: fc.option(timeArb, { nil: null }),
+    hb2_start: fc.option(timeArb, { nil: null }),
+  }),
+  // Invalid time format
+  fc.record({
+    agent_name: agentNameArb,
+    date: dateArb,
+    shift: nonOffShiftTypeArb,
+    hb1_start: fc.constantFrom('25:00', '12:60', 'invalid-time'),
+    b_start: fc.option(timeArb, { nil: null }),
+    hb2_start: fc.option(timeArb, { nil: null }),
+  }),
+  // Missing required fields
+  fc.record({
+    agent_name: fc.constant(''),
+    date: dateArb,
+    shift: nonOffShiftTypeArb,
+    hb1_start: fc.option(timeArb, { nil: null }),
+    b_start: fc.option(timeArb, { nil: null }),
+    hb2_start: fc.option(timeArb, { nil: null }),
   })
 );

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useToast } from '../../contexts/ToastContext';
 import { breakRulesService } from '../../services';
 import type { BreakScheduleRule } from '../../types';
@@ -12,11 +12,7 @@ export default function BreakScheduleSettings() {
   const [loadingBreakRules, setLoadingBreakRules] = useState(false);
   const [activeSection, setActiveSection] = useState<'rules' | 'distribution'>('distribution');
 
-  useEffect(() => {
-    fetchBreakRules();
-  }, []);
-
-  async function fetchBreakRules() {
+  const fetchBreakRules = useCallback(async () => {
     setLoadingBreakRules(true);
     try {
       const data = await breakRulesService.getRules();
@@ -27,7 +23,11 @@ export default function BreakScheduleSettings() {
     } finally {
       setLoadingBreakRules(false);
     }
-  }
+  }, [showError]);
+
+  useEffect(() => {
+    fetchBreakRules();
+  }, [fetchBreakRules]);
 
   async function handleUpdateRule(ruleId: string, updates: Partial<BreakScheduleRule>) {
     try {

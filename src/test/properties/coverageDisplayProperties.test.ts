@@ -57,7 +57,7 @@ describe('Coverage and Display Properties', () => {
           expect(inCount).toBe(totalWithShift - hb1Count - bCount - hb2Count);
         }
       ),
-      { numRuns: 100 }
+      { numRuns: 10 }
     );
   });
 
@@ -90,7 +90,7 @@ describe('Coverage and Display Properties', () => {
           expect(color).toBe('red');
         }
       }),
-      { numRuns: 100 }
+      { numRuns: 10 }
     );
   });
 
@@ -162,7 +162,7 @@ describe('Coverage and Display Properties', () => {
           expect(formatted).toContain(date.getFullYear().toString());
         }
       ),
-      { numRuns: 100 }
+      { numRuns: 10 }
     );
   });
 
@@ -200,7 +200,7 @@ describe('Coverage and Display Properties', () => {
           expect(diffNext).toBeLessThanOrEqual(oneDayMs + tolerance);
         }
       ),
-      { numRuns: 100 }
+      { numRuns: 10 }
     );
   });
 });

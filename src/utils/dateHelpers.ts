@@ -4,7 +4,6 @@ import {
   format,
   parseISO,
   isValid,
-  differenceInDays,
   differenceInCalendarDays,
   addDays,
   subDays,
@@ -234,7 +233,7 @@ export function getRelativeTimeString(date: string | Date): string {
     if (!isValid(dateObj)) return '';
 
     const now = new Date();
-    const days = differenceInDays(now, dateObj);
+    const days = differenceInCalendarDays(now, dateObj);
 
     if (days === 0) return 'Today';
     if (days === 1) return 'Yesterday';

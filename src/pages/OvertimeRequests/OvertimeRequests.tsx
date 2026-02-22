@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import { useOvertimeRequests } from '../../hooks/useOvertimeRequests';
@@ -48,7 +48,7 @@ export default function OvertimeRequests() {
     });
 
   // Calculate date range based on preset
-  const getDateRange = () => {
+  const getDateRange = useCallback(() => {
     if (dateRange === 'custom') {
       return { from: dateFrom, to: dateTo };
     }
@@ -69,7 +69,7 @@ export default function OvertimeRequests() {
     }
 
     return { from: '', to: '' };
-  };
+  }, [dateRange, dateFrom, dateTo]);
 
   // Apply filters to requests
   const filteredRequests = useMemo(() => {
@@ -127,11 +127,9 @@ export default function OvertimeRequests() {
     isManager,
     user,
     statusFilter,
-    dateRange,
-    dateFrom,
-    dateTo,
     agentSearch,
     departmentFilter,
+    getDateRange,
   ]);
 
   // Get unique departments for filter

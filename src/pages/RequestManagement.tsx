@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { RequestTable, type RequestTableRow, type RequestAction } from '../components/RequestTable';
 import { useSwapRequests } from '../hooks/useSwapRequests';
@@ -70,26 +70,26 @@ export default function RequestManagement() {
   };
 
   // Determine available actions based on user role and request status
-  const getAvailableActions = (
-    status: SwapRequestStatus | LeaveRequestStatus,
-    _requesterId: string
-  ): RequestAction[] => {
-    const actions: RequestAction[] = [];
+  const getAvailableActions = useCallback(
+    (status: SwapRequestStatus | LeaveRequestStatus, _requesterId: string): RequestAction[] => {
+      const actions: RequestAction[] = [];
 
-    // Requirement 11.1: Approve/Reject for TL/WFM on pending requests
-    if (user && (user.role === 'tl' || user.role === 'wfm')) {
-      if (status === 'pending_tl' || status === 'pending_wfm') {
-        actions.push('approve', 'reject');
+      // Requirement 11.1: Approve/Reject for TL/WFM on pending requests
+      if (user && (user.role === 'tl' || user.role === 'wfm')) {
+        if (status === 'pending_tl' || status === 'pending_wfm') {
+          actions.push('approve', 'reject');
+        }
+
+        // Requirement 11.2: Revoke only for approved or rejected requests (WFM only)
+        if (user.role === 'wfm' && (status === 'approved' || status === 'rejected')) {
+          actions.push('revoke');
+        }
       }
 
-      // Requirement 11.2: Revoke only for approved or rejected requests (WFM only)
-      if (user.role === 'wfm' && (status === 'approved' || status === 'rejected')) {
-        actions.push('revoke');
-      }
-    }
-
-    return actions;
-  };
+      return actions;
+    },
+    [user]
+  );
 
   // Status priority for sorting
   const getStatusPriority = (status: RequestStatus): number => {
@@ -131,7 +131,7 @@ export default function RequestManagement() {
     }));
 
     return [...swapRows, ...leaveRows];
-  }, [swapRequests, leaveRequests, user]);
+  }, [swapRequests, leaveRequests, getAvailableActions]);
 
   // Apply filters and sort
   const filteredRequests = useMemo(() => {

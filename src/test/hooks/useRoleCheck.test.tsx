@@ -29,7 +29,7 @@ const mockWFM: User = {
   created_at: '2024-01-01',
 };
 
-const createWrapper = (user: User | null, loading = false) => {
+const createQueryWrapper = (user: User | null, loading = false) => {
   return ({ children }: { children: React.ReactNode }) => (
     <AuthContext.Provider
       value={{
@@ -52,7 +52,7 @@ describe('useRoleCheck Hook', () => {
   describe('Convenience boolean properties', () => {
     it('should identify agent role correctly', () => {
       const { result } = renderHook(() => useRoleCheck(), {
-        wrapper: createWrapper(mockAgent),
+        wrapper: createQueryWrapper(mockAgent),
       });
 
       expect(result.current.isAgent).toBe(true);
@@ -63,7 +63,7 @@ describe('useRoleCheck Hook', () => {
 
     it('should identify TL role correctly', () => {
       const { result } = renderHook(() => useRoleCheck(), {
-        wrapper: createWrapper(mockTL),
+        wrapper: createQueryWrapper(mockTL),
       });
 
       expect(result.current.isAgent).toBe(false);
@@ -74,7 +74,7 @@ describe('useRoleCheck Hook', () => {
 
     it('should identify WFM role correctly', () => {
       const { result } = renderHook(() => useRoleCheck(), {
-        wrapper: createWrapper(mockWFM),
+        wrapper: createQueryWrapper(mockWFM),
       });
 
       expect(result.current.isAgent).toBe(false);
@@ -87,7 +87,7 @@ describe('useRoleCheck Hook', () => {
   describe('hasRole function', () => {
     it('should return true when user has the single specified role', () => {
       const { result } = renderHook(() => useRoleCheck(), {
-        wrapper: createWrapper(mockAgent),
+        wrapper: createQueryWrapper(mockAgent),
       });
 
       expect(result.current.hasRole('agent')).toBe(true);
@@ -97,7 +97,7 @@ describe('useRoleCheck Hook', () => {
 
     it('should return true when user role is in the array', () => {
       const { result } = renderHook(() => useRoleCheck(), {
-        wrapper: createWrapper(mockTL),
+        wrapper: createQueryWrapper(mockTL),
       });
 
       expect(result.current.hasRole(['tl', 'wfm'])).toBe(true);
@@ -107,13 +107,13 @@ describe('useRoleCheck Hook', () => {
 
     it('should work with all role combinations', () => {
       const agentHook = renderHook(() => useRoleCheck(), {
-        wrapper: createWrapper(mockAgent),
+        wrapper: createQueryWrapper(mockAgent),
       });
       const tlHook = renderHook(() => useRoleCheck(), {
-        wrapper: createWrapper(mockTL),
+        wrapper: createQueryWrapper(mockTL),
       });
       const wfmHook = renderHook(() => useRoleCheck(), {
-        wrapper: createWrapper(mockWFM),
+        wrapper: createQueryWrapper(mockWFM),
       });
 
       // Test agent
@@ -133,7 +133,7 @@ describe('useRoleCheck Hook', () => {
   describe('hasAnyRole function', () => {
     it('should return true when user has at least one of the specified roles', () => {
       const { result } = renderHook(() => useRoleCheck(), {
-        wrapper: createWrapper(mockTL),
+        wrapper: createQueryWrapper(mockTL),
       });
 
       expect(result.current.hasAnyRole(['tl', 'wfm'])).toBe(true);
@@ -143,7 +143,7 @@ describe('useRoleCheck Hook', () => {
 
     it('should return false when user has none of the specified roles', () => {
       const { result } = renderHook(() => useRoleCheck(), {
-        wrapper: createWrapper(mockAgent),
+        wrapper: createQueryWrapper(mockAgent),
       });
 
       expect(result.current.hasAnyRole(['tl', 'wfm'])).toBe(false);
@@ -153,7 +153,7 @@ describe('useRoleCheck Hook', () => {
   describe('hasAllRoles function', () => {
     it('should return true only when array has single role matching user role', () => {
       const { result } = renderHook(() => useRoleCheck(), {
-        wrapper: createWrapper(mockAgent),
+        wrapper: createQueryWrapper(mockAgent),
       });
 
       expect(result.current.hasAllRoles(['agent'])).toBe(true);
@@ -162,7 +162,7 @@ describe('useRoleCheck Hook', () => {
 
     it('should return false when array has multiple roles', () => {
       const { result } = renderHook(() => useRoleCheck(), {
-        wrapper: createWrapper(mockTL),
+        wrapper: createQueryWrapper(mockTL),
       });
 
       // Even though user is TL, hasAllRoles returns false for multiple roles
@@ -175,7 +175,7 @@ describe('useRoleCheck Hook', () => {
   describe('Error handling', () => {
     it('should return safe defaults during loading state', () => {
       const { result } = renderHook(() => useRoleCheck(), {
-        wrapper: createWrapper(null, true), // loading = true
+        wrapper: createQueryWrapper(null, true), // loading = true
       });
 
       expect(result.current.isAgent).toBe(false);
@@ -195,7 +195,7 @@ describe('useRoleCheck Hook', () => {
       const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 
       const { result } = renderHook(() => useRoleCheck(), {
-        wrapper: createWrapper(null, false), // loading = false, user = null
+        wrapper: createQueryWrapper(null, false), // loading = false, user = null
       });
 
       // Should log error in development
@@ -216,7 +216,7 @@ describe('useRoleCheck Hook', () => {
       process.env.NODE_ENV = 'production';
 
       const { result } = renderHook(() => useRoleCheck(), {
-        wrapper: createWrapper(null, false), // loading = false, user = null
+        wrapper: createQueryWrapper(null, false), // loading = false, user = null
       });
 
       expect(result.current.isAgent).toBe(false);

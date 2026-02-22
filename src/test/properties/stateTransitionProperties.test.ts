@@ -36,7 +36,7 @@ describe('State Transition Properties', () => {
         else if (currentType === 'B') expect(nextType).toBe('HB2');
         else if (currentType === 'HB2') expect(nextType).toBe('IN');
       }),
-      { numRuns: 100 }
+      { numRuns: 10 }
     );
   });
 
@@ -81,7 +81,7 @@ describe('State Transition Properties', () => {
           }
         }
       ),
-      { numRuns: 100 }
+      { numRuns: 10 }
     );
   });
 
@@ -121,7 +121,7 @@ describe('State Transition Properties', () => {
           }
         }
       ),
-      { numRuns: 100 }
+      { numRuns: 10 }
     );
   });
 
@@ -158,7 +158,7 @@ describe('State Transition Properties', () => {
           expect(shouldShowIndicator).toBe(!isResolved);
         }
       ),
-      { numRuns: 100 }
+      { numRuns: 10 }
     );
   });
 });

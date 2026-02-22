@@ -2,140 +2,279 @@ import { describe, it, expect } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { CoverageChart } from '../../components/CoverageChart';
 
-describe('CoverageChart Component', () => {
+describe('CoverageChart', () => {
   const mockData = [
-    { day: 'Mon', count: 25, level: 'adequate' as const },
-    { day: 'Tue', count: 18, level: 'low' as const },
-    { day: 'Wed', count: 12, level: 'critical' as const },
-    { day: 'Thu', count: 22, level: 'adequate' as const },
-    { day: 'Fri', count: 16, level: 'low' as const },
-    { day: 'Sat', count: 20, level: 'adequate' as const },
-    { day: 'Sun', count: 15, level: 'low' as const },
+    { day: 'Mon', count: 15, level: 'adequate' as const },
+    { day: 'Tue', count: 10, level: 'low' as const },
+    { day: 'Wed', count: 5, level: 'critical' as const },
+    { day: 'Thu', count: 13, level: 'adequate' as const },
+    { day: 'Fri', count: 8, level: 'low' as const },
+    { day: 'Sat', count: 12, level: 'adequate' as const },
+    { day: 'Sun', count: 6, level: 'critical' as const },
   ];
 
-  it('should render the component with title', () => {
-    render(<CoverageChart data={mockData} />);
-    expect(screen.getByText('Coverage Overview')).toBeInTheDocument();
+  describe('Chart Rendering', () => {
+    it('should render chart with data', () => {
+      render(<CoverageChart data={mockData} />);
+
+      // Verify title is rendered
+      expect(screen.getByText('Coverage Overview')).toBeInTheDocument();
+
+      // Verify all days are rendered
+      mockData.forEach((item) => {
+        expect(screen.getByText(item.day)).toBeInTheDocument();
+      });
+
+      // Verify all counts are rendered
+      mockData.forEach((item) => {
+        expect(screen.getByText(item.count.toString())).toBeInTheDocument();
+      });
+    });
+
+    it('should render bars with correct heights proportional to max value', () => {
+      const { container } = render(<CoverageChart data={mockData} />);
+      const bars = container.querySelectorAll('[role="img"]');
+
+      expect(bars).toHaveLength(mockData.length);
+
+      // The highest value (15) should have 100% height
+      const maxBar = bars[0] as HTMLElement;
+      expect(maxBar.style.height).toBe('100%');
+    });
+
+    it('should render bars with correct colors based on level', () => {
+      const { container } = render(<CoverageChart data={mockData} />);
+      const bars = container.querySelectorAll('[role="img"]');
+
+      // Check adequate level (green)
+      expect(bars[0]).toHaveClass('bg-green-500');
+
+      // Check low level (yellow)
+      expect(bars[1]).toHaveClass('bg-yellow-500');
+
+      // Check critical level (red)
+      expect(bars[2]).toHaveClass('bg-red-500');
+    });
+
+    it('should handle empty data array', () => {
+      render(<CoverageChart data={[]} />);
+
+      // Title should still render
+      expect(screen.getByText('Coverage Overview')).toBeInTheDocument();
+
+      // Legend should still render
+      expect(screen.getByText(/Adequate/)).toBeInTheDocument();
+    });
+
+    it('should handle single data point', () => {
+      const singleData = [{ day: 'Mon', count: 10, level: 'low' as const }];
+      render(<CoverageChart data={singleData} />);
+
+      expect(screen.getByText('Mon')).toBeInTheDocument();
+      expect(screen.getByText('10')).toBeInTheDocument();
+    });
+
+    it('should handle zero count values', () => {
+      const zeroData = [
+        { day: 'Mon', count: 0, level: 'critical' as const },
+        { day: 'Tue', count: 5, level: 'critical' as const },
+      ];
+      const { container } = render(<CoverageChart data={zeroData} />);
+      const bars = container.querySelectorAll('[role="img"]');
+
+      // Zero count bar should have 0% height
+      const zeroBar = bars[0] as HTMLElement;
+      expect(zeroBar.style.height).toBe('0%');
+      expect(zeroBar.style.minHeight).toBe('0');
+    });
+
+    it('should apply minimum height to non-zero bars', () => {
+      const smallData = [
+        { day: 'Mon', count: 1, level: 'critical' as const },
+        { day: 'Tue', count: 100, level: 'adequate' as const },
+      ];
+      const { container } = render(<CoverageChart data={smallData} />);
+      const bars = container.querySelectorAll('[role="img"]');
+
+      // Small bar should have minimum height of 24px
+      const smallBar = bars[0] as HTMLElement;
+      expect(smallBar.style.minHeight).toBe('24px');
+    });
   });
 
-  it('should display all day labels', () => {
-    render(<CoverageChart data={mockData} />);
+  describe('Legend Display', () => {
+    it('should render legend with all coverage levels', () => {
+      render(<CoverageChart data={mockData} />);
 
-    expect(screen.getByText('Mon')).toBeInTheDocument();
-    expect(screen.getByText('Tue')).toBeInTheDocument();
-    expect(screen.getByText('Wed')).toBeInTheDocument();
-    expect(screen.getByText('Thu')).toBeInTheDocument();
-    expect(screen.getByText('Fri')).toBeInTheDocument();
-    expect(screen.getByText('Sat')).toBeInTheDocument();
-    expect(screen.getByText('Sun')).toBeInTheDocument();
+      // Check all legend items are present
+      expect(screen.getByText(/Adequate/)).toBeInTheDocument();
+      expect(screen.getByText(/Low/)).toBeInTheDocument();
+      expect(screen.getByText(/Critical/)).toBeInTheDocument();
+    });
+
+    it('should render legend color indicators', () => {
+      const { container } = render(<CoverageChart data={mockData} />);
+      const legendColors = container.querySelectorAll('.h-4.w-4.rounded');
+
+      expect(legendColors).toHaveLength(3);
+      expect(legendColors[0]).toHaveClass('bg-green-500');
+      expect(legendColors[1]).toHaveClass('bg-yellow-500');
+      expect(legendColors[2]).toHaveClass('bg-red-500');
+    });
+
+    it('should mark legend color indicators as decorative', () => {
+      const { container } = render(<CoverageChart data={mockData} />);
+      const legendColors = container.querySelectorAll('.h-4.w-4.rounded');
+
+      legendColors.forEach((color) => {
+        expect(color).toHaveAttribute('aria-hidden', 'true');
+      });
+    });
   });
 
-  it('should display coverage counts for each day', () => {
-    render(<CoverageChart data={mockData} />);
+  describe('Accessibility Attributes', () => {
+    it('should have region role with descriptive label', () => {
+      const { container } = render(<CoverageChart data={mockData} />);
+      const region = container.querySelector('[role="region"]');
 
-    expect(screen.getByText('25')).toBeInTheDocument();
-    expect(screen.getByText('18')).toBeInTheDocument();
-    expect(screen.getByText('12')).toBeInTheDocument();
-    expect(screen.getByText('22')).toBeInTheDocument();
-    expect(screen.getByText('16')).toBeInTheDocument();
-    expect(screen.getByText('20')).toBeInTheDocument();
-    expect(screen.getByText('15')).toBeInTheDocument();
+      expect(region).toBeInTheDocument();
+      expect(region).toHaveAttribute('aria-label', 'Weekly staffing coverage overview');
+    });
+
+    it('should have ARIA labels on bars with complete information', () => {
+      render(<CoverageChart data={mockData} />);
+
+      // Check first bar has descriptive label
+      const monBar = screen.getByLabelText('Mon: 15 staff, adequate coverage');
+      expect(monBar).toBeInTheDocument();
+
+      // Check critical level bar
+      const wedBar = screen.getByLabelText('Wed: 5 staff, critical coverage');
+      expect(wedBar).toBeInTheDocument();
+
+      // Check low level bar
+      const tueBar = screen.getByLabelText('Tue: 10 staff, low coverage');
+      expect(tueBar).toBeInTheDocument();
+    });
+
+    it('should mark bars with img role for screen readers', () => {
+      const { container } = render(<CoverageChart data={mockData} />);
+      const bars = container.querySelectorAll('[role="img"]');
+
+      expect(bars).toHaveLength(mockData.length);
+      bars.forEach((bar) => {
+        expect(bar).toHaveAttribute('aria-label');
+      });
+    });
   });
 
-  it('should render bars with appropriate ARIA labels', () => {
-    render(<CoverageChart data={mockData} />);
+  describe('Responsive Behavior', () => {
+    it('should have horizontal scrolling container', () => {
+      const { container } = render(<CoverageChart data={mockData} />);
+      const scrollContainer = container.querySelector('.overflow-x-auto');
 
-    expect(screen.getByLabelText('Mon: 25 staff, adequate coverage')).toBeInTheDocument();
-    expect(screen.getByLabelText('Tue: 18 staff, low coverage')).toBeInTheDocument();
-    expect(screen.getByLabelText('Wed: 12 staff, critical coverage')).toBeInTheDocument();
+      expect(scrollContainer).toBeInTheDocument();
+    });
+
+    it('should have minimum width for chart content', () => {
+      const { container } = render(<CoverageChart data={mockData} />);
+      const chartContent = container.querySelector('.min-w-\\[400px\\]');
+
+      expect(chartContent).toBeInTheDocument();
+    });
+
+    it('should maintain chart structure with many data points', () => {
+      const manyDays = Array.from({ length: 14 }, (_, i) => ({
+        day: `Day${i + 1}`,
+        count: Math.floor(Math.random() * 20),
+        level: 'adequate' as const,
+      }));
+
+      render(<CoverageChart data={manyDays} />);
+
+      // All days should render
+      manyDays.forEach((item) => {
+        expect(screen.getByText(item.day)).toBeInTheDocument();
+      });
+    });
   });
 
-  it('should display legend with all coverage levels', () => {
-    render(<CoverageChart data={mockData} />);
+  describe('Visual Styling', () => {
+    it('should have card styling with shadow and padding', () => {
+      const { container } = render(<CoverageChart data={mockData} />);
+      const card = container.querySelector('.rounded-lg.bg-white.p-6.shadow');
 
-    expect(screen.getByText('Adequate (>12)')).toBeInTheDocument();
-    expect(screen.getByText('Low (8-12)')).toBeInTheDocument();
-    expect(screen.getByText('Critical (<8)')).toBeInTheDocument();
+      expect(card).toBeInTheDocument();
+    });
+
+    it('should apply transition animation to bars', () => {
+      const { container } = render(<CoverageChart data={mockData} />);
+      const bars = container.querySelectorAll('[role="img"]');
+
+      bars.forEach((bar) => {
+        expect(bar).toHaveClass('transition-all');
+        expect(bar).toHaveClass('duration-300');
+      });
+    });
+
+    it('should have rounded tops on bars', () => {
+      const { container } = render(<CoverageChart data={mockData} />);
+      const bars = container.querySelectorAll('[role="img"]');
+
+      bars.forEach((bar) => {
+        expect(bar).toHaveClass('rounded-t');
+      });
+    });
   });
 
-  it('should render with empty data', () => {
-    render(<CoverageChart data={[]} />);
+  describe('Data Scaling', () => {
+    it('should scale bars relative to maximum value', () => {
+      const scaledData = [
+        { day: 'Mon', count: 20, level: 'adequate' as const },
+        { day: 'Tue', count: 10, level: 'low' as const },
+        { day: 'Wed', count: 5, level: 'critical' as const },
+      ];
+      const { container } = render(<CoverageChart data={scaledData} />);
+      const bars = container.querySelectorAll('[role="img"]');
 
-    expect(screen.getByText('Coverage Overview')).toBeInTheDocument();
-    expect(screen.getByText('Adequate (>12)')).toBeInTheDocument();
-  });
+      // Max value (20) should be 100%
+      expect((bars[0] as HTMLElement).style.height).toBe('100%');
 
-  it('should render with single day data', () => {
-    const singleDayData = [{ day: 'Mon', count: 20, level: 'adequate' as const }];
-    render(<CoverageChart data={singleDayData} />);
+      // Half of max (10) should be 50%
+      expect((bars[1] as HTMLElement).style.height).toBe('50%');
 
-    expect(screen.getByText('Mon')).toBeInTheDocument();
-    expect(screen.getByText('20')).toBeInTheDocument();
-  });
+      // Quarter of max (5) should be 25%
+      expect((bars[2] as HTMLElement).style.height).toBe('25%');
+    });
 
-  it('should handle zero count', () => {
-    const zeroData = [{ day: 'Mon', count: 0, level: 'critical' as const }];
-    render(<CoverageChart data={zeroData} />);
+    it('should handle all equal values', () => {
+      const equalData = [
+        { day: 'Mon', count: 10, level: 'adequate' as const },
+        { day: 'Tue', count: 10, level: 'adequate' as const },
+        { day: 'Wed', count: 10, level: 'adequate' as const },
+      ];
+      const { container } = render(<CoverageChart data={equalData} />);
+      const bars = container.querySelectorAll('[role="img"]');
 
-    expect(screen.getByText('Mon')).toBeInTheDocument();
-    expect(screen.getByText('0')).toBeInTheDocument();
-  });
+      // All bars should be 100% height
+      bars.forEach((bar) => {
+        expect((bar as HTMLElement).style.height).toBe('100%');
+      });
+    });
 
-  it('should apply correct color classes for adequate coverage', () => {
-    const adequateData = [{ day: 'Mon', count: 25, level: 'adequate' as const }];
-    const { container } = render(<CoverageChart data={adequateData} />);
+    it('should handle all zero values', () => {
+      const zeroData = [
+        { day: 'Mon', count: 0, level: 'critical' as const },
+        { day: 'Tue', count: 0, level: 'critical' as const },
+      ];
+      const { container } = render(<CoverageChart data={zeroData} />);
+      const bars = container.querySelectorAll('[role="img"]');
 
-    const bar = container.querySelector('.bg-green-500');
-    expect(bar).toBeInTheDocument();
-  });
-
-  it('should apply correct color classes for low coverage', () => {
-    const lowData = [{ day: 'Tue', count: 18, level: 'low' as const }];
-    const { container } = render(<CoverageChart data={lowData} />);
-
-    const bar = container.querySelector('.bg-yellow-500');
-    expect(bar).toBeInTheDocument();
-  });
-
-  it('should apply correct color classes for critical coverage', () => {
-    const criticalData = [{ day: 'Wed', count: 12, level: 'critical' as const }];
-    const { container } = render(<CoverageChart data={criticalData} />);
-
-    const bar = container.querySelector('.bg-red-500');
-    expect(bar).toBeInTheDocument();
-  });
-
-  it('should have region role for accessibility', () => {
-    render(<CoverageChart data={mockData} />);
-
-    const region = screen.getByRole('region', { name: 'Weekly staffing coverage overview' });
-    expect(region).toBeInTheDocument();
-  });
-
-  it('should render with horizontal scrolling container', () => {
-    const { container } = render(<CoverageChart data={mockData} />);
-
-    const scrollContainer = container.querySelector('.overflow-x-auto');
-    expect(scrollContainer).toBeInTheDocument();
-  });
-
-  it('should scale bars proportionally to max count', () => {
-    const { container } = render(<CoverageChart data={mockData} />);
-
-    // The bar with count 25 (max) should have height 100%
-    // The bar with count 12 should have height ~48% (12/25 * 100)
-    const bars = container.querySelectorAll('[role="img"]');
-    expect(bars.length).toBe(7);
-  });
-
-  it('should handle large count values', () => {
-    const largeData = [
-      { day: 'Mon', count: 100, level: 'adequate' as const },
-      { day: 'Tue', count: 50, level: 'adequate' as const },
-    ];
-    render(<CoverageChart data={largeData} />);
-
-    expect(screen.getByText('100')).toBeInTheDocument();
-    expect(screen.getByText('50')).toBeInTheDocument();
+      // All bars should be 0% height with no minimum
+      bars.forEach((bar) => {
+        expect((bar as HTMLElement).style.height).toBe('0%');
+        expect((bar as HTMLElement).style.minHeight).toBe('0');
+      });
+    });
   });
 });
